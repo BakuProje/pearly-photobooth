@@ -84,6 +84,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { AntiDevTools } from '@/components/AntiDevTools';
+
 export default function RootLayout({
   children,
 }: {
@@ -98,6 +100,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/images/logo.png" />
       </head>
       <body>
+        <AntiDevTools />
         {children}
       </body>
     </html>

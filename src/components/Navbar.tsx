@@ -1,16 +1,22 @@
 'use client';
 
 import React from 'react';
-import { Image as ImageIcon } from 'lucide-react';
+import { Image as ImageIcon, Clock } from 'lucide-react';
 
 interface NavbarProps {
   galleryCount: number;
   onOpenGallery: () => void;
+  sessionQuota?: number;
+  timeRemainingStr?: string;
+  onResetQuota?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   galleryCount,
   onOpenGallery,
+  sessionQuota = 3,
+  timeRemainingStr,
+  onResetQuota,
 }) => {
   return (
     <header className="no-print" style={{
@@ -23,8 +29,12 @@ export const Navbar: React.FC<NavbarProps> = ({
       border: 'none',
       boxShadow: 'none',
     }}>
-      {/* Clean Brand Logo & Name (No 'Studio' badge, no subtitle description) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+      {/* Clean Brand Logo & Name */}
+      <div
+        onClick={onResetQuota}
+        style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: onResetQuota ? 'pointer' : 'default' }}
+        title={onResetQuota ? 'Klik untuk reset kuota foto (Admin)' : undefined}
+      >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/images/logo.png"
@@ -46,8 +56,47 @@ export const Navbar: React.FC<NavbarProps> = ({
         </span>
       </div>
 
-      {/* Right Controls: Gallery Button */}
+      {/* Right Controls: Quota Indicator & Gallery Button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* Quota Badge with Live 8-Hour Reset Countdown */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            padding: '7px 12px',
+            borderRadius: '8px',
+            background: sessionQuota > 0 ? '#ffffff' : '#fef2f2',
+            border: `2px solid ${sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626'}`,
+            fontSize: '0.82rem',
+            fontWeight: 800,
+            color: sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626',
+            boxShadow: '2px 2px 0px var(--neo-black)',
+          }}
+          title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Reset otomatis dalam ${timeRemainingStr || '8 jam'}`}
+        >
+          {sessionQuota > 0 ? (
+            <>
+              <span>Credits:</span>
+              <span style={{
+                background: 'var(--neo-primary)',
+                color: 'var(--neo-black)',
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontWeight: 900,
+                fontSize: '0.76rem',
+              }}>
+                {sessionQuota}/3
+              </span>
+            </>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626' }}>
+              <Clock size={13} />
+              <span>Reset: <strong>{timeRemainingStr || '08:00:00'}</strong></span>
+            </div>
+          )}
+        </div>
+
         <button
           onClick={onOpenGallery}
           className="neo-btn neo-btn-secondary"

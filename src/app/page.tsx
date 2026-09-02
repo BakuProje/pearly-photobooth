@@ -7,6 +7,7 @@ import { CameraView } from '@/components/CameraView';
 import { ResultView } from '@/components/ResultView';
 import { GalleryDrawer } from '@/components/GalleryDrawer';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Camera, AlertTriangle, RotateCcw, Clock } from 'lucide-react';
 import {
   PhotoBoothConfig,
   FilterType,
@@ -27,6 +28,8 @@ const INITIAL_CONFIG: PhotoBoothConfig = {
   saturation: 0,
 };
 
+const RESET_COOLDOWN_MS = 8 * 60 * 60 * 1000; // 8 Jam (28.800.000 ms)
+
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<'select-template' | 'camera' | 'result'>('select-template');
   const [photos, setPhotos] = useState<string[]>([]);
@@ -35,6 +38,75 @@ export default function Home() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isScanView, setIsScanView] = useState(false);
   const [isViewingSavedSession, setIsViewingSavedSession] = useState(false);
+  const [sessionQuota, setSessionQuota] = useState<number>(3);
+  const [quotaDepletedAt, setQuotaDepletedAt] = useState<number | null>(null);
+  const [timeRemainingStr, setTimeRemainingStr] = useState<string>('');
+  const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
+
+  // Load session quota & live 8-hour auto-reset timer
+  useEffect(() => {
+    const updateQuotaAndTimer = () => {
+      try {
+        const savedQuota = localStorage.getItem('snapbooth_photo_quota');
+        const savedDepletedAt = localStorage.getItem('snapbooth_quota_depleted_at');
+
+        let currentQuota = savedQuota !== null ? parseInt(savedQuota, 10) : 3;
+        let depletedTime = savedDepletedAt !== null ? parseInt(savedDepletedAt, 10) : null;
+
+        if (currentQuota <= 0) {
+          if (depletedTime) {
+            const elapsed = Date.now() - depletedTime;
+            if (elapsed >= RESET_COOLDOWN_MS) {
+              // 8 hours reached -> Auto reset to 3
+              currentQuota = 3;
+              depletedTime = null;
+              localStorage.setItem('snapbooth_photo_quota', '3');
+              localStorage.removeItem('snapbooth_quota_depleted_at');
+              setSessionQuota(3);
+              setQuotaDepletedAt(null);
+              setTimeRemainingStr('');
+              return;
+            } else {
+              // Calculate remaining time
+              const remainingMs = RESET_COOLDOWN_MS - elapsed;
+              const hours = Math.floor(remainingMs / (1000 * 60 * 60));
+              const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
+              const seconds = Math.floor((remainingMs % (1000 * 60)) / 1000);
+              const pad = (n: number) => n.toString().padStart(2, '0');
+              setTimeRemainingStr(`${pad(hours)}:${pad(minutes)}:${pad(seconds)}`);
+            }
+          } else {
+            const now = Date.now();
+            localStorage.setItem('snapbooth_quota_depleted_at', now.toString());
+            depletedTime = now;
+            setTimeRemainingStr('08:00:00');
+          }
+        } else {
+          setTimeRemainingStr('');
+        }
+
+        setSessionQuota(currentQuota);
+        setQuotaDepletedAt(depletedTime);
+      } catch (err) {
+        console.warn('Error syncing quota', err);
+      }
+    };
+
+    updateQuotaAndTimer();
+    const interval = setInterval(updateQuotaAndTimer, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleResetQuota = () => {
+    setSessionQuota(3);
+    setQuotaDepletedAt(null);
+    setTimeRemainingStr('');
+    try {
+      localStorage.setItem('snapbooth_photo_quota', '3');
+      localStorage.removeItem('snapbooth_quota_depleted_at');
+    } catch {}
+    setIsQuotaModalOpen(false);
+  };
 
   // Check if opened via QR Scan mode or normal session
   useEffect(() => {
@@ -110,6 +182,37 @@ export default function Home() {
   };
 
   const handleStartSession = () => {
+    // Check if 8-hour cooldown has already elapsed before blocking
+    if (sessionQuota <= 0) {
+      if (quotaDepletedAt && Date.now() - quotaDepletedAt >= RESET_COOLDOWN_MS) {
+        // 8 hours have passed! Auto-reset immediately to 2 (used 1 credit for new session)
+        setSessionQuota(2);
+        setQuotaDepletedAt(null);
+        setTimeRemainingStr('');
+        try {
+          localStorage.setItem('snapbooth_photo_quota', '2');
+          localStorage.removeItem('snapbooth_quota_depleted_at');
+        } catch {}
+        setIsScanView(false);
+        setIsViewingSavedSession(false);
+        setCurrentStep('camera');
+        return;
+      }
+      setIsQuotaModalOpen(true);
+      return;
+    }
+
+    const newQuota = Math.max(0, sessionQuota - 1);
+    setSessionQuota(newQuota);
+    try {
+      localStorage.setItem('snapbooth_photo_quota', newQuota.toString());
+      if (newQuota === 0) {
+        const now = Date.now();
+        setQuotaDepletedAt(now);
+        localStorage.setItem('snapbooth_quota_depleted_at', now.toString());
+      }
+    } catch {}
+
     setIsScanView(false);
     setIsViewingSavedSession(false);
     setCurrentStep('camera');
@@ -175,6 +278,9 @@ export default function Home() {
         <Navbar
           galleryCount={gallery.length}
           onOpenGallery={() => setIsGalleryOpen(true)}
+          sessionQuota={sessionQuota}
+          timeRemainingStr={timeRemainingStr}
+          onResetQuota={handleResetQuota}
         />
       )}
 
@@ -252,6 +358,146 @@ export default function Home() {
         onClearAll={handleClearGallery}
         onSelectSession={handleLoadSessionFromGallery}
       />
+
+      {/* ================= MODAL KUOTA FOTO HABIS (DENGAN COUNTDOWN 8 JAM) ================= */}
+      <AnimatePresence>
+        {isQuotaModalOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setIsQuotaModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="neo-card"
+              style={{
+                maxWidth: '430px',
+                width: '100%',
+                padding: '26px 22px',
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '16px',
+                borderRadius: '16px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div
+                style={{
+                  width: '58px',
+                  height: '58px',
+                  borderRadius: '50%',
+                  background: '#fee2e2',
+                  border: '2.5px solid var(--neo-black)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#dc2626',
+                  boxShadow: '3px 3px 0px var(--neo-black)',
+                }}
+              >
+                <AlertTriangle size={28} />
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '6px' }}>
+                  Batas 3x Sesi Foto Telah Habis
+                </h3>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.45 }}>
+                  Credit sesi foto Anda telah habis (3/3 kali). Kuota foto akan direset otomatis menjadi 3x sesi setelah waktu tunggu 8 jam selesai.
+                </p>
+              </div>
+
+              {/* Live 8-Hour Countdown Display */}
+              <div
+                style={{
+                  background: '#f8fafc',
+                  border: '2px solid var(--neo-black)',
+                  borderRadius: '12px',
+                  padding: '12px 18px',
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '4px',
+                  boxShadow: '2.5px 2.5px 0px var(--neo-black)',
+                }}
+              >
+                <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
+                  Waktu Tunggu Reset Otomatis (8 Jam):
+                </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.45rem', fontWeight: 900, color: '#dc2626' }}>
+                  <Clock size={22} />
+                  <span>{timeRemainingStr || '08:00:00'}</span>
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.3fr', gap: '10px', width: '100%', marginTop: '4px' }}>
+                <button
+                  onClick={() => setIsQuotaModalOpen(false)}
+                  className="neo-btn neo-btn-secondary"
+                  style={{ padding: '10px', fontSize: '0.86rem', justifyContent: 'center' }}
+                >
+                  Tutup
+                </button>
+                <a
+                  href="https://wa.me/6281527641306?text=Halo%20Admin%20Snapbooth,%20saya%20ingin%20reset%20credits%20foto%20saya."
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="neo-btn neo-btn-primary"
+                  style={{
+                    padding: '10px 14px',
+                    fontSize: '0.88rem',
+                    background: '#22c55e',
+                    color: '#ffffff',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    textDecoration: 'none',
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 175.216 175.552"
+                    width="20"
+                    height="20"
+                    style={{ flexShrink: 0 }}
+                  >
+                    <defs>
+                      <linearGradient id="wa-b" x1="85.915" x2="86.535" y1="32.567" y2="137.092" gradientUnits="userSpaceOnUse">
+                        <stop offset="0" stopColor="#57d163" />
+                        <stop offset="1" stopColor="#23b33a" />
+                      </linearGradient>
+                      <filter id="wa-a" width="1.115" height="1.114" x="-.057" y="-.057" colorInterpolationFilters="sRGB">
+                        <feGaussianBlur stdDeviation="3.531" />
+                      </filter>
+                    </defs>
+                    <path fill="#b3b3b3" d="m54.532 138.45 2.235 1.324c9.387 5.571 20.15 8.518 31.126 8.523h.023c33.707 0 61.139-27.426 61.153-61.135.006-16.335-6.349-31.696-17.895-43.251A60.75 60.75 0 0 0 87.94 25.983c-33.733 0-61.166 27.423-61.178 61.13a60.98 60.98 0 0 0 9.349 32.535l1.455 2.312-6.179 22.558zm-40.811 23.544L24.16 123.88c-6.438-11.154-9.825-23.808-9.821-36.772.017-40.556 33.021-73.55 73.578-73.55 19.681.01 38.154 7.669 52.047 21.572s21.537 32.383 21.53 52.037c-.018 40.553-33.027 73.553-73.578 73.553h-.032c-12.313-.005-24.412-3.094-35.159-8.954zm0 0" filter="url(#wa-a)" />
+                    <path fill="#fff" d="m12.966 161.238 10.439-38.114a73.42 73.42 0 0 1-9.821-36.772c.017-40.556 33.021-73.55 73.578-73.55 19.681.01 38.154 7.669 52.047 21.572s21.537 32.383 21.53 52.037c-.018 40.553-33.027 73.553-73.578 73.553h-.032c-12.313-.005-24.412-3.094-35.159-8.954z" />
+                    <path fill="url(#wa-b)" d="M87.184 25.227c-33.733 0-61.166 27.423-61.178 61.13a60.98 60.98 0 0 0 9.349 32.535l1.455 2.312-6.179 22.559 23.146-6.069 2.235 1.324c9.387 5.571 20.15 8.518 31.126 8.524h.023c33.707 0 61.14-27.426 61.153-61.135a60.75 60.75 0 0 0-17.895-43.251 60.75 60.75 0 0 0-43.235-17.929z" />
+                    <path fill="url(#wa-b)" d="M87.184 25.227c-33.733 0-61.166 27.423-61.178 61.13a60.98 60.98 0 0 0 9.349 32.535l1.455 2.313-6.179 22.558 23.146-6.069 2.235 1.324c9.387 5.571 20.15 8.517 31.126 8.523h.023c33.707 0 61.14-27.426 61.153-61.135a60.75 60.75 0 0 0-17.895-43.251 60.75 60.75 0 0 0-43.235-17.928z" />
+                    <path fill="#fff" fillRule="evenodd" d="M68.772 55.603c-1.378-3.061-2.828-3.123-4.137-3.176l-3.524-.043c-1.226 0-3.218.46-4.902 2.3s-6.435 6.287-6.435 15.332 6.588 17.785 7.506 19.013 12.718 20.381 31.405 27.75c15.529 6.124 18.689 4.906 22.061 4.6s10.877-4.447 12.408-8.74 1.532-7.971 1.073-8.74-1.685-1.226-3.525-2.146-10.877-5.367-12.562-5.981-2.91-.919-4.137.921-4.746 5.979-5.819 7.206-2.144 1.381-3.984.462-7.76-2.861-14.784-9.124c-5.465-4.873-9.154-10.891-10.228-12.73s-.114-2.835.808-3.751c.825-.824 1.838-2.147 2.759-3.22s1.224-1.84 1.836-3.065.307-2.301-.153-3.22-4.032-10.011-5.666-13.647" />
+                  </svg>
+                  <span>Reset Credits</span>
+                </a>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

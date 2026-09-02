@@ -20,6 +20,7 @@ import {
   Move,
   ArrowUp,
   ArrowDown,
+  Camera,
 } from 'lucide-react';
 import { FilterType, PhotoboothTemplate, PhotoBoothConfig } from '@/lib/types';
 import { FILTERS, TEMPLATES } from '@/lib/constants';
@@ -255,8 +256,16 @@ export const CameraView: React.FC<CameraViewProps> = ({
       streamRef.current = stream;
 
       if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+        if (videoRef.current.srcObject !== stream) {
+          videoRef.current.srcObject = stream;
+        }
+        try {
+          await videoRef.current.play();
+        } catch (e: any) {
+          if (e.name !== 'AbortError') {
+            console.warn('Video play error:', e);
+          }
+        }
       }
 
       setHasCameraAccess(true);
@@ -279,9 +288,13 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   // Ensure stream is always attached to video element even if state switches
   useEffect(() => {
-    if (videoRef.current && streamRef.current && videoRef.current.srcObject !== streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      videoRef.current.play().catch(() => { });
+    if (videoRef.current && streamRef.current) {
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      videoRef.current.play().catch((e) => {
+        if (e.name !== 'AbortError') console.warn(e);
+      });
     }
   }, [sessionState]);
 
@@ -388,8 +401,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
     // Ensure stream is playing
     if (videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      await videoRef.current.play().catch(() => { });
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      videoRef.current.play().catch((e) => {
+        if (e.name !== 'AbortError') console.warn(e);
+      });
     }
 
     const newPhotos: string[] = [];
@@ -425,8 +442,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
     // Make sure video stream is live before countdown begins
     if (videoRef.current && streamRef.current) {
-      videoRef.current.srcObject = streamRef.current;
-      await videoRef.current.play().catch(() => { });
+      if (videoRef.current.srcObject !== streamRef.current) {
+        videoRef.current.srcObject = streamRef.current;
+      }
+      videoRef.current.play().catch((e) => {
+        if (e.name !== 'AbortError') console.warn(e);
+      });
     }
 
     await runCountdown(timerDuration);
@@ -1101,7 +1122,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
               <button
                 onClick={startFullSequence}
                 className="neo-btn neo-btn-secondary"
-                style={{ width: '100%', padding: '11px 6px', fontSize: 'clamp(0.8rem, 2.5vw, 0.88rem)', whiteSpace: 'nowrap' }}
+                style={{
+                  width: '100%',
+                  padding: '11px 6px',
+                  fontSize: 'clamp(0.8rem, 2.5vw, 0.88rem)',
+                  whiteSpace: 'nowrap',
+                }}
               >
                 <RotateCcw size={14} />
                 <span>Ulang Semua</span>
@@ -1660,7 +1686,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 <button
                   onClick={() => retakeSingleSlot(selectedPoseIndex)}
                   className="neo-btn neo-btn-secondary"
-                  style={{ padding: '10px', fontSize: '0.88rem', justifyContent: 'center' }}
+                  style={{
+                    padding: '10px',
+                    fontSize: '0.88rem',
+                    justifyContent: 'center',
+                  }}
+                  title="Foto Ulang Slot Ini"
                 >
                   <RotateCcw size={15} />
                   <span>Foto Ulang</span>
