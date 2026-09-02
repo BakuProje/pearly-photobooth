@@ -447,3 +447,20 @@ input[type="range"]::-moz-range-thumb {
   }
 }
 
+/* Responsive Credits Badge (Navbar on Desktop, Floating Bottom-Right on Mobile) */
+.credits-badge-desktop {
+  display: flex !important;
+}
+.credits-badge-mobile-floating {
+  display: none !important;
+}
+
+@media (max-width: 640px) {
+  .credits-badge-desktop {
+    display: none !important;
+  }
+  .credits-badge-mobile-floating {
+    display: flex !important;
+  }
+}
+
