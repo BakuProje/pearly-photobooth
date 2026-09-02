@@ -181,7 +181,11 @@ export default function Home() {
     setConfig((prev) => ({ ...prev, selectedTemplateId: templateId }));
   };
 
-  const handleStartSession = () => {
+  const [sessionStartMode, setSessionStartMode] = useState<'camera' | 'upload'>('camera');
+
+  const handleStartSession = (mode: 'camera' | 'upload' = 'camera') => {
+    setSessionStartMode(mode);
+
     // Check if 8-hour cooldown has already elapsed before blocking
     if (sessionQuota <= 0) {
       if (quotaDepletedAt && Date.now() - quotaDepletedAt >= RESET_COOLDOWN_MS) {
@@ -315,6 +319,7 @@ export default function Home() {
             >
               <CameraView
                 selectedTemplateId={config.selectedTemplateId}
+                initialMode={sessionStartMode}
                 config={config}
                 onChangeConfig={setConfig}
                 onBackToTemplateSelect={() => setCurrentStep('select-template')}

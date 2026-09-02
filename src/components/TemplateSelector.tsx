@@ -3,11 +3,13 @@
 import React, { useRef, useState } from 'react';
 import { PhotoboothTemplate } from '@/lib/types';
 import { TEMPLATES } from '@/lib/constants';
+import { Camera, ImagePlus, X, Sparkles, FolderUp } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface TemplateSelectorProps {
   selectedTemplateId: string;
   onSelectTemplate: (id: string) => void;
-  onStartSession: () => void;
+  onStartSession: (mode: 'camera' | 'upload') => void;
 }
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
@@ -20,6 +22,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [startX, setStartX] = useState(0);
   const [scrollLeftState, setScrollLeftState] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
+  const [modalTemplate, setModalTemplate] = useState<PhotoboothTemplate | null>(null);
 
   // Wheel horizontal scrolling on PC
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -54,10 +57,17 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     setIsMouseDown(false);
   };
 
-  const handleCardClick = (templateId: string) => {
+  const handleCardClick = (tmpl: PhotoboothTemplate) => {
     if (hasDragged) return; // Ignore click if user was dragging
-    onSelectTemplate(templateId);
-    onStartSession();
+    onSelectTemplate(tmpl.id);
+    setModalTemplate(tmpl);
+  };
+
+  const handleChooseMode = (mode: 'camera' | 'upload') => {
+    if (!modalTemplate) return;
+    onSelectTemplate(modalTemplate.id);
+    onStartSession(mode);
+    setModalTemplate(null);
   };
 
   return (
@@ -145,7 +155,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             return (
               <div
                 key={tmpl.id}
-                onClick={() => handleCardClick(tmpl.id)}
+                onClick={() => handleCardClick(tmpl)}
                 className="neo-card-interactive"
                 style={{
                   width: '240px',
@@ -226,6 +236,175 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           })}
         </div>
       </div>
+
+      {/* ================= MODAL PILIH METODE FOTO (FOTO LANGSUNG VS PILIH FOTO DARI FOLDER) ================= */}
+      <AnimatePresence>
+        {modalTemplate && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 999,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setModalTemplate(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="neo-card"
+              style={{
+                maxWidth: '440px',
+                width: '100%',
+                padding: '24px 20px',
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '16px',
+                borderRadius: '20px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header Modal */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)' }}>
+                    {modalTemplate.name}
+                  </span>
+                  <span style={{
+                    fontSize: '0.74rem',
+                    fontWeight: 900,
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    background: 'var(--neo-primary)',
+                    color: 'var(--neo-black)',
+                    border: '1.5px solid var(--neo-black)',
+                  }}>
+                    {modalTemplate.requiredPhotos} Slot Foto
+                  </span>
+                </div>
+
+                <button
+                  onClick={() => setModalTemplate(null)}
+                  style={{
+                    background: '#ffffff',
+                    border: '2px solid var(--neo-black)',
+                    borderRadius: '8px',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600, margin: 0, marginTop: '-6px' }}>
+                Pilih cara Anda ingin mengisi foto pada template ini:
+              </p>
+
+              {/* 2 Big Choice Cards */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                {/* Option 1: Foto Langsung (Live Camera) */}
+                <div
+                  onClick={() => handleChooseMode('camera')}
+                  className="neo-card-interactive"
+                  style={{
+                    padding: '16px',
+                    borderRadius: '14px',
+                    border: '2.5px solid var(--neo-black)',
+                    background: '#f0fdf4',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    cursor: 'pointer',
+                    boxShadow: '3px 3px 0px var(--neo-black)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'var(--neo-green)',
+                      border: '2px solid var(--neo-black)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--neo-black)',
+                      flexShrink: 0,
+                      boxShadow: '2px 2px 0px var(--neo-black)',
+                    }}
+                  >
+                    <Camera size={24} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
+                      Foto Langsung
+                    </h4>
+                    <p style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
+                      Gunakan kamera live dengan countdown hitungan mundur otomatis.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Option 2: Pilih Foto (Upload dari Galeri / Folder) */}
+                <div
+                  onClick={() => handleChooseMode('upload')}
+                  className="neo-card-interactive"
+                  style={{
+                    padding: '16px',
+                    borderRadius: '14px',
+                    border: '2.5px solid var(--neo-black)',
+                    background: '#eff6ff',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '14px',
+                    cursor: 'pointer',
+                    boxShadow: '3px 3px 0px var(--neo-black)',
+                  }}
+                >
+                  <div
+                    style={{
+                      width: '48px',
+                      height: '48px',
+                      borderRadius: '12px',
+                      background: 'var(--neo-blue-light)',
+                      border: '2px solid var(--neo-black)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      color: 'var(--neo-black)',
+                      flexShrink: 0,
+                      boxShadow: '2px 2px 0px var(--neo-black)',
+                    }}
+                  >
+                    <ImagePlus size={24} />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
+                      Pilih Foto (Upload Galeri)
+                    </h4>
+                    <p style={{ fontSize: '0.78rem', color: '#1d4ed8', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
+                      Pilih foto dari memori perangkat untuk tiap slot bingkai secara bebas.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };

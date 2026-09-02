@@ -21,6 +21,9 @@ import {
   ArrowUp,
   ArrowDown,
   Camera,
+  Upload,
+  ImagePlus,
+  FolderUp,
 } from 'lucide-react';
 import { FilterType, PhotoboothTemplate, PhotoBoothConfig } from '@/lib/types';
 import { FILTERS, TEMPLATES } from '@/lib/constants';
@@ -30,6 +33,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 interface CameraViewProps {
   selectedTemplateId: string;
+  initialMode?: 'camera' | 'upload';
   config?: PhotoBoothConfig;
   onChangeConfig?: React.Dispatch<React.SetStateAction<PhotoBoothConfig>>;
   onBackToTemplateSelect: () => void;
@@ -40,6 +44,7 @@ interface CameraViewProps {
 
 export const CameraView: React.FC<CameraViewProps> = ({
   selectedTemplateId,
+  initialMode = 'camera',
   config,
   onChangeConfig,
   onBackToTemplateSelect,
@@ -50,6 +55,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Mode: 'camera' (live webcam) vs 'upload' (import/upload from files)
+  const [inputMode, setInputMode] = useState<'camera' | 'upload'>(initialMode);
+  const singleFileInputRef = useRef<HTMLInputElement | null>(null);
+  const batchFileInputRef = useRef<HTMLInputElement | null>(null);
+  const activeUploadSlotRef = useRef<number | null>(null);
+
   const [hasCameraAccess, setHasCameraAccess] = useState<boolean | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [isMirror, setIsMirror] = useState(true);
@@ -59,7 +70,9 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const [filterSearch, setFilterSearch] = useState('');
 
   // States: 'setup' (sebelum foto) | 'shooting' (sedang foto) | 'review' (selesai foto)
-  const [sessionState, setSessionState] = useState<'setup' | 'shooting' | 'review'>('setup');
+  const [sessionState, setSessionState] = useState<'setup' | 'shooting' | 'review'>(
+    initialMode === 'upload' ? 'review' : 'setup'
+  );
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
   const [currentShotIndex, setCurrentShotIndex] = useState<number>(0);
   const [isFlashing, setIsFlashing] = useState(false);
@@ -212,8 +225,78 @@ export const CameraView: React.FC<CameraViewProps> = ({
     setCapturedPhotos(new Array(totalShots).fill(null));
     setPhotoScales(new Array(totalShots).fill(1));
     setPhotoOffsets(new Array(totalShots).fill({ x: 0, y: 0 }));
-    setSessionState('setup');
-  }, [totalShots]);
+    if (initialMode === 'upload') {
+      setInputMode('upload');
+      setSessionState('review');
+    } else {
+      setInputMode('camera');
+      setSessionState('setup');
+    }
+  }, [totalShots, initialMode]);
+
+  // Trigger file picker for specific slot
+  const triggerUploadForSlot = (slotIndex: number) => {
+    activeUploadSlotRef.current = slotIndex;
+    if (singleFileInputRef.current) {
+      singleFileInputRef.current.value = '';
+      singleFileInputRef.current.click();
+    }
+  };
+
+  // Trigger batch file picker for all slots
+  const triggerBatchUpload = () => {
+    if (batchFileInputRef.current) {
+      batchFileInputRef.current.value = '';
+      batchFileInputRef.current.click();
+    }
+  };
+
+  // Handle single photo upload
+  const handleSingleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    const targetSlot = activeUploadSlotRef.current;
+    if (!file || targetSlot === null || targetSlot === undefined) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setCapturedPhotos((prev) => {
+          const updated = [...prev];
+          updated[targetSlot] = dataUrl;
+          return updated;
+        });
+        setSessionState('review');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Handle batch photos upload (multiple files selected at once)
+  const handleBatchFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    const fileList = Array.from(files).slice(0, totalShots);
+    let loadedCount = 0;
+    const newPhotos = [...capturedPhotos];
+
+    fileList.forEach((file, index) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const dataUrl = event.target?.result as string;
+        if (dataUrl) {
+          newPhotos[index] = dataUrl;
+        }
+        loadedCount++;
+        if (loadedCount === fileList.length) {
+          setCapturedPhotos(newPhotos);
+          setSessionState('review');
+        }
+      };
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Sync adjustments to parent config
   useEffect(() => {
@@ -300,9 +383,10 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   // Re-render live photostrip preview in review state whenever photos or adjustments change
   useEffect(() => {
-    if (sessionState === 'review' && capturedPhotos.every((p) => p !== null)) {
+    const hasAnyPhoto = capturedPhotos.some((p) => p !== null);
+    if ((sessionState === 'review' || inputMode === 'upload') && hasAnyPhoto) {
       setIsRenderingPreview(true);
-      const validPhotos = capturedPhotos.filter((p): p is string => p !== null);
+      const validPhotos = capturedPhotos.map((p) => p || '');
       const currentConfig: PhotoBoothConfig = {
         selectedTemplateId,
         filter: activeFilter,
@@ -335,7 +419,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
           setIsRenderingPreview(false);
         });
     }
-  }, [sessionState, capturedPhotos, selectedTemplateId, activeFilter, enhance, brightness, contrast, saturation, warmth, fade, highlights, shadows, vignette, photoScales, photoOffsets]);
+  }, [sessionState, inputMode, capturedPhotos, selectedTemplateId, activeFilter, enhance, brightness, contrast, saturation, warmth, fade, highlights, shadows, vignette, photoScales, photoOffsets]);
 
   // Capture single photo from live video element
   const captureFrame = useCallback((): string | null => {
@@ -467,13 +551,16 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   // Proceed to final result
   const handleProceedToResult = () => {
-    const validPhotos = capturedPhotos.filter((p): p is string => p !== null);
-    if (validPhotos.length === totalShots) {
-      onPhotosCompleted(validPhotos);
+    const validPhotos = capturedPhotos.filter((p): p is string => p !== null && p !== '');
+    if (validPhotos.length === 0) {
+      alert('Silakan ambil foto atau upload foto terlebih dahulu.');
+      return;
     }
+    const finalPhotos = capturedPhotos.map((p) => p || validPhotos[0]);
+    onPhotosCompleted(finalPhotos);
   };
 
-  const filledCount = capturedPhotos.filter((p) => p !== null).length;
+  const filledCount = capturedPhotos.filter((p) => p !== null && p !== '').length;
 
   const resetAllAdjustments = () => {
     setEnhance(0);
@@ -522,8 +609,25 @@ export const CameraView: React.FC<CameraViewProps> = ({
             }
       }
     >
-      {/* ================= TOP HEADER BAR (HANYA MUNCUL DI SETUP, TERSEMBUNYI SAAT SESI FOTO BERLANGSUNG) ================= */}
-      {sessionState === 'setup' && (
+      {/* Hidden File Inputs for Single & Batch Image Uploads */}
+      <input
+        type="file"
+        ref={singleFileInputRef}
+        accept="image/*"
+        style={{ display: 'none' }}
+        onChange={handleSingleFileChange}
+      />
+      <input
+        type="file"
+        ref={batchFileInputRef}
+        accept="image/*"
+        multiple
+        style={{ display: 'none' }}
+        onChange={handleBatchFileChange}
+      />
+
+      {/* ================= TOP HEADER BAR DENGAN MODE SWITCH (KAMERA VS UPLOAD) ================= */}
+      {sessionState !== 'shooting' && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -537,18 +641,19 @@ export const CameraView: React.FC<CameraViewProps> = ({
             gap: '8px',
             background: 'var(--neo-white)',
             width: '100%',
+            flexWrap: 'wrap',
           }}
         >
-          <button
-            onClick={onBackToTemplateSelect}
-            className="neo-btn neo-btn-secondary"
-            style={{ padding: '7px 12px', fontSize: '0.82rem', whiteSpace: 'nowrap', flexShrink: 0 }}
-          >
-            <ArrowLeft size={15} />
-            <span>Ganti Template</span>
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={onBackToTemplateSelect}
+              className="neo-btn neo-btn-secondary"
+              style={{ padding: '7px 12px', fontSize: '0.82rem', whiteSpace: 'nowrap', flexShrink: 0 }}
+            >
+              <ArrowLeft size={15} />
+              <span>Ganti Template</span>
+            </button>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
             <span
               style={{
                 background: 'var(--neo-primary)',
@@ -563,20 +668,71 @@ export const CameraView: React.FC<CameraViewProps> = ({
             >
               {currentTemplate.name}
             </span>
-            <span
+          </div>
+
+          {/* Mode Switch Tabs: [ 📸 Kamera Live ] | [ 📁 Upload Galeri ] */}
+          <div
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              background: '#f1f5f9',
+              padding: '3px',
+              borderRadius: '10px',
+              border: '2px solid var(--neo-black)',
+              gap: '4px',
+            }}
+          >
+            <button
+              type="button"
+              onClick={() => {
+                setInputMode('camera');
+                if (capturedPhotos.every((p) => p === null)) {
+                  setSessionState('setup');
+                }
+              }}
               style={{
-                background: '#f1f5f9',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 12px',
+                borderRadius: '7px',
+                border: inputMode === 'camera' ? '1.5px solid var(--neo-black)' : 'none',
+                background: inputMode === 'camera' ? 'var(--neo-green)' : 'transparent',
+                fontWeight: 900,
+                fontSize: '0.76rem',
+                cursor: 'pointer',
                 color: 'var(--neo-black)',
-                border: '1.5px solid var(--neo-black)',
-                padding: '3px 8px',
-                borderRadius: '999px',
-                fontWeight: 800,
-                fontSize: '0.74rem',
-                whiteSpace: 'nowrap',
+                boxShadow: inputMode === 'camera' ? '1.5px 1.5px 0px var(--neo-black)' : 'none',
               }}
             >
-              {totalShots} Foto
-            </span>
+              <Camera size={13} />
+              <span>Foto Langsung</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setInputMode('upload');
+                setSessionState('review');
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                padding: '5px 12px',
+                borderRadius: '7px',
+                border: inputMode === 'upload' ? '1.5px solid var(--neo-black)' : 'none',
+                background: inputMode === 'upload' ? 'var(--neo-blue-light)' : 'transparent',
+                fontWeight: 900,
+                fontSize: '0.76rem',
+                cursor: 'pointer',
+                color: 'var(--neo-black)',
+                boxShadow: inputMode === 'upload' ? '1.5px 1.5px 0px var(--neo-black)' : 'none',
+              }}
+            >
+              <FolderUp size={13} />
+              <span>Pilih Foto</span>
+            </button>
           </div>
         </motion.div>
       )}
@@ -1031,12 +1187,36 @@ export const CameraView: React.FC<CameraViewProps> = ({
               )}
             </div>
 
-            {/* Slot Photo Thumbnails: Strict film-strip grid fitting all photos in 1 clean row */}
+            {/* Slot Photo Thumbnails: Strict film-strip grid fitting all photos */}
             <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '2px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
                 <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
-                  Foto Pose ({totalShots}) • Klik foto untuk perbesar
+                  Slot Foto ({filledCount}/{totalShots}) • Klik untuk atur posisi & zoom
                 </span>
+
+                {/* Batch Upload Button */}
+                <button
+                  type="button"
+                  onClick={triggerBatchUpload}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '4px 10px',
+                    borderRadius: '7px',
+                    background: '#eff6ff',
+                    border: '1.5px solid var(--neo-black)',
+                    color: '#1d4ed8',
+                    fontSize: '0.74rem',
+                    fontWeight: 900,
+                    cursor: 'pointer',
+                    boxShadow: '1.5px 1.5px 0px var(--neo-black)',
+                  }}
+                  title="Pilih beberapa foto sekaligus dari galeri untuk mengisi semua slot"
+                >
+                  <FolderUp size={13} />
+                  <span>Upload Sekaligus (Batch)</span>
+                </button>
               </div>
 
               <div
@@ -1044,7 +1224,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
                   display: totalShots === 1 ? 'flex' : 'grid',
                   justifyContent: totalShots === 1 ? 'center' : undefined,
                   gridTemplateColumns: totalShots > 1 ? `repeat(${totalShots}, minmax(0, 1fr))` : undefined,
-                  gap: totalShots === 1 ? '0px' : '5px',
+                  gap: totalShots === 1 ? '0px' : '6px',
                   width: '100%',
                 }}
               >
@@ -1060,58 +1240,94 @@ export const CameraView: React.FC<CameraViewProps> = ({
                       background: '#ffffff',
                       boxShadow: '2px 2px 0px var(--neo-black)',
                       minWidth: 0,
-                      width: totalShots === 1 ? '110px' : '100%',
-                      maxWidth: totalShots === 1 ? '110px' : 'none',
+                      width: totalShots === 1 ? '120px' : '100%',
+                      maxWidth: totalShots === 1 ? '120px' : 'none',
                     }}
                   >
-                    {/* Klik Foto -> Muncul Pop-up Detail Foto */}
+                    {/* Klik Foto -> Muncul Pop-up Detail Foto / Upload */}
                     <div
-                      onClick={() => photo && setSelectedPoseIndex(idx)}
+                      onClick={() => {
+                        if (photo) {
+                          setSelectedPoseIndex(idx);
+                        } else {
+                          triggerUploadForSlot(idx);
+                        }
+                      }}
                       style={{
                         width: '100%',
                         aspectRatio: '1 / 1',
                         overflow: 'hidden',
-                        background: '#000000',
-                        cursor: photo ? 'pointer' : 'default',
+                        background: photo ? '#000000' : '#f8fafc',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        position: 'relative',
                       }}
-                      title={photo ? `Klik untuk lihat jelas Foto Pose #${idx + 1}` : undefined}
+                      title={photo ? `Klik untuk atur posisi & zoom Foto #${idx + 1}` : `Klik untuk upload foto slot #${idx + 1}`}
                     >
                       {photo ? (
                         /* eslint-disable-next-line @next/next/no-img-element */
                         <img
                           src={photo}
-                          alt={`Pose ${idx + 1}`}
+                          alt={`Slot ${idx + 1}`}
                           style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                         />
                       ) : (
-                        <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ffffff', fontSize: '0.65rem' }}>
-                          #{idx + 1}
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '3px', color: 'var(--text-secondary)', padding: '4px', textAlign: 'center' }}>
+                          <Upload size={15} />
+                          <span style={{ fontSize: '0.66rem', fontWeight: 900 }}>Slot #{idx + 1}</span>
                         </div>
                       )}
                     </div>
 
-                    {/* Klik Tombol Ulang -> Otomatis Memotret Ulang Slot Ini */}
-                    <button
-                      onClick={() => retakeSingleSlot(idx)}
-                      style={{
-                        padding: '4px 0',
-                        background: 'var(--neo-black)',
-                        color: '#ffffff',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: 'clamp(0.62rem, 1.8vw, 0.72rem)',
-                        fontWeight: 900,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '2px',
-                        width: '100%',
-                      }}
-                      title={`Foto Ulang Slot #${idx + 1}`}
-                    >
-                      <RotateCcw size={10} />
-                      <span>#{idx + 1}</span>
-                    </button>
+                    {/* Dual Action Mini Buttons on Bottom of Card: [ 📸 Kamera ] [ 📁 Upload ] */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', width: '100%', borderTop: '1.5px solid var(--neo-black)' }}>
+                      <button
+                        type="button"
+                        onClick={() => retakeSingleSlot(idx)}
+                        style={{
+                          padding: '4px 0',
+                          background: '#ffffff',
+                          color: 'var(--neo-black)',
+                          border: 'none',
+                          borderRight: '1px solid var(--neo-black)',
+                          cursor: 'pointer',
+                          fontSize: 'clamp(0.58rem, 1.6vw, 0.68rem)',
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '2px',
+                        }}
+                        title={`Ambil foto kamera untuk Slot #${idx + 1}`}
+                      >
+                        <Camera size={10} />
+                        <span>#{idx + 1}</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => triggerUploadForSlot(idx)}
+                        style={{
+                          padding: '4px 0',
+                          background: '#f1f5f9',
+                          color: '#1d4ed8',
+                          border: 'none',
+                          cursor: 'pointer',
+                          fontSize: 'clamp(0.58rem, 1.6vw, 0.68rem)',
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '2px',
+                        }}
+                        title={`Pilih/Ganti foto dari folder untuk Slot #${idx + 1}`}
+                      >
+                        <Upload size={10} />
+                        <span>File</span>
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1682,27 +1898,48 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 />
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '10px', width: '100%' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', width: '100%' }}>
+                <button
+                  onClick={() => triggerUploadForSlot(selectedPoseIndex)}
+                  className="neo-btn neo-btn-secondary"
+                  style={{
+                    padding: '9px',
+                    fontSize: '0.82rem',
+                    justifyContent: 'center',
+                    gap: '5px',
+                  }}
+                  title="Upload / Ganti Foto dari Galeri"
+                >
+                  <FolderUp size={14} />
+                  <span>Ganti File</span>
+                </button>
+
                 <button
                   onClick={() => retakeSingleSlot(selectedPoseIndex)}
                   className="neo-btn neo-btn-secondary"
                   style={{
-                    padding: '10px',
-                    fontSize: '0.88rem',
+                    padding: '9px',
+                    fontSize: '0.82rem',
                     justifyContent: 'center',
+                    gap: '5px',
                   }}
-                  title="Foto Ulang Slot Ini"
+                  title="Foto Ulang dengan Kamera"
                 >
-                  <RotateCcw size={15} />
-                  <span>Foto Ulang</span>
+                  <RotateCcw size={14} />
+                  <span>Kamera</span>
                 </button>
 
                 <button
                   onClick={() => setSelectedPoseIndex(null)}
                   className="neo-btn neo-btn-primary"
-                  style={{ padding: '10px', fontSize: '0.88rem', justifyContent: 'center' }}
+                  style={{
+                    padding: '9px',
+                    fontSize: '0.82rem',
+                    background: 'var(--neo-green)',
+                    justifyContent: 'center',
+                  }}
                 >
-                  <span>Tutup</span>
+                  <span>Selesai</span>
                 </button>
               </div>
             </div>

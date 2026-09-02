@@ -111,7 +111,7 @@ export async function renderPhotoStripCanvas(
   // Draw photos into each slot
   for (let sIdx = 0; sIdx < slots.length; sIdx++) {
     const slot = slots[sIdx];
-    const photoImg = loadedPhotos[sIdx] || loadedPhotos[loadedPhotos.length - 1];
+    const photoImg = loadedPhotos[sIdx] || null;
 
     if (photoImg) {
       ctx.save();
