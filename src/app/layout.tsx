@@ -1,31 +1,70 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ||
+  (process.env.VERCEL_PROJECT_PRODUCTION_URL
+    ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`
+    : process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : 'https://snapbooth.id');
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
+  themeColor: '#0a0a0f',
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'),
-  title: 'Snapbooth',
-  description: 'Website Photo Booth online kekinian dengan 10 template strip Korea, filter estetik real-time, live camera countdown, dan download Photostrip, Animated GIF & Raw Photos.',
+  metadataBase: new URL(siteUrl),
+  title: {
+    default: 'Snapbooth - Photobooth Online Aesthetic & Seru',
+    template: '%s | Snapbooth',
+  },
+  description:
+    'Website Photo Booth online kekinian dengan beragam template estetik (Twin Strip, Y2K Digicam, Koran Vintage, Spotify Playlist, Story 9:16), filter real-time, live camera countdown, dan download photostrip, animated GIF & foto raw secara instan.',
   applicationName: 'Snapbooth',
-  keywords: ['Photo Booth', 'Photobooth Online', 'Korean Photobooth', 'Photostrip', 'Vintage Photobooth', 'Animated GIF', 'Snapbooth'],
+  authors: [{ name: 'Snapbooth' }],
+  generator: 'Next.js',
+  keywords: [
+    'Photo Booth',
+    'Photobooth Online',
+    'Korean Photobooth',
+    'Photostrip',
+    'Vintage Photobooth',
+    'Animated GIF',
+    'Snapbooth',
+    'Self Photo Studio Online',
+    'Aesthetic Photo Strip',
+  ],
   icons: {
     icon: [
-      { url: '/images/favicon.ico' },
-      { url: '/favicon.ico' },
+      { url: '/images/favico.ico', sizes: 'any' },
+      { url: '/images/favicon.ico', sizes: 'any' },
+      { url: '/favico.ico', sizes: 'any' },
+      { url: '/favicon.ico', sizes: 'any' },
     ],
-    shortcut: '/images/favicon.ico',
-    apple: '/images/logo.png',
+    shortcut: ['/images/favico.ico', '/images/favicon.ico'],
+    apple: [
+      { url: '/images/logo.png', sizes: '180x180', type: 'image/png' },
+    ],
   },
   openGraph: {
-    title: 'Snapbooth',
-    description: 'Foto seru dengan 12 template aesthetic (Twin Strip, Y2K Digicam, Koran Vintage, Spotify Playlist, Story 9:16, & Minimalist), filter live kamera, animated GIF, dan download photostrip langsung!',
-    url: '/',
+    title: 'Snapbooth - Photobooth Online Aesthetic & Seru',
+    description:
+      'Foto seru ala Photobooth Korea online! Beragam template aesthetic, filter real-time, countdown kamera, dan download photostrip gratis langsung di browser kamu.',
+    url: siteUrl,
     siteName: 'Snapbooth',
     images: [
       {
         url: '/images/logo.png',
-        width: 1536,
-        height: 1024,
-        alt: 'Snapbooth Photo Booth Logo',
+        width: 1200,
+        height: 800,
+        type: 'image/png',
+        alt: 'Snapbooth Logo & Preview',
       },
     ],
     locale: 'id_ID',
@@ -33,9 +72,15 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Snapbooth',
-    description: 'Foto seru dengan 12 template aesthetic (Twin Strip, Y2K Digicam, Koran Vintage, Spotify Playlist, Story 9:16, & Minimalist), filter live kamera, animated GIF, dan download photostrip langsung!',
+    title: 'Snapbooth - Photobooth Online Aesthetic & Seru',
+    description:
+      'Foto seru ala Photobooth Korea online! Beragam template aesthetic, filter real-time, countdown kamera, dan download photostrip gratis langsung di browser kamu.',
     images: ['/images/logo.png'],
+    creator: '@snapbooth',
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 
@@ -47,15 +92,10 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        <link rel="icon" href="/images/favico.ico" sizes="any" />
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
-        <link rel="shortcut icon" href="/images/favicon.ico" />
+        <link rel="shortcut icon" href="/images/favico.ico" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
-        <meta property="og:image" content="/images/logo.png" />
-        <meta property="og:image:type" content="image/png" />
-        <meta property="og:image:width" content="1536" />
-        <meta property="og:image:height" content="1024" />
-        <meta name="twitter:image" content="/images/logo.png" />
       </head>
       <body>
         {children}
@@ -63,3 +103,4 @@ export default function RootLayout({
     </html>
   );
 }
+
