@@ -284,7 +284,7 @@ export default function Home() {
           onOpenGallery={() => setIsGalleryOpen(true)}
           sessionQuota={sessionQuota}
           timeRemainingStr={timeRemainingStr}
-          onResetQuota={handleResetQuota}
+          onOpenQuotaModal={() => setIsQuotaModalOpen(true)}
         />
       )}
 

@@ -8,7 +8,7 @@ interface NavbarProps {
   onOpenGallery: () => void;
   sessionQuota?: number;
   timeRemainingStr?: string;
-  onResetQuota?: () => void;
+  onOpenQuotaModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -16,7 +16,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenGallery,
   sessionQuota = 3,
   timeRemainingStr,
-  onResetQuota,
+  onOpenQuotaModal,
 }) => {
   return (
     <>
@@ -31,11 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
         boxShadow: 'none',
       }}>
         {/* Clean Brand Logo & Name */}
-        <div
-          onClick={onResetQuota}
-          style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: onResetQuota ? 'pointer' : 'default' }}
-          title={onResetQuota ? 'Klik untuk reset kuota foto (Admin)' : undefined}
-        >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/images/logo.png"
@@ -62,7 +58,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* Desktop Quota Badge (Hidden on Mobile) */}
           <div
             className="credits-badge-desktop"
-            onClick={onResetQuota}
+            onClick={sessionQuota === 0 ? onOpenQuotaModal : undefined}
             style={{
               alignItems: 'center',
               gap: '6px',
@@ -74,9 +70,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               fontWeight: 800,
               color: sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626',
               boxShadow: '2px 2px 0px var(--neo-black)',
-              cursor: onResetQuota ? 'pointer' : 'default',
+              cursor: sessionQuota === 0 ? 'pointer' : 'default',
             }}
-            title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Reset otomatis dalam ${timeRemainingStr || '8 jam'}`}
+            title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Klik untuk info reset.`}
           >
             {sessionQuota > 0 ? (
               <>
@@ -139,7 +135,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Floating Credits Badge (Pojok Kanan Bawah pada Mobile / Android) */}
       <div
         className="credits-badge-mobile-floating"
-        onClick={onResetQuota}
+        onClick={sessionQuota === 0 ? onOpenQuotaModal : undefined}
         style={{
           position: 'fixed',
           bottom: '18px',
@@ -155,9 +151,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           fontWeight: 900,
           color: sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626',
           boxShadow: '3px 3px 0px var(--neo-black)',
-          cursor: onResetQuota ? 'pointer' : 'default',
+          cursor: sessionQuota === 0 ? 'pointer' : 'default',
         }}
-        title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Reset otomatis dalam ${timeRemainingStr || '8 jam'}`}
+        title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Klik untuk info reset.`}
       >
         {sessionQuota > 0 ? (
           <>

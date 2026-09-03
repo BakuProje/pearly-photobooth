@@ -67,6 +67,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const [timerDuration, setTimerDuration] = useState<number>(3); // 3, 5, 7, 10 seconds
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [isEmptyPhotoModalOpen, setIsEmptyPhotoModalOpen] = useState(false);
   const [filterSearch, setFilterSearch] = useState('');
 
   // States: 'setup' (sebelum foto) | 'shooting' (sedang foto) | 'review' (selesai foto)
@@ -553,7 +554,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const handleProceedToResult = () => {
     const validPhotos = capturedPhotos.filter((p): p is string => p !== null && p !== '');
     if (validPhotos.length === 0) {
-      alert('Silakan ambil foto atau upload foto terlebih dahulu.');
+      setIsEmptyPhotoModalOpen(true);
       return;
     }
     const finalPhotos = capturedPhotos.map((p) => p || validPhotos[0]);
@@ -2415,6 +2416,132 @@ export const CameraView: React.FC<CameraViewProps> = ({
           </motion.div>
         )}
       </AnimatePresence>
-    </div >
+
+      {/* ================= MODAL 4: PERINGATAN FOTO MASIH KOSONG (NEO-BRUTALIST CUSTOM POPUP) ================= */}
+      <AnimatePresence>
+        {isEmptyPhotoModalOpen && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 99999,
+              background: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(6px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '16px',
+            }}
+            onClick={() => setIsEmptyPhotoModalOpen(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.88, opacity: 0, y: 15 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.88, opacity: 0, y: 15 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
+              className="neo-card"
+              style={{
+                maxWidth: '430px',
+                width: '100%',
+                padding: '26px 22px',
+                background: '#ffffff',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                textAlign: 'center',
+                gap: '16px',
+                borderRadius: '18px',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Animated Warning Icon with Neo-Brutalist Border */}
+              <div
+                style={{
+                  width: '58px',
+                  height: '58px',
+                  borderRadius: '50%',
+                  background: '#fef3c7',
+                  border: '2.5px solid var(--neo-black)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#d97706',
+                  boxShadow: '3px 3px 0px var(--neo-black)',
+                }}
+              >
+                <Camera size={28} />
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '6px' }}>
+                  Foto Masih Kosong
+                </h3>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', fontWeight: 600, lineHeight: 1.45, margin: 0 }}>
+                  Silakan ambil foto dengan kamera live atau upload foto dari galeri terlebih dahulu sebelum melanjutkan ke hasil.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '4px' }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEmptyPhotoModalOpen(false);
+                    setInputMode('camera');
+                    setSessionState('setup');
+                  }}
+                  className="neo-btn neo-btn-primary"
+                  style={{
+                    padding: '11px',
+                    fontSize: '0.88rem',
+                    background: 'var(--neo-green)',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <Camera size={16} />
+                  <span>Ambil Foto dengan Kamera</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsEmptyPhotoModalOpen(false);
+                    triggerBatchUpload();
+                  }}
+                  className="neo-btn neo-btn-secondary"
+                  style={{
+                    padding: '11px',
+                    fontSize: '0.88rem',
+                    background: '#eff6ff',
+                    color: '#1d4ed8',
+                    justifyContent: 'center',
+                    gap: '6px',
+                  }}
+                >
+                  <FolderUp size={16} />
+                  <span>Upload Foto dari Galeri</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsEmptyPhotoModalOpen(false)}
+                  className="neo-btn neo-btn-secondary"
+                  style={{
+                    padding: '8px',
+                    fontSize: '0.82rem',
+                    justifyContent: 'center',
+                    border: '1.5px solid var(--neo-black)',
+                    marginTop: '2px',
+                  }}
+                >
+                  Tutup
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </div>
   );
 };
