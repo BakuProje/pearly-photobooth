@@ -10,13 +10,18 @@ export interface TemplateSlot {
 
 export type TemplateCategory =
   | 'Twin Strip'
+  | 'Filmstrip'
   | 'Newspaper'
   | 'Cute Chibi'
   | 'Vintage Collage'
   | 'Postage Stamp'
   | 'Y2K Digicam'
   | 'Story 9:16'
-  | 'Minimalist';
+  | 'Minimalist'
+  | 'Aesthetic Board'
+  | 'Scrapbook'
+  | 'Collage'
+  | 'Polaroid';
 
 export interface PhotoboothTemplate {
   id: string;

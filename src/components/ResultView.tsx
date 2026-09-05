@@ -56,91 +56,103 @@ export const ResultView: React.FC<ResultViewProps> = ({
   // Lightbox Zoom Modal State
   const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
 
-  // Prevent duplicate saves for the same session
+  // Prevent duplicate saves & duplicate re-renders for the same session
   const hasAutoSavedRef = React.useRef(false);
+  const onSaveToGalleryRef = React.useRef(onSaveToGallery);
+  onSaveToGalleryRef.current = onSaveToGallery;
+  const renderedSessionKeyRef = React.useRef<string>('');
 
   const currentTemplate: PhotoboothTemplate =
     TEMPLATES.find((t) => t.id === config.selectedTemplateId) || TEMPLATES[0];
 
-  // Cycling preview if GIF is rendering
+  // Cycling preview if GIF is rendering (only depends on length of processedPhotos)
   useEffect(() => {
     if (processedPhotos.length === 0) return;
     const interval = setInterval(() => {
       setActiveFrameIndex((prev) => (prev + 1) % processedPhotos.length);
     }, 450);
     return () => clearInterval(interval);
-  }, [processedPhotos]);
+  }, [processedPhotos.length]);
 
-  // Generate Photostrip Canvas + Filtered Photos + Animated GIF + QR Code on mount
+  // Generate Photostrip Canvas + Filtered Photos + Animated GIF + QR Code ONCE on mount or when actual session changes
   useEffect(() => {
-    if (photos.length > 0) {
-      setIsRendering(true);
-      setIsGifGenerating(true);
+    if (photos.length === 0) return;
 
-      // Launch celebration confetti
-      try {
-        confetti({
-          particleCount: 90,
-          spread: 80,
-          origin: { y: 0.4 },
-          colors: ['#38bdf8', '#0284c7', '#34d399', '#0f172a', '#ffffff'],
-        });
-      } catch (e) {
-        // fallback
-      }
+    // Unique signature of current session
+    const sessionKey = `${config.selectedTemplateId}_${config.filter}_${config.brightness}_${config.contrast}_${config.saturation}_${photos.join('|')}`;
 
-      // 1. Render Photostrip Canvas & Filtered Photos in parallel
-      Promise.all([
-        renderPhotoStripCanvas(photos, config, 1333),
-        renderFilteredPhotos(photos, config),
-      ])
-        .then(([canvas, filtered]) => {
-          const url = canvas.toDataURL('image/png', 0.95);
-          setPhotostripUrl(url);
-          setProcessedPhotos(filtered);
-          setIsRendering(false);
-
-          // Save scan session to localStorage with filtered photos
-          try {
-            localStorage.setItem('snapbooth_scan_session', JSON.stringify({ photos: filtered, config }));
-          } catch (e) {
-            console.warn('Failed to save scan session', e);
-          }
-
-          // Otomatis Simpan ke Galeri Sesi (Hanya 1x saat selesai sesi baru, tidak menduplikasi saat melihat kembali)
-          if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
-            hasAutoSavedRef.current = true;
-            onSaveToGallery({
-              id: `snap_${Date.now()}`,
-              previewUrl: url,
-              photos: [...filtered],
-              config: { ...config },
-              createdAt: Date.now(),
-            });
-          }
-
-          // Create animated GIF from filtered photos with adjustments applied
-          return createAnimatedGif(filtered, { interval: 0.45, gifWidth: 600, gifHeight: 450 });
-        })
-        .then((gif) => {
-          setGifUrl(gif);
-          setIsGifGenerating(false);
-        })
-        .catch((err) => {
-          console.error('Failed to generate photostrip or GIF:', err);
-          setIsRendering(false);
-          setIsGifGenerating(false);
-        });
-
-      // 2. Generate QR Code with direct scan result URL and center logo
-      if (typeof window !== 'undefined') {
-        const scanUrl = `${window.location.origin}${window.location.pathname}?mode=scan`;
-        generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
-          setQrCodeUrl(qr);
-        });
-      }
+    // If already rendered for this exact session, do NOT re-render (prevents infinite flicker)
+    if (renderedSessionKeyRef.current === sessionKey) {
+      return;
     }
-  }, [photos, config, isScanView, disableAutoSave, onSaveToGallery]);
+    renderedSessionKeyRef.current = sessionKey;
+
+    setIsRendering(true);
+    setIsGifGenerating(true);
+
+    // Launch celebration confetti only ONCE
+    try {
+      confetti({
+        particleCount: 90,
+        spread: 80,
+        origin: { y: 0.4 },
+        colors: ['#38bdf8', '#0284c7', '#34d399', '#0f172a', '#ffffff'],
+      });
+    } catch (e) {
+      // fallback
+    }
+
+    // 1. Render Photostrip Canvas & Filtered Photos in parallel
+    Promise.all([
+      renderPhotoStripCanvas(photos, config, 1333),
+      renderFilteredPhotos(photos, config),
+    ])
+      .then(([canvas, filtered]) => {
+        const url = canvas.toDataURL('image/png', 0.95);
+        setPhotostripUrl(url);
+        setProcessedPhotos(filtered);
+        setIsRendering(false);
+
+        // Save scan session to localStorage with filtered photos
+        try {
+          localStorage.setItem('snapbooth_scan_session', JSON.stringify({ photos: filtered, config }));
+        } catch (e) {
+          console.warn('Failed to save scan session', e);
+        }
+
+        // Otomatis Simpan ke Galeri Sesi (Hanya 1x saat selesai sesi baru, tidak menduplikasi saat melihat kembali)
+        if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
+          hasAutoSavedRef.current = true;
+          onSaveToGalleryRef.current({
+            id: `snap_${Date.now()}`,
+            previewUrl: url,
+            photos: [...filtered],
+            config: { ...config },
+            createdAt: Date.now(),
+          });
+        }
+
+        // Create animated GIF from filtered photos with adjustments applied
+        return createAnimatedGif(filtered, { interval: 0.45, gifWidth: 600, gifHeight: 450 });
+      })
+      .then((gif) => {
+        setGifUrl(gif);
+        setIsGifGenerating(false);
+      })
+      .catch((err) => {
+        console.error('Failed to generate photostrip or GIF:', err);
+        setIsRendering(false);
+        setIsGifGenerating(false);
+      });
+
+    // 2. Generate QR Code with direct scan result URL and center logo
+    if (typeof window !== 'undefined') {
+      const scanUrl = `${window.location.origin}${window.location.pathname}?mode=scan`;
+      generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
+        setQrCodeUrl(qr);
+      });
+    }
+  }, [photos, config, isScanView, disableAutoSave]);
 
   // 1. Download Photostrip
   const handleDownloadPhotostrip = async () => {
@@ -360,7 +372,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
               style={{ width: '100%', padding: '12px', fontSize: '0.95rem' }}
             >
               <RotateCcw size={17} />
-              <span>Foto Ulang / Sesi Baru</span>
+              <span>Sesi Baru</span>
             </button>
 
             {onOpenGallery && (
@@ -407,7 +419,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
             style={{ width: '100%', padding: '12px', fontSize: '0.92rem' }}
           >
             <Printer size={18} />
-            <span>Cetak / Print</span>
+            <span>Cetak</span>
           </button>
 
           <button

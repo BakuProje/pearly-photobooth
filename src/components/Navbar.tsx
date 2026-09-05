@@ -14,7 +14,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({
   galleryCount,
   onOpenGallery,
-  sessionQuota = 3,
+  sessionQuota = 5,
   timeRemainingStr,
   onOpenQuotaModal,
 }) => {
@@ -85,13 +85,13 @@ export const Navbar: React.FC<NavbarProps> = ({
                   fontWeight: 900,
                   fontSize: '0.76rem',
                 }}>
-                  {sessionQuota}/3
+                  {sessionQuota}/5
                 </span>
               </>
             ) : (
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626' }}>
                 <Clock size={13} />
-                <span>Reset: <strong>{timeRemainingStr || '08:00:00'}</strong></span>
+                <span>Reset: <strong>{timeRemainingStr || '04:00:00'}</strong></span>
               </div>
             )}
           </div>
@@ -167,13 +167,13 @@ export const Navbar: React.FC<NavbarProps> = ({
               fontSize: '0.78rem',
               border: '1.5px solid var(--neo-black)',
             }}>
-              {sessionQuota}/3
+              {sessionQuota}/5
             </span>
           </>
         ) : (
           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#dc2626' }}>
             <Clock size={14} />
-            <span>Reset: <strong>{timeRemainingStr || '08:00:00'}</strong></span>
+            <span>Reset: <strong>{timeRemainingStr || '04:00:00'}</strong></span>
           </div>
         )}
       </div>

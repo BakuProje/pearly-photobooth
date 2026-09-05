@@ -63,6 +63,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
   const [hasCameraAccess, setHasCameraAccess] = useState<boolean | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
+  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
+  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
   const [isMirror, setIsMirror] = useState(true);
   const [timerDuration, setTimerDuration] = useState<number>(3); // 3, 5, 7, 10 seconds
   const [isDurationModalOpen, setIsDurationModalOpen] = useState(false);
@@ -321,7 +323,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
   }, [activeFilter, enhance, brightness, contrast, saturation, warmth, fade, highlights, shadows, vignette, photoScales, photoOffsets, onChangeConfig]);
 
   // Start webcam
-  const startCamera = useCallback(async () => {
+  const startCamera = useCallback(async (modeOverride?: 'user' | 'environment') => {
+    const targetFacingMode = modeOverride || facingMode;
     try {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
@@ -331,7 +334,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         video: {
           width: { ideal: 1920 },
           height: { ideal: 1080 },
-          facingMode: 'user',
+          facingMode: { ideal: targetFacingMode },
         },
         audio: false,
       };
@@ -340,9 +343,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
       streamRef.current = stream;
 
       if (videoRef.current) {
-        if (videoRef.current.srcObject !== stream) {
-          videoRef.current.srcObject = stream;
-        }
+        videoRef.current.srcObject = stream;
         try {
           await videoRef.current.play();
         } catch (e: any) {
@@ -356,10 +357,45 @@ export const CameraView: React.FC<CameraViewProps> = ({
       setCameraError(null);
     } catch (err: any) {
       console.error('Camera access error:', err);
-      setHasCameraAccess(false);
-      setCameraError('Gagal mengakses kamera. Pastikan izin kamera telah diberikan di browser Anda.');
+      // Fallback without facingMode constraint
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1280 }, height: { ideal: 720 } },
+          audio: false,
+        });
+        streamRef.current = fallbackStream;
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+          await videoRef.current.play();
+        }
+        setHasCameraAccess(true);
+        setCameraError(null);
+      } catch (fallbackErr) {
+        setHasCameraAccess(false);
+        setCameraError('Gagal mengakses kamera. Pastikan izin kamera telah diberikan di browser Anda.');
+      }
     }
-  }, []);
+  }, [facingMode]);
+
+  const handleToggleFacingMode = async () => {
+    if (isSwitchingCamera) return;
+    setIsSwitchingCamera(true);
+    soundEffects.playClick();
+    const nextMode = facingMode === 'user' ? 'environment' : 'user';
+    setFacingMode(nextMode);
+
+    // Auto-adjust mirror: user (selfie) -> mirror on, environment (rear) -> mirror off
+    if (nextMode === 'environment') {
+      setIsMirror(false);
+    } else {
+      setIsMirror(true);
+    }
+
+    await startCamera(nextMode);
+    setTimeout(() => {
+      setIsSwitchingCamera(false);
+    }, 450);
+  };
 
   useEffect(() => {
     startCamera();
@@ -849,7 +885,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 <div style={{ fontSize: '2rem' }}>📷</div>
                 <div style={{ fontSize: '0.9rem', fontWeight: 700 }}>{cameraError}</div>
                 <button
-                  onClick={startCamera}
+                  onClick={() => startCamera()}
                   className="neo-btn neo-btn-primary"
                   style={{ padding: '8px 16px', fontSize: '0.85rem' }}
                 >
@@ -874,6 +910,47 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 display: cameraError ? 'none' : 'block',
               }}
             />
+
+            {/* Floating Camera Switch Button (Kamera Depan / Belakang) */}
+            {sessionState === 'setup' && (
+              <motion.button
+                type="button"
+                whileHover={{ scale: 1.04 }}
+                whileTap={{ scale: 0.94 }}
+                onClick={handleToggleFacingMode}
+                disabled={isSwitchingCamera}
+                className="neo-btn"
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  zIndex: 125,
+                  padding: '7px 13px',
+                  borderRadius: '999px',
+                  background: 'rgba(255, 255, 255, 0.94)',
+                  backdropFilter: 'blur(8px)',
+                  border: '2px solid var(--neo-black)',
+                  boxShadow: '2.5px 2.5px 0px var(--neo-black)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '0.78rem',
+                  fontWeight: 900,
+                  cursor: 'pointer',
+                  color: 'var(--neo-black)',
+                }}
+                title="Ganti Kamera Depan / Belakang"
+              >
+                <RefreshCw
+                  size={14}
+                  style={{
+                    transition: 'transform 0.45s ease',
+                    transform: isSwitchingCamera ? 'rotate(180deg)' : 'none',
+                  }}
+                />
+                <span>{facingMode === 'user' ? 'Kamera Depan' : 'Kamera Belakang'}</span>
+              </motion.button>
+            )}
 
             {/* Transparent Countdown Floating Elements with Framer Motion */}
             <AnimatePresence mode="wait">
@@ -980,54 +1057,92 @@ export const CameraView: React.FC<CameraViewProps> = ({
           )}
         </div>
 
-        {/* Dual Action Buttons (DI LUAR KOTAK KAMERA): [ Pilih Durasi ] | [ Filter Kamera ] */}
+        {/* Action Buttons: [ Durasi | Filter ] dan [ Kamera Depan / Belakang ] */}
         {sessionState === 'setup' && (
           <div
             style={{
-              display: 'grid',
-              gridTemplateColumns: '1fr 1fr',
-              gap: '10px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
               width: '100%',
             }}
           >
-            <button
-              onClick={() => setIsDurationModalOpen(true)}
-              className="neo-btn neo-btn-secondary"
+            {/* Baris 1: Button Durasi | Button Filter */}
+            <div
               style={{
-                padding: '11px 8px',
-                fontSize: 'clamp(0.72rem, 2.7vw, 0.86rem)',
-                fontWeight: 800,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '8px',
                 width: '100%',
-                borderRadius: '12px',
-                whiteSpace: 'nowrap',
               }}
             >
-              <Clock size={16} />
-              <span>Pilih Durasi</span>
-            </button>
+              <button
+                onClick={() => setIsDurationModalOpen(true)}
+                className="neo-btn neo-btn-secondary"
+                style={{
+                  padding: '10px 12px',
+                  fontSize: '0.86rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  borderRadius: '12px',
+                }}
+              >
+                <Clock size={16} />
+                <span>Durasi ({timerDuration}s)</span>
+              </button>
 
+              <button
+                onClick={() => setIsFilterModalOpen(true)}
+                className="neo-btn neo-btn-secondary"
+                style={{
+                  padding: '10px 12px',
+                  fontSize: '0.86rem',
+                  fontWeight: 800,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                  width: '100%',
+                  borderRadius: '12px',
+                }}
+              >
+                <Sparkles size={16} />
+                <span>Filter</span>
+              </button>
+            </div>
+
+            {/* Baris 2: Button Kamera Untuk Depan / Belakang */}
             <button
-              onClick={() => setIsFilterModalOpen(true)}
+              type="button"
+              onClick={handleToggleFacingMode}
+              disabled={isSwitchingCamera}
               className="neo-btn neo-btn-secondary"
               style={{
-                padding: '11px 8px',
-                fontSize: 'clamp(0.72rem, 2.7vw, 0.86rem)',
+                padding: '10px 14px',
+                fontSize: '0.86rem',
                 fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '6px',
+                gap: '7px',
                 width: '100%',
                 borderRadius: '12px',
-                whiteSpace: 'nowrap',
+                background: facingMode === 'environment' ? 'var(--neo-primary)' : undefined,
               }}
+              title="Ganti ke Kamera Depan / Belakang"
             >
-              <Sparkles size={16} />
-              <span>Filter Kamera</span>
+              <RefreshCw
+                size={16}
+                style={{
+                  transition: 'transform 0.45s ease',
+                  transform: isSwitchingCamera ? 'rotate(180deg)' : 'none',
+                }}
+              />
+              <span>{facingMode === 'user' ? 'Kamera Belakang' : 'Kamera Depan'}</span>
             </button>
           </div>
         )}
@@ -1224,7 +1339,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 style={{
                   display: totalShots === 1 ? 'flex' : 'grid',
                   justifyContent: totalShots === 1 ? 'center' : undefined,
-                  gridTemplateColumns: totalShots > 1 ? `repeat(${totalShots}, minmax(0, 1fr))` : undefined,
+                  gridTemplateColumns:
+                    totalShots >= 5
+                      ? `repeat(${Math.ceil(totalShots / 2)}, minmax(0, 1fr))`
+                      : totalShots > 1
+                      ? `repeat(${totalShots}, minmax(0, 1fr))`
+                      : undefined,
                   gap: totalShots === 1 ? '0px' : '6px',
                   width: '100%',
                 }}
@@ -1288,13 +1408,13 @@ export const CameraView: React.FC<CameraViewProps> = ({
                         type="button"
                         onClick={() => retakeSingleSlot(idx)}
                         style={{
-                          padding: '4px 0',
+                          padding: '5px 0',
                           background: '#ffffff',
                           color: 'var(--neo-black)',
                           border: 'none',
                           borderRight: '1px solid var(--neo-black)',
                           cursor: 'pointer',
-                          fontSize: 'clamp(0.58rem, 1.6vw, 0.68rem)',
+                          fontSize: '0.65rem',
                           fontWeight: 900,
                           display: 'flex',
                           alignItems: 'center',
@@ -1303,20 +1423,20 @@ export const CameraView: React.FC<CameraViewProps> = ({
                         }}
                         title={`Ambil foto kamera untuk Slot #${idx + 1}`}
                       >
-                        <Camera size={10} />
-                        <span>#{idx + 1}</span>
+                        <Camera size={11} />
+                        <span style={{ fontSize: '0.62rem', lineHeight: 1 }}>#{idx + 1}</span>
                       </button>
 
                       <button
                         type="button"
                         onClick={() => triggerUploadForSlot(idx)}
                         style={{
-                          padding: '4px 0',
-                          background: '#f1f5f9',
+                          padding: '5px 0',
+                          background: '#eff6ff',
                           color: '#1d4ed8',
                           border: 'none',
                           cursor: 'pointer',
-                          fontSize: 'clamp(0.58rem, 1.6vw, 0.68rem)',
+                          fontSize: '0.65rem',
                           fontWeight: 900,
                           display: 'flex',
                           alignItems: 'center',
@@ -1325,8 +1445,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
                         }}
                         title={`Pilih/Ganti foto dari folder untuk Slot #${idx + 1}`}
                       >
-                        <Upload size={10} />
-                        <span>File</span>
+                        <Upload size={11} />
                       </button>
                     </div>
                   </div>
@@ -2256,10 +2375,10 @@ export const CameraView: React.FC<CameraViewProps> = ({
               {/* Header Centered (Tanpa Tombol X) */}
               <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
                 <h3 style={{ fontSize: '1.12rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-                  Filter Kamera
+                  Filter
                 </h3>
                 <p style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
-                  Pilih efek visual untuk kamera sebelum mulai mengambil foto
+                  Pilih efek visual filter sebelum mulai mengambil foto
                 </p>
               </div>
 
@@ -2277,7 +2396,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 />
                 <input
                   type="text"
-                  placeholder="Cari filter kamera..."
+                  placeholder="Cari filter..."
                   value={filterSearch}
                   onChange={(e) => setFilterSearch(e.target.value)}
                   style={{

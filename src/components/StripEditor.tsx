@@ -198,7 +198,7 @@ export const StripEditor: React.FC<StripEditorProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--brand-blue-700)' }}>Ganti Template Frame</h4>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>10 Pilihan Desain</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{TEMPLATES.length} Pilihan Desain</span>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', maxHeight: '420px', overflowY: 'auto', padding: '4px' }}>
@@ -528,7 +528,7 @@ export const StripEditor: React.FC<StripEditorProps> = ({
               );
             })}
 
-            {/* 2. Template Frame PNG overlay on TOP of photos */}
+            {/* 2. Template Background Image */}
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={currentTemplate.imageSrc}
@@ -539,7 +539,7 @@ export const StripEditor: React.FC<StripEditorProps> = ({
                 width: '100%',
                 height: '100%',
                 objectFit: 'contain',
-                zIndex: 20,
+                zIndex: 1,
                 pointerEvents: 'none',
               }}
             />

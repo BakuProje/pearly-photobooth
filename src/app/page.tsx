@@ -6,6 +6,7 @@ import { TemplateSelector } from '@/components/TemplateSelector';
 import { CameraView } from '@/components/CameraView';
 import { ResultView } from '@/components/ResultView';
 import { GalleryDrawer } from '@/components/GalleryDrawer';
+import { CameraPermissionModal } from '@/components/CameraPermissionModal';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Camera, AlertTriangle, RotateCcw, Clock } from 'lucide-react';
 import {
@@ -28,7 +29,7 @@ const INITIAL_CONFIG: PhotoBoothConfig = {
   saturation: 0,
 };
 
-const RESET_COOLDOWN_MS = 8 * 60 * 60 * 1000; // 8 Jam (28.800.000 ms)
+const RESET_COOLDOWN_MS = 4 * 60 * 60 * 1000; // 4 Jam (14.400.000 ms)
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<'select-template' | 'camera' | 'result'>('select-template');
@@ -38,31 +39,32 @@ export default function Home() {
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
   const [isScanView, setIsScanView] = useState(false);
   const [isViewingSavedSession, setIsViewingSavedSession] = useState(false);
-  const [sessionQuota, setSessionQuota] = useState<number>(3);
+  const [sessionQuota, setSessionQuota] = useState<number>(5);
   const [quotaDepletedAt, setQuotaDepletedAt] = useState<number | null>(null);
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('');
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
-  // Load session quota & live 8-hour auto-reset timer
+  // Load session quota & live 4-hour auto-reset timer
   useEffect(() => {
     const updateQuotaAndTimer = () => {
       try {
         const savedQuota = localStorage.getItem('snapbooth_photo_quota');
         const savedDepletedAt = localStorage.getItem('snapbooth_quota_depleted_at');
 
-        let currentQuota = savedQuota !== null ? parseInt(savedQuota, 10) : 3;
+        let currentQuota = savedQuota !== null ? parseInt(savedQuota, 10) : 5;
+        if (currentQuota > 5) currentQuota = 5;
         let depletedTime = savedDepletedAt !== null ? parseInt(savedDepletedAt, 10) : null;
 
         if (currentQuota <= 0) {
           if (depletedTime) {
             const elapsed = Date.now() - depletedTime;
             if (elapsed >= RESET_COOLDOWN_MS) {
-              // 8 hours reached -> Auto reset to 3
-              currentQuota = 3;
+              // 4 hours reached -> Auto reset to 5
+              currentQuota = 5;
               depletedTime = null;
-              localStorage.setItem('snapbooth_photo_quota', '3');
+              localStorage.setItem('snapbooth_photo_quota', '5');
               localStorage.removeItem('snapbooth_quota_depleted_at');
-              setSessionQuota(3);
+              setSessionQuota(5);
               setQuotaDepletedAt(null);
               setTimeRemainingStr('');
               return;
@@ -79,7 +81,7 @@ export default function Home() {
             const now = Date.now();
             localStorage.setItem('snapbooth_quota_depleted_at', now.toString());
             depletedTime = now;
-            setTimeRemainingStr('08:00:00');
+            setTimeRemainingStr('04:00:00');
           }
         } else {
           setTimeRemainingStr('');
@@ -98,13 +100,13 @@ export default function Home() {
   }, []);
 
   const handleResetQuota = () => {
-    setSessionQuota(3);
+    setSessionQuota(5);
     setQuotaDepletedAt(null);
     setTimeRemainingStr('');
     try {
-      localStorage.setItem('snapbooth_photo_quota', '3');
+      localStorage.setItem('snapbooth_photo_quota', '5');
       localStorage.removeItem('snapbooth_quota_depleted_at');
-    } catch {}
+    } catch { }
     setIsQuotaModalOpen(false);
   };
 
@@ -186,17 +188,17 @@ export default function Home() {
   const handleStartSession = (mode: 'camera' | 'upload' = 'camera') => {
     setSessionStartMode(mode);
 
-    // Check if 8-hour cooldown has already elapsed before blocking
+    // Check if 4-hour cooldown has already elapsed before blocking
     if (sessionQuota <= 0) {
       if (quotaDepletedAt && Date.now() - quotaDepletedAt >= RESET_COOLDOWN_MS) {
-        // 8 hours have passed! Auto-reset immediately to 2 (used 1 credit for new session)
-        setSessionQuota(2);
+        // 4 hours have passed! Auto-reset immediately to 4 (used 1 credit for new session)
+        setSessionQuota(4);
         setQuotaDepletedAt(null);
         setTimeRemainingStr('');
         try {
-          localStorage.setItem('snapbooth_photo_quota', '2');
+          localStorage.setItem('snapbooth_photo_quota', '4');
           localStorage.removeItem('snapbooth_quota_depleted_at');
-        } catch {}
+        } catch { }
         setIsScanView(false);
         setIsViewingSavedSession(false);
         setCurrentStep('camera');
@@ -215,7 +217,7 @@ export default function Home() {
         setQuotaDepletedAt(now);
         localStorage.setItem('snapbooth_quota_depleted_at', now.toString());
       }
-    } catch {}
+    } catch { }
 
     setIsScanView(false);
     setIsViewingSavedSession(false);
@@ -236,7 +238,7 @@ export default function Home() {
     setCurrentStep('select-template');
   };
 
-  const handleSaveToGallery = (item: GalleryItem) => {
+  const handleSaveToGallery = React.useCallback((item: GalleryItem) => {
     setGallery((prev) => {
       // 1. Avoid duplicate by ID
       if (prev.some((g) => g.id === item.id)) return prev;
@@ -253,7 +255,7 @@ export default function Home() {
       saveGalleryToStorage(updated);
       return updated;
     });
-  };
+  }, []);
 
   const handleDeleteGalleryItem = (id: string) => {
     const updated = gallery.filter((g) => g.id !== id);
@@ -420,14 +422,14 @@ export default function Home() {
 
               <div>
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '6px' }}>
-                  Batas 3x Sesi Foto Telah Habis
+                  Batas 5x Sesi Foto Telah Habis
                 </h3>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.45 }}>
-                  Credit sesi foto Anda telah habis (3/3 kali). Kuota foto akan direset otomatis menjadi 3x sesi setelah waktu tunggu 8 jam selesai.
+                  Credit sesi foto Anda telah habis (5/5 kali). Kuota foto akan direset otomatis menjadi 5x sesi setelah waktu tunggu 4 jam selesai.
                 </p>
               </div>
 
-              {/* Live 8-Hour Countdown Display */}
+              {/* Live 4-Hour Countdown Display */}
               <div
                 style={{
                   background: '#f8fafc',
@@ -443,11 +445,11 @@ export default function Home() {
                 }}
               >
                 <span style={{ fontSize: '0.78rem', fontWeight: 800, color: 'var(--text-secondary)' }}>
-                  Waktu Tunggu Reset Otomatis (8 Jam):
+                  Waktu Reset Otomatis 4 Jam
                 </span>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '1.45rem', fontWeight: 900, color: '#dc2626' }}>
                   <Clock size={22} />
-                  <span>{timeRemainingStr || '08:00:00'}</span>
+                  <span>{timeRemainingStr || '04:00:00'}</span>
                 </div>
               </div>
 
@@ -503,6 +505,9 @@ export default function Home() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Proactive Camera Permission Modal on Entry */}
+      <CameraPermissionModal />
     </main>
   );
 }
