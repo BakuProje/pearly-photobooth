@@ -107,9 +107,9 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     aspectRatio: '1333 / 1999',
     description: 'Koran Rimberio Studio (Potret Kebersamaan)',
     slots: [
-      { x: 2.8, y: 34.4, width: 94.4, height: 28.5, label: 'Hero Utama' },
-      { x: 38.0, y: 66.2, width: 24.0, height: 12.0, label: 'Foto Tengah' },
-      { x: 2.0, y: 80.2, width: 30.6, height: 18.6, label: 'Foto Bawah Kiri' },
+      { x: 2.65, y: 33.75, width: 94.65, height: 27.9, label: 'Hero Utama' },
+      { x: 37.8, y: 65.0, width: 24.3, height: 11.9, label: 'Foto Tengah' },
+      { x: 1.9, y: 78.6, width: 30.95, height: 18.9, label: 'Foto Bawah Kiri' },
     ],
   },
   {
@@ -121,9 +121,9 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     aspectRatio: '1333 / 1999',
     description: 'Koran Harian Inspirasi (Kisah Dua Hati)',
     slots: [
-      { x: 38.3, y: 34.4, width: 58.8, height: 30.6, label: 'Hero Kanan' },
-      { x: 3.0, y: 70.1, width: 29.3, height: 18.8, label: 'Bawah Kiri' },
-      { x: 68.0, y: 70.1, width: 29.3, height: 18.8, label: 'Bawah Kanan' },
+      { x: 38.05, y: 33.55, width: 59.2, height: 29.85, label: 'Hero Kanan' },
+      { x: 3.0, y: 68.45, width: 29.35, height: 18.7, label: 'Bawah Kiri' },
+      { x: 67.8, y: 68.45, width: 29.4, height: 18.7, label: 'Bawah Kanan' },
     ],
   },
   {
