@@ -1,51 +1,21 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ShieldAlert, Lock, RefreshCw } from 'lucide-react';
 
 export const AntiDevTools: React.FC = () => {
   const [isDevToolsOpen, setIsDevToolsOpen] = useState(false);
-  const isDevToolsOpenRef = useRef(false);
-
-  useEffect(() => {
-    isDevToolsOpenRef.current = isDevToolsOpen;
-  }, [isDevToolsOpen]);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // 1. Initialize disable-devtool library
-    let disableDevtoolInstance: any = null;
-    import('disable-devtool')
-      .then((module) => {
-        const disableDevtool = module.default || module;
-        if (typeof disableDevtool === 'function') {
-          disableDevtoolInstance = disableDevtool({
-            ondevtoolopen: () => {
-              setIsDevToolsOpen(true);
-            },
-            ondevtoolclose: () => {
-              setIsDevToolsOpen(false);
-            },
-            interval: 200,
-            disableMenu: true,
-            clearLog: true,
-            stopIntervalTime: 0, // Never stop monitoring on mobile/remote devices
-            detectors: 'all',
-            clearIntervalWhenDevOpenTrigger: false,
-          });
-        }
-      })
-      .catch((err) => {
-        console.warn('Security initializer notification:', err);
-      });
-
-    // 2. Custom Multi-Layer Detection Engine (Backup for Remote Debugging & devtools://)
+    // 1. Block Context Menu (Right Click) & Drag
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();
       return false;
     };
 
+    // 2. Block DevTools & Source Inspection Shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
       // F12
       if (e.key === 'F12' || e.keyCode === 123) {
@@ -82,77 +52,62 @@ export const AntiDevTools: React.FC = () => {
       }
     };
 
-    // Console Getter & toString Detector for Remote DevTools
-    const checkConsoleTriggers = () => {
-      try {
-        const obj = {};
-        let triggered = false;
-        Object.defineProperty(obj, 'id', {
-          get: () => {
-            triggered = true;
-            setIsDevToolsOpen(true);
-            return '';
-          },
-          configurable: true,
-        });
-
-        // Regex toString detector
-        const reg = /./;
-        reg.toString = () => {
-          triggered = true;
-          setIsDevToolsOpen(true);
-          return '';
-        };
-
-        // Trigger console format evaluation
-        console.log('%c', obj);
-        console.log('%c', reg);
-        console.clear();
-
-        if (triggered) {
-          setIsDevToolsOpen(true);
-        }
-      } catch {}
-    };
-
-    // Dimension Delta & Performance Timing Detector
-    const checkPerformanceAndDimension = () => {
-      try {
-        // Dimension delta (for docked DevTools)
-        const threshold = 160;
-        const widthDiff = window.outerWidth - window.innerWidth > threshold;
-        const heightDiff = window.outerHeight - window.innerHeight > threshold;
-
-        if (widthDiff || heightDiff) {
-          setIsDevToolsOpen(true);
-          return;
-        }
-
-        // Debugger execution timing (for remote & detached DevTools)
-        const start = performance.now();
-        // eslint-disable-next-line no-eval
-        (Function('debugger'))();
-        const end = performance.now();
-
-        if (end - start > 100) {
-          setIsDevToolsOpen(true);
-        }
-      } catch {}
-    };
-
     window.addEventListener('contextmenu', handleContextMenu);
     window.addEventListener('keydown', handleKeyDown);
 
-    const checkInterval = setInterval(() => {
-      checkConsoleTriggers();
-      checkPerformanceAndDimension();
-    }, 400);
+    // 3. Initialize disable-devtool with calibrated detectors
+    // Exclude Size detector to prevent false positives from Windows DPI scaling / browser toolbars / mobile address bars
+    let disableDevtoolCleanup: any = null;
+
+    import('disable-devtool')
+      .then((module) => {
+        const disableDevtool = module.default || module;
+        if (typeof disableDevtool === 'function') {
+          const detectorTypes = disableDevtool.DetectorType;
+          const detectors = detectorTypes
+            ? [
+                detectorTypes.RegToString,
+                detectorTypes.DefineId,
+                detectorTypes.DateToString,
+                detectorTypes.FuncToString,
+                detectorTypes.Debugger,
+                detectorTypes.Performance,
+                detectorTypes.DebugLib,
+              ]
+            : 'all';
+
+          disableDevtoolCleanup = disableDevtool({
+            ondevtoolopen: () => {
+              setIsDevToolsOpen(true);
+            },
+            ondevtoolclose: () => {
+              setIsDevToolsOpen(false);
+            },
+            interval: 500,
+            disableMenu: true,
+            clearLog: true,
+            stopIntervalTime: 0,
+            detectors: detectors,
+            clearIntervalWhenDevOpenTrigger: false,
+          });
+        }
+      })
+      .catch(() => {});
+
+    // 4. Clean console output in production
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        console.log = () => {};
+        console.warn = () => {};
+        console.info = () => {};
+        console.debug = () => {};
+      } catch {}
+    }
 
     return () => {
       window.removeEventListener('contextmenu', handleContextMenu);
       window.removeEventListener('keydown', handleKeyDown);
-      clearInterval(checkInterval);
-      if (disableDevtoolInstance && typeof disableDevtoolInstance.isSuspend !== 'undefined') {
+      if (disableDevtoolCleanup && typeof disableDevtoolCleanup.isSuspend !== 'undefined') {
         // cleanup if available
       }
     };
@@ -217,22 +172,16 @@ export const AntiDevTools: React.FC = () => {
             Akses DevTools Dinonaktifkan
           </h2>
           <p style={{ fontSize: '0.88rem', color: '#475569', fontWeight: 600, lineHeight: 1.55 }}>
-            Demi keamanan sesi, privasi, dan perlindungan hak cipta photobooth, Developer Tools serta Remote Debugging telah diblokir.
+            Demi keamanan sesi, privasi, dan perlindungan hak cipta photobooth, Developer Tools telah dinonaktifkan.
           </p>
           <p style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, marginTop: '8px' }}>
-            Silakan tutup tab inspect/DevTools untuk melanjutkan pemotretan.
+            Silakan tutup tab inspect / DevTools untuk melanjutkan sesi foto.
           </p>
         </div>
 
         <button
           onClick={() => {
-            // Re-check status
-            const threshold = 160;
-            const widthDiff = window.outerWidth - window.innerWidth > threshold;
-            const heightDiff = window.outerHeight - window.innerHeight > threshold;
-            if (!widthDiff && !heightDiff) {
-              setIsDevToolsOpen(false);
-            }
+            setIsDevToolsOpen(false);
           }}
           className="neo-btn"
           style={{
