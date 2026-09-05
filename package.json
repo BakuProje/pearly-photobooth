@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/qrcode": "^1.5.6",
     "canvas-confetti": "^1.9.4",
+    "disable-devtool": "^0.3.9",
     "framer-motion": "^13.1.1",
     "gifshot": "^0.4.5",
     "lucide-react": "^0.475.0",
