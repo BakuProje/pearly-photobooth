@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const path = require('path');
 
 async function inspectT16() {
-  const filepath = path.join('images/template', 'template 16.png');
+  const filepath = path.join('public/images/template', 'template 16.png');
   const img = sharp(filepath);
   const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
   const w = info.width;

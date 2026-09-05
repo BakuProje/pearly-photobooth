@@ -31,7 +31,7 @@ async function renderTemplateExact(templateId) {
     console.log('Template not found:', templateId);
     return;
   }
-  const templatePath = 'images/template/' + template.imageSrc.split('/').pop();
+  const templatePath = 'public/images/template/' + template.imageSrc.split('/').pop();
   const meta = await sharp(templatePath).metadata();
   const { width, height } = meta;
 

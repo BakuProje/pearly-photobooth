@@ -1,7 +1,7 @@
 const sharp = require('sharp');
 
 async function inspectColors() {
-  const { data, info } = await sharp('images/template/template 16.png').raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp('public/images/template/template 16.png').raw().toBuffer({ resolveWithObject: true });
   const w = info.width, h = info.height, ch = info.channels;
   
   const pts = [

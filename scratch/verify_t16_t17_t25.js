@@ -17,10 +17,10 @@ async function createSamplePhoto(w, h, label, r, g, b) {
 }
 
 async function renderTemplateExact(templatePath, slots, outName) {
-  const meta = await sharp('images/template/' + templatePath).metadata();
+  const meta = await sharp('public/images/template/' + templatePath).metadata();
   const { width, height } = meta;
 
-  const bgImg = await sharp('images/template/' + templatePath).png().toBuffer();
+  const bgImg = await sharp('public/images/template/' + templatePath).png().toBuffer();
   const composites = [];
 
   const colors = [

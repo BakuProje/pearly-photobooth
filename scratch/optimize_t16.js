@@ -9,7 +9,7 @@ function isSkyOrHill(r, g, b) {
 }
 
 async function findCorners(filename) {
-  const filepath = path.join('images/template', filename);
+  const filepath = path.join('public/images/template', filename);
   const img = sharp(filepath);
   const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });
   const w = info.width;

@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 async function testT25VisualOverlay() {
-  const filepath = 'images/template/template 25.png';
+  const filepath = 'public/images/template/template 25.png';
   const meta = await sharp(filepath).metadata();
   const w = meta.width;
   const h = meta.height;

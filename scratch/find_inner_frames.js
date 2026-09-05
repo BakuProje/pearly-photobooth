@@ -10,7 +10,7 @@ function isCanvaSkyOrHill(r, g, b) {
 }
 
 async function analyzeNewT17() {
-  const filepath = 'images/template/template 17.png';
+  const filepath = 'public/images/template/template 17.png';
   const { data, info } = await sharp(filepath).raw().toBuffer({ resolveWithObject: true });
   const w = info.width;
   const h = info.height;

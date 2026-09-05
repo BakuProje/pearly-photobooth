@@ -4,7 +4,7 @@ const path = require('path');
 
 // We can test composite drawing onto template 16 using sharp svg composite!
 async function testT16Render() {
-  const filepath = path.join('images/template', 'template 16.png');
+  const filepath = path.join('public/images/template', 'template 16.png');
   const meta = await sharp(filepath).metadata();
   const w = meta.width;
   const h = meta.height;

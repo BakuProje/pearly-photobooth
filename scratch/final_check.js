@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 async function renderTemplateExact(templateFile, slots, outFile) {
-  const meta = await sharp(`images/template/${templateFile}`).metadata();
+  const meta = await sharp(`public/images/template/${templateFile}`).metadata();
   const w = meta.width;
   const h = meta.height;
 
@@ -29,7 +29,7 @@ async function renderTemplateExact(templateFile, slots, outFile) {
   }
 
   const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">${svgOverlays}</svg>`;
-  const rendered = await sharp(`images/template/${templateFile}`)
+  const rendered = await sharp(`public/images/template/${templateFile}`)
     .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
     .png()
     .toBuffer();

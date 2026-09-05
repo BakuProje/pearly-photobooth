@@ -16,7 +16,7 @@ function isCanvaPlaceholderPixel(r, g, b) {
 }
 
 async function analyzeTemplate(filename) {
-  const filepath = path.join('images/template', filename);
+  const filepath = path.join('public/images/template', filename);
   const img = sharp(filepath);
   const meta = await img.metadata();
   const { data, info } = await img.raw().toBuffer({ resolveWithObject: true });

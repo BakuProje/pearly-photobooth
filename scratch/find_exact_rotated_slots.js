@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 async function processTemplate(filename, numSlots, slotRegions) {
-  const { data, info } = await sharp('images/template/' + filename).raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp('public/images/template/' + filename).raw().toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
 
   console.log(`\n========================================`);

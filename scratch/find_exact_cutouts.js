@@ -84,7 +84,7 @@ async function getOrientedBox(imgData, w, h, xmin, xmax, ymin, ymax, minAngle = 
 
 async function analyzeAllExact() {
   // 1. TEMPLATE 17 (NEW DESIGN: 3 polaroids on left + 1 3-cell strip on right)
-  const t17 = await sharp('images/template/template 17.png').raw().toBuffer({ resolveWithObject: true });
+  const t17 = await sharp('public/images/template/template 17.png').raw().toBuffer({ resolveWithObject: true });
   console.log('\n================== EXACT NEW TEMPLATE 17 ==================');
   const t17Regions = [
     { label: 'Polaroid 1 (Kiri Atas)', x1: 200, x2: 650, y1: 50, y2: 550, minA: -10, maxA: 10 },
@@ -105,7 +105,7 @@ async function analyzeAllExact() {
   }
 
   // 2. TEMPLATE 16 (6 SLOTS: Hero Atas, Hero Bawah, Strip 1, 2, 3, 4 - INNER FIT INSIDE BLACK BORDER)
-  const t16 = await sharp('images/template/template 16.png').raw().toBuffer({ resolveWithObject: true });
+  const t16 = await sharp('public/images/template/template 16.png').raw().toBuffer({ resolveWithObject: true });
   console.log('\n================== EXACT TEMPLATE 16 (INNER FIT) ==================');
   const t16Regions = [
     { label: 'Hero Atas', x1: 100, x2: 750, y1: 200, y2: 750, minA: 2, maxA: 6 },
@@ -126,7 +126,7 @@ async function analyzeAllExact() {
   }
 
   // 3. TEMPLATE 25 (14 SLOTS - INNER FIT INSIDE ALL NOTEBOOK / POLAROID / FILM CUTOUTS)
-  const t25 = await sharp('images/template/template 25.png').raw().toBuffer({ resolveWithObject: true });
+  const t25 = await sharp('public/images/template/template 25.png').raw().toBuffer({ resolveWithObject: true });
   console.log('\n================== EXACT TEMPLATE 25 (INNER FIT) ==================');
   const t25Regions = [
     { label: 'Gantungan #1', x1: 530, x2: 700, y1: 410, y2: 640, minA: -5, maxA: 5 },

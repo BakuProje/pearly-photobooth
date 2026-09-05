@@ -1,7 +1,7 @@
 const sharp = require('sharp');
 
 async function inspectAllSlots(templatePath, regions) {
-  const { data, info } = await sharp('images/template/' + templatePath).raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp('public/images/template/' + templatePath).raw().toBuffer({ resolveWithObject: true });
   const { width, height, channels } = info;
   console.log(`\n========================================`);
   console.log(`ANALYZING ${templatePath} (${width}x${height})`);

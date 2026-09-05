@@ -3,7 +3,7 @@ const fs = require('fs');
 const path = require('path');
 
 async function testT17Render() {
-  const filepath = path.join('images/template', 'template 17.png');
+  const filepath = path.join('public/images/template', 'template 17.png');
   const meta = await sharp(filepath).metadata();
   const w = meta.width;
   const h = meta.height;

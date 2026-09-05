@@ -5,7 +5,7 @@ const fs = require('fs');
 async function analyzeAll() {
   const templates = ['template 16.png', 'template 17.png', 'template 22.png', 'template 23.png', 'template 25.png'];
   for (const t of templates) {
-    const filepath = path.join('images/template', t);
+    const filepath = path.join('public/images/template', t);
     const { data, info } = await sharp(filepath).raw().toBuffer({ resolveWithObject: true });
     const w = info.width;
     const h = info.height;

@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 async function testT17Visual() {
-  const filepath = 'images/template/template 17.png';
+  const filepath = 'public/images/template/template 17.png';
   const meta = await sharp(filepath).metadata();
   const w = meta.width;
   const h = meta.height;

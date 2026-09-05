@@ -15,7 +15,7 @@ function isPlaceholder(r, g, b) {
 }
 
 async function findInnerT17Cutouts() {
-  const filepath = 'images/template/template 17.png';
+  const filepath = 'public/images/template/template 17.png';
   const { data, info } = await sharp(filepath).raw().toBuffer({ resolveWithObject: true });
   const w = info.width;
   const h = info.height;

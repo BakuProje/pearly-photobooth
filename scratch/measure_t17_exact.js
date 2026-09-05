@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const fs = require('fs');
 
 async function measureT17() {
-  const { data, info } = await sharp('images/template/template 17.png').raw().toBuffer({ resolveWithObject: true });
+  const { data, info } = await sharp('public/images/template/template 17.png').raw().toBuffer({ resolveWithObject: true });
   const w = info.width, h = info.height, ch = info.channels;
   
   // Let's sample along horizontal & vertical lines to find the exact inner boundaries of the 6 frames

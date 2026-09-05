@@ -21,7 +21,7 @@ async function createSamplePhoto(w, h, color1, color2, label) {
 }
 
 async function renderTemplateWithPhotos(templateFile, slots, outFile) {
-  const meta = await sharp(`images/template/${templateFile}`).metadata();
+  const meta = await sharp(`public/images/template/${templateFile}`).metadata();
   const width = meta.width;
   const height = meta.height;
 
@@ -78,7 +78,7 @@ async function renderTemplateWithPhotos(templateFile, slots, outFile) {
     composites.push({ input: Buffer.from(slotSvg), top: 0, left: 0 });
   }
 
-  const rendered = await sharp(`images/template/${templateFile}`)
+  const rendered = await sharp(`public/images/template/${templateFile}`)
     .composite(composites)
     .png()
     .toBuffer();

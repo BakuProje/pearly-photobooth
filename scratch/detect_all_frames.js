@@ -116,8 +116,8 @@ async function detectFrames(templatePath) {
 }
 
 async function run() {
-  await detectFrames('images/template/template 16.png');
-  await detectFrames('images/template/template 17.png');
-  await detectFrames('images/template/template 25.png');
+  await detectFrames('public/images/template/template 16.png');
+  await detectFrames('public/images/template/template 17.png');
+  await detectFrames('public/images/template/template 25.png');
 }
 run();

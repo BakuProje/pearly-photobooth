@@ -2,7 +2,7 @@ const sharp = require('sharp');
 const path = require('path');
 
 async function checkT22Tilt() {
-  const filepath = path.join('images/template', 'template 22.png');
+  const filepath = path.join('public/images/template', 'template 22.png');
   const { data, info } = await sharp(filepath).raw().toBuffer({ resolveWithObject: true });
   const w = info.width;
   const h = info.height;

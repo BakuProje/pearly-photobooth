@@ -151,7 +151,7 @@ async function run() {
     { label: 'Strip 2 (Tengah Kanan)', cx: 64, cy: 49, expectedRot: -8.3, minX: 45, maxX: 83, minY: 34, maxY: 64 },
     { label: 'Strip 3 (Bawah Kanan)', cx: 59, cy: 77, expectedRot: -8.3, minX: 40, maxX: 78, minY: 63, maxY: 92 },
   ];
-  const t17_res = await analyzeTemplate('images/template/template 17.png', t17_seeds);
+  const t17_res = await analyzeTemplate('public/images/template/template 17.png', t17_seeds);
 
   // T16
   const t16_seeds = [
@@ -162,7 +162,7 @@ async function run() {
     { label: 'Strip 3', cx: 84, cy: 56, expectedRot: -1.0, minX: 70, maxX: 98, minY: 47, maxY: 67 },
     { label: 'Strip 4', cx: 83, cy: 74, expectedRot: -1.0, minX: 69, maxX: 97, minY: 64, maxY: 85 },
   ];
-  const t16_res = await analyzeTemplate('images/template/template 16.png', t16_seeds);
+  const t16_res = await analyzeTemplate('public/images/template/template 16.png', t16_seeds);
 
   // T25
   const t25_seeds = [
@@ -181,7 +181,7 @@ async function run() {
     { label: 'Filmstrip #2', cx: 80, cy: 76, expectedRot: 0, minX: 65, maxX: 95, minY: 69, maxY: 84 },
     { label: 'Filmstrip #3', cx: 77, cy: 90, expectedRot: 0, minX: 62, maxX: 92, minY: 83, maxY: 98 },
   ];
-  const t25_res = await analyzeTemplate('images/template/template 25.png', t25_seeds);
+  const t25_res = await analyzeTemplate('public/images/template/template 25.png', t25_seeds);
 }
 
 run();

@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 async function visualizeT17() {
-  const filepath = path.join('images/template', 'template 17.png');
+  const filepath = path.join('public/images/template', 'template 17.png');
   const { data, info } = await sharp(filepath).raw().toBuffer({ resolveWithObject: true });
   const w = info.width;
   const h = info.height;

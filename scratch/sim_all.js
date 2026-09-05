@@ -22,7 +22,7 @@ async function renderSim(tId) {
     return;
   }
 
-  const templatePath = path.join('images/template', path.basename(t.imageSrc));
+  const templatePath = path.join('public/images/template', path.basename(t.imageSrc));
   const meta = await sharp(templatePath).metadata();
   const width = meta.width;
   const height = meta.height;

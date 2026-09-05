@@ -30,7 +30,7 @@ async function testT17Fine() {
     </g>`;
   }
   const svg = `<svg width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg">${svgOverlays}</svg>`;
-  const res = await sharp('images/template/template 17.png').composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).png().toBuffer();
+  const res = await sharp('public/images/template/template 17.png').composite([{ input: Buffer.from(svg), top: 0, left: 0 }]).png().toBuffer();
   fs.writeFileSync('scratch/t17_test_sim.png', res);
   console.log('Saved t17_test_sim.png');
 }

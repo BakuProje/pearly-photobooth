@@ -17,10 +17,10 @@ async function createSamplePhoto(w, h, label, r, g, b) {
 }
 
 async function renderTemplateExact(templatePath, slots, outName) {
-  const meta = await sharp('images/template/' + templatePath).metadata();
+  const meta = await sharp('public/images/template/' + templatePath).metadata();
   const { width, height } = meta;
 
-  const bgImg = await sharp('images/template/' + templatePath).png().toBuffer();
+  const bgImg = await sharp('public/images/template/' + templatePath).png().toBuffer();
   const composites = [];
 
   const colors = [
@@ -64,7 +64,7 @@ async function renderTemplateExact(templatePath, slots, outName) {
 
   // Check uncovered placeholder pixels
   const { data: renData } = await sharp(result).raw().toBuffer({ resolveWithObject: true });
-  const { data: tmplData } = await sharp('images/template/' + templatePath).raw().toBuffer({ resolveWithObject: true });
+  const { data: tmplData } = await sharp('public/images/template/' + templatePath).raw().toBuffer({ resolveWithObject: true });
   let uncovered = 0;
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
