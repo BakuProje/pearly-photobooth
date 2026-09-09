@@ -113,7 +113,7 @@ export async function detectTemplateSlots(imageSource: string | File): Promise<D
       const aiData = await aiRes.json();
       if (aiData.success && Array.isArray(aiData.slots) && aiData.slots.length > 0) {
         return {
-          slots: sortSlotsTopToBottom(aiData.slots),
+          slots: aiData.slots,
           aspectRatio,
           width: naturalWidth,
           height: naturalHeight,

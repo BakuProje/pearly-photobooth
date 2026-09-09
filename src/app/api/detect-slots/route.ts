@@ -2,6 +2,205 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
 
+interface RawSlot {
+  box_2d?: [number, number, number, number];
+  ymin?: number;
+  xmin?: number;
+  ymax?: number;
+  xmax?: number;
+  centerX?: number;
+  centerY?: number;
+  x?: number;
+  y?: number;
+  width?: number;
+  height?: number;
+  rotation?: number;
+}
+
+interface FormattedSlot {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  rotation: number;
+  borderRadius: number;
+  label: string;
+}
+
+function median(values: number[]): number {
+  if (values.length === 0) return 0;
+  const s = [...values].sort((a, b) => a - b);
+  const mid = Math.floor(s.length / 2);
+  return s.length % 2 !== 0 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
+}
+
+/**
+ * Geometric Regularization Engine for Photobooth Slots
+ * Guarantees that photo slots fit cleanly into template frames without jitter or misaligned borders.
+ */
+function regularizeSlots(
+  rawSlots: RawSlot[],
+  layoutType?: string,
+  isTilted?: boolean,
+  globalRotation?: number
+): FormattedSlot[] {
+  if (!rawSlots || rawSlots.length === 0) return [];
+
+  // 1. Standardize raw inputs into percentage bounds (0-100%)
+  const normalized = rawSlots.map((s, idx) => {
+    let x = 10;
+    let y = 10;
+    let width = 75;
+    let height = 20;
+    let rotation = globalRotation || 0;
+
+    if (Array.isArray(s.box_2d) && s.box_2d.length === 4) {
+      const [ymin, xmin, ymax, xmax] = s.box_2d;
+      x = xmin / 10;
+      y = ymin / 10;
+      width = (xmax - xmin) / 10;
+      height = (ymax - ymin) / 10;
+    } else if (s.ymin !== undefined && s.xmin !== undefined && s.ymax !== undefined && s.xmax !== undefined) {
+      x = s.xmin > 1 ? s.xmin / 10 : s.xmin * 100;
+      y = s.ymin > 1 ? s.ymin / 10 : s.ymin * 100;
+      width = (s.xmax - s.xmin) > 1 ? (s.xmax - s.xmin) / 10 : (s.xmax - s.xmin) * 100;
+      height = (s.ymax - s.ymin) > 1 ? (s.ymax - s.ymin) / 10 : (s.ymax - s.ymin) * 100;
+    } else if (s.centerX !== undefined && s.centerY !== undefined) {
+      width = Number(s.width) || 75;
+      height = Number(s.height) || 20;
+      x = Number(s.centerX) - width / 2;
+      y = Number(s.centerY) - height / 2;
+    } else if (s.x !== undefined && s.y !== undefined) {
+      x = Number(s.x);
+      y = Number(s.y);
+      width = Number(s.width) || 75;
+      height = Number(s.height) || 20;
+    }
+
+    if (s.rotation !== undefined && !isNaN(Number(s.rotation))) {
+      rotation = Number(s.rotation);
+    }
+
+    return {
+      x: Math.max(0, Math.min(95, x)),
+      y: Math.max(0, Math.min(95, y)),
+      width: Math.max(4, Math.min(100, width)),
+      height: Math.max(4, Math.min(100, height)),
+      rotation: isTilted ? rotation : 0,
+      centerX: x + width / 2,
+      centerY: y + height / 2,
+      originalIndex: idx,
+    };
+  });
+
+  const count = normalized.length;
+  if (count === 1) {
+    const s = normalized[0];
+    return [
+      {
+        x: Number(s.x.toFixed(1)),
+        y: Number(s.y.toFixed(1)),
+        width: Number(s.width.toFixed(1)),
+        height: Number(s.height.toFixed(1)),
+        rotation: Number(s.rotation.toFixed(1)),
+        borderRadius: 4,
+        label: 'Foto #1',
+      },
+    ];
+  }
+
+  // Sort top-to-bottom
+  const sorted = [...normalized].sort((a, b) => a.centerY - b.centerY);
+
+  // Check if 2-Column Grid or Twin Strip (e.g. 2x2, 2x3, 2x4)
+  const xCenters = sorted.map((s) => s.centerX);
+  const minX = Math.min(...xCenters);
+  const maxX = Math.max(...xCenters);
+  const xSpan = maxX - minX;
+
+  const isTwoColumn =
+    (layoutType && layoutType.startsWith('grid_2')) ||
+    (xSpan > 20 && count >= 4 && count % 2 === 0);
+
+  if (isTwoColumn && !isTilted) {
+    const midX = (minX + maxX) / 2;
+    const leftCols = sorted.filter((s) => s.centerX < midX).sort((a, b) => a.centerY - b.centerY);
+    const rightCols = sorted.filter((s) => s.centerX >= midX).sort((a, b) => a.centerY - b.centerY);
+
+    if (leftCols.length === rightCols.length && leftCols.length >= 2) {
+      const medianLeftX = median(leftCols.map((s) => s.x));
+      const medianLeftW = median(leftCols.map((s) => s.width));
+      const medianLeftH = median(leftCols.map((s) => s.height));
+
+      const medianRightX = median(rightCols.map((s) => s.x));
+      const medianRightW = median(rightCols.map((s) => s.width));
+      const medianRightH = median(rightCols.map((s) => s.height));
+
+      const rowsCount = leftCols.length;
+      const result: FormattedSlot[] = [];
+
+      for (let r = 0; r < rowsCount; r++) {
+        const leftY = leftCols[r].y;
+        const rightY = rightCols[r].y;
+        const avgY = (leftY + rightY) / 2;
+        const avgH = (medianLeftH + medianRightH) / 2;
+
+        // Left photo
+        result.push({
+          x: Number(medianLeftX.toFixed(1)),
+          y: Number(avgY.toFixed(1)),
+          width: Number(medianLeftW.toFixed(1)),
+          height: Number(avgH.toFixed(1)),
+          rotation: 0,
+          borderRadius: 4,
+          label: `Foto #${r * 2 + 1}`,
+        });
+
+        // Right photo
+        result.push({
+          x: Number(medianRightX.toFixed(1)),
+          y: Number(avgY.toFixed(1)),
+          width: Number(medianRightW.toFixed(1)),
+          height: Number(avgH.toFixed(1)),
+          rotation: 0,
+          borderRadius: 4,
+          label: `Foto #${r * 2 + 2}`,
+        });
+      }
+
+      return result;
+    }
+  }
+
+  // Check if Single-Column Vertical Strip (Stacked 1xN)
+  if (!isTilted && xSpan < 15) {
+    const medianX = median(sorted.map((s) => s.x));
+    const medianW = median(sorted.map((s) => s.width));
+    const medianH = median(sorted.map((s) => s.height));
+
+    return sorted.map((s, idx) => ({
+      x: Number(medianX.toFixed(1)),
+      y: Number(s.y.toFixed(1)),
+      width: Number(medianW.toFixed(1)),
+      height: Number(medianH.toFixed(1)),
+      rotation: 0,
+      borderRadius: 4,
+      label: `Foto #${idx + 1}`,
+    }));
+  }
+
+  // Tilted Diagonal Strip or Custom Layout
+  return sorted.map((s, idx) => ({
+    x: Number(s.x.toFixed(1)),
+    y: Number(s.y.toFixed(1)),
+    width: Number(s.width.toFixed(1)),
+    height: Number(s.height.toFixed(1)),
+    rotation: Number(s.rotation.toFixed(1)),
+    borderRadius: 4,
+    label: `Foto #${idx + 1}`,
+  }));
+}
+
 export async function POST(req: NextRequest) {
   try {
     if (!GEMINI_API_KEY) {
@@ -17,50 +216,49 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing imageBase64' }, { status: 400 });
     }
 
-    // Clean base64 string if it contains data URI header
     const cleanBase64 = imageBase64.replace(/^data:image\/[a-zA-Z]+;base64,/, '');
 
-    const prompt = `You are an expert computer vision AI for a photobooth application (Korean photobooth style).
-Analyze this photobooth template image and detect all photo placeholder frames (Canva clouds & green hill placeholders, transparent cutouts, polaroid frames, photo boxes, straight or tilted photostrips).
+    const prompt = `You are an expert computer vision AI specialized in photobooth templates (Korean photostrips, polaroids, Canva templates, twin strips, grids).
+Analyze this photobooth template image and detect all photo placeholder frames (where user photos should be placed).
 
-CRITICAL ROTATION & GEOMETRY INSTRUCTIONS:
-1. PHOTO ROTATION ANGLE ("rotation"):
-   - Straight Upright / Vertical Photostrips (stacked top-to-bottom, e.g. 4-cut vertical strip, 3-cut vertical strip, polaroid frames, or grid layout):
-     Strictly set "rotation": 0.
-   - Diagonal / Tilted photostrip running from bottom-left up to top-right:
-     The top horizontal edge of each photo frame slopes downwards to the right at around +30.0 to +42.0 degrees clockwise.
-     Set "rotation": 34.5 (or the exact measured clockwise angle of the top edge).
-   - Diagonal / Tilted photostrip running from top-left down to bottom-right:
-     Set "rotation": -34.5 (or the measured counter-clockwise angle).
+DETECTION RULES:
+1. Target areas:
+   - Canva placeholder frames (containing blue sky, white clouds, green hills).
+   - Transparent cutouts / empty photo boxes.
+   - Solid color photo placeholder rectangles.
+   - Polaroid photo frames.
+   - Photostrip frame boxes (vertical strips, 2-column twin strips, grids, or diagonal tilted strips).
 
-2. PHOTO SLOT BOUNDS ("centerX", "centerY" or "x", "y", "width", "height"):
-   - Return the EXACT bounding box / center (in percentage 0-100 of image width & height) of each individual photo box.
-   - For Canva placeholder frames (with blue sky, white cloud, and green hill graphic inside):
-     The slot is the entire rectangular/square box containing the sky+hill placeholder. Fit the bounding box snugly to the frame borders.
-   - For vertical photostrip templates with decorative left/right borders (e.g. denim, stripes, textures) and bottom text/logos:
-     Detect the central photo boxes between the side borders and above the bottom logo/text.
-   - Order slots strictly from top to bottom (Slot 1 at top to Slot N at bottom).
+2. Rotation & Orientation:
+   - For all upright templates (vertical photostrips, 2x2 / 2x3 grids, twin strips, upright polaroids): "isTilted" must be false, "rotationAngle" must be 0, and slot "rotation" must be 0.
+   - For diagonal/tilted photostrips running at an angle: "isTilted" is true, "rotationAngle" is the clockwise angle (e.g. 34.5 or -34.5).
 
-3. UNROTATED SLOT DIMENSIONS ("width", "height"):
-   - "width": unrotated width of the photo slot along its top edge (in % 0-100 of image width).
-   - "height": unrotated height of the photo slot along its side edge (in % 0-100 of image height).
-   - Make sure width and height fit snugly inside the frame without overflowing the borders or margins.
+3. Coordinates:
+   - "box_2d": [ymin, xmin, ymax, xmax] as integers normalized from 0 to 1000.
+   - Fit snugly inside the borders of each photo frame.
 
-Respond ONLY with valid JSON in this exact structure:
+Return ONLY valid JSON matching this exact structure:
 {
+  "layoutType": "vertical_strip" | "grid_2x2" | "grid_2x3" | "grid_2x4" | "diagonal_strip" | "single_polaroid" | "custom",
+  "isTilted": false,
+  "rotationAngle": 0,
   "slots": [
     {
-      "centerX": 50.0,
-      "centerY": 22.5,
-      "width": 78.0,
-      "height": 18.5,
+      "box_2d": [100, 150, 300, 850],
       "rotation": 0
     }
-  ],
-  "detectedCount": 4
+  ]
 }`;
 
-    const modelsToTry = ['gemini-3.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest', 'gemini-3-flash-preview'];
+    const modelsToTry = [
+      'gemini-3-flash-preview',
+      'gemini-3.1-flash-lite',
+      'gemini-flash-lite-latest',
+      'gemini-3.5-flash-lite',
+      'gemini-flash-latest',
+      'gemini-3.7-flash',
+    ];
+
     let geminiResponseData: any = null;
 
     for (const model of modelsToTry) {
@@ -76,21 +274,21 @@ Respond ONLY with valid JSON in this exact structure:
                   parts: [
                     { text: prompt },
                     {
-                  inlineData: {
-                    mimeType,
-                    data: cleanBase64,
-                  },
+                      inlineData: {
+                        mimeType,
+                        data: cleanBase64,
+                      },
+                    },
+                  ],
                 },
               ],
-            },
-          ],
-          generationConfig: {
-            responseMimeType: 'application/json',
-            temperature: 0.0,
-          },
-        }),
-      }
-    );
+              generationConfig: {
+                responseMimeType: 'application/json',
+                temperature: 0.0,
+              },
+            }),
+          }
+        );
 
         if (res.ok) {
           const json = await res.json();
@@ -109,69 +307,19 @@ Respond ONLY with valid JSON in this exact structure:
       const parsed = JSON.parse(rawText);
 
       if (Array.isArray(parsed.slots) && parsed.slots.length > 0) {
-        // Calculate strip geometry if multiple slots exist
-        let stripRotation: number | null = null;
-
-        if (parsed.slots.length >= 2) {
-          const first = parsed.slots[0];
-          const last = parsed.slots[parsed.slots.length - 1];
-          const firstCX = Number(first.centerX ?? (first.x !== undefined ? first.x + (first.width || 20) / 2 : 50));
-          const firstCY = Number(first.centerY ?? (first.y !== undefined ? first.y + (first.height || 15) / 2 : 20));
-          const lastCX = Number(last.centerX ?? (last.x !== undefined ? last.x + (last.width || 20) / 2 : 50));
-          const lastCY = Number(last.centerY ?? (last.y !== undefined ? last.y + (last.height || 15) / 2 : 80));
-
-          const dx = lastCX - firstCX;
-          const dy = lastCY - firstCY;
-
-          // Only compute diagonal rotation if there is substantial horizontal displacement relative to vertical displacement
-          if (Math.abs(dy) > 10 && Math.abs(dx) / Math.abs(dy) >= 0.35) {
-            const stripTheta = (Math.atan2(dy, dx) * 180.0) / Math.PI;
-            let perpRot = stripTheta - 90.0;
-            while (perpRot > 180) perpRot -= 360;
-            while (perpRot < -180) perpRot += 360;
-            stripRotation = Number(perpRot.toFixed(1));
-          } else if (Math.abs(dx) / Math.max(1, Math.abs(dy)) < 0.25) {
-            // Straight vertical strip: strictly force 0 rotation
-            stripRotation = 0;
-          }
-        }
-
-        const formattedSlots = parsed.slots.map((s: any, idx: number) => {
-          const width = Math.max(5, Math.min(100, Number(s.width) || 75));
-          const height = Math.max(5, Math.min(100, Number(s.height) || 18));
-          const rotation = stripRotation !== null ? stripRotation : Number(s.rotation) || 0;
-
-          let x = 10;
-          let y = 10;
-
-          if (s.centerX !== undefined && !isNaN(Number(s.centerX))) {
-            x = Math.max(0, Math.min(100, Number(s.centerX) - width / 2));
-          } else if (s.x !== undefined && !isNaN(Number(s.x))) {
-            x = Math.max(0, Math.min(100, Number(s.x)));
-          }
-
-          if (s.centerY !== undefined && !isNaN(Number(s.centerY))) {
-            y = Math.max(0, Math.min(100, Number(s.centerY) - height / 2));
-          } else if (s.y !== undefined && !isNaN(Number(s.y))) {
-            y = Math.max(0, Math.min(100, Number(s.y)));
-          }
-
-          return {
-            x: Number(x.toFixed(1)),
-            y: Number(y.toFixed(1)),
-            width: Number(width.toFixed(1)),
-            height: Number(height.toFixed(1)),
-            rotation: Number(rotation.toFixed(1)),
-            borderRadius: 4,
-            label: `Foto #${idx + 1}`,
-          };
-        });
+        const formattedSlots = regularizeSlots(
+          parsed.slots,
+          parsed.layoutType,
+          Boolean(parsed.isTilted),
+          Number(parsed.rotationAngle) || 0
+        );
 
         return NextResponse.json({
           success: true,
           source: 'gemini-ai',
           slots: formattedSlots,
           detectedCount: formattedSlots.length,
+          layoutType: parsed.layoutType || 'custom',
         });
       }
     }
@@ -182,4 +330,3 @@ Respond ONLY with valid JSON in this exact structure:
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
-
