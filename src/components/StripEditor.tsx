@@ -7,7 +7,8 @@ import {
   FilterType,
   StickerItem,
 } from '@/lib/types';
-import { TEMPLATES, FILTERS } from '@/lib/constants';
+import { FILTERS } from '@/lib/constants';
+import { getAllTemplates, getTemplateById } from '@/lib/templateManager';
 import { StickerPicker } from './StickerPicker';
 import { DoodleCanvas } from './DoodleCanvas';
 import {
@@ -44,8 +45,7 @@ export const StripEditor: React.FC<StripEditorProps> = ({
 
   const previewContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const currentTemplate: PhotoboothTemplate =
-    TEMPLATES.find((t) => t.id === config.selectedTemplateId) || TEMPLATES[0];
+  const currentTemplate: PhotoboothTemplate = getTemplateById(config.selectedTemplateId);
 
   const selectedFilter =
     FILTERS.find((f) => f.id === config.filter) || FILTERS[0];
@@ -162,32 +162,32 @@ export const StripEditor: React.FC<StripEditorProps> = ({
         {/* Left Side: Customization Tools */}
         <div className="soft-card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
           {/* Tabs */}
-          <div style={{ display: 'flex', background: 'var(--brand-blue-50)', padding: '5px', borderRadius: '16px', gap: '4px', border: '1px solid var(--border-blue)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', background: 'var(--brand-blue-50)', padding: '5px', borderRadius: '16px', gap: '4px', border: '1px solid var(--border-blue)' }}>
             <button
               onClick={() => setActiveTab('template')}
               className={`btn ${activeTab === 'template' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ flex: 1, padding: '8px 6px', fontSize: '0.8rem' }}
+              style={{ padding: '8px 4px', fontSize: '0.78rem' }}
             >
-              <LayoutTemplate size={14} /> Template
+              <LayoutTemplate size={14} /> Frame
             </button>
             <button
               onClick={() => setActiveTab('filter')}
               className={`btn ${activeTab === 'filter' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ flex: 1, padding: '8px 6px', fontSize: '0.8rem' }}
+              style={{ padding: '8px 4px', fontSize: '0.78rem' }}
             >
               <Sparkles size={14} /> Filter
             </button>
             <button
               onClick={() => setActiveTab('stickers')}
               className={`btn ${activeTab === 'stickers' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ flex: 1, padding: '8px 6px', fontSize: '0.8rem' }}
+              style={{ padding: '8px 4px', fontSize: '0.78rem' }}
             >
               <Smile size={14} /> Stiker
             </button>
             <button
               onClick={() => setActiveTab('adjust')}
               className={`btn ${activeTab === 'adjust' ? 'btn-primary' : 'btn-secondary'}`}
-              style={{ flex: 1, padding: '8px 6px', fontSize: '0.8rem' }}
+              style={{ padding: '8px 4px', fontSize: '0.78rem' }}
             >
               <Sliders size={14} /> Cahaya
             </button>
@@ -198,11 +198,11 @@ export const StripEditor: React.FC<StripEditorProps> = ({
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h4 style={{ fontSize: '0.9rem', fontWeight: 800, color: 'var(--brand-blue-700)' }}>Ganti Template Frame</h4>
-                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{TEMPLATES.length} Pilihan Desain</span>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{getAllTemplates().length} Pilihan Desain</span>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px', maxHeight: '420px', overflowY: 'auto', padding: '4px' }}>
-                {TEMPLATES.map((tmpl, idx) => {
+                {getAllTemplates().map((tmpl, idx) => {
                   const isSel = config.selectedTemplateId === tmpl.id;
                   return (
                     <button

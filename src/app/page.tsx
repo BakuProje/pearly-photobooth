@@ -291,15 +291,15 @@ export default function Home() {
       )}
 
       {/* 3-Step Dynamic Viewport with Framer Motion */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: currentStep === 'select-template' ? 'visible' : 'hidden' }}>
         <AnimatePresence mode="wait">
           {currentStep === 'select-template' && (
             <motion.div
               key="step-select"
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -12 }}
-              transition={{ duration: 0.25, ease: 'easeOut' }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2, ease: 'easeOut' }}
               style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
             >
               <TemplateSelector

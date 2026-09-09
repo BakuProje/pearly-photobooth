@@ -26,7 +26,8 @@ import {
   FolderUp,
 } from 'lucide-react';
 import { FilterType, PhotoboothTemplate, PhotoBoothConfig } from '@/lib/types';
-import { FILTERS, TEMPLATES } from '@/lib/constants';
+import { FILTERS } from '@/lib/constants';
+import { getTemplateById } from '@/lib/templateManager';
 import { soundEffects } from '@/lib/soundEffects';
 import { renderPhotoStripCanvas } from '@/lib/canvasRenderer';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -218,8 +219,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
     }
   };
 
-  const currentTemplate: PhotoboothTemplate =
-    TEMPLATES.find((t) => t.id === selectedTemplateId) || TEMPLATES[0];
+  const currentTemplate: PhotoboothTemplate = getTemplateById(selectedTemplateId);
 
   const totalShots = currentTemplate.requiredPhotos;
 

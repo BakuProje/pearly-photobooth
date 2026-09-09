@@ -26,13 +26,15 @@ export type TemplateCategory =
 export interface PhotoboothTemplate {
   id: string;
   name: string;
-  category: TemplateCategory;
+  category: TemplateCategory | string;
   imageSrc: string;
   requiredPhotos: number;
   aspectRatio: string;
   description: string;
   slots: TemplateSlot[];
   isTwin?: boolean; // If true, can duplicate photos across twin strips
+  isCustom?: boolean; // If true, user uploaded custom template
+  createdAt?: number;
 }
 
 export type FilterType = 
@@ -100,4 +102,35 @@ export interface GalleryItem {
   photos: string[];
   config: PhotoBoothConfig;
   createdAt: number;
+}
+
+export interface AIEnhanceResult {
+  brightness: number;
+  contrast: number;
+  saturation: number;
+  warmth?: number;
+  highlights?: number;
+  shadows?: number;
+  enhance?: number;
+  fade?: number;
+  filter?: FilterType;
+  moodTitle: string;
+  explanation: string;
+}
+
+export interface AICritiqueResult {
+  rating: number; // 1 to 10 scale (e.g., 9.6)
+  verdictBadge: string; // e.g. "Super Aesthetic! ✨"
+  overallReview: string;
+  poseFeedback: string;
+  lightingFeedback: string;
+  tips: string[];
+  suggestedCaptions: string[];
+}
+
+export interface AIChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: number;
 }

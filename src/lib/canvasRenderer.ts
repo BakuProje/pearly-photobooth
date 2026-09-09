@@ -1,5 +1,6 @@
 import { PhotoBoothConfig, PhotoboothTemplate } from './types';
-import { TEMPLATES, FILTERS } from './constants';
+import { FILTERS } from './constants';
+import { getTemplateById } from './templateManager';
 
 const loadImage = (src: string): Promise<HTMLImageElement> => {
   return new Promise((resolve, reject) => {
@@ -20,8 +21,7 @@ export async function renderPhotoStripCanvas(
   const ctx = canvas.getContext('2d');
   if (!ctx) throw new Error('Failed to get 2D canvas context');
 
-  const template: PhotoboothTemplate =
-    TEMPLATES.find((t) => t.id === config.selectedTemplateId) || TEMPLATES[0];
+  const template: PhotoboothTemplate = getTemplateById(config.selectedTemplateId);
 
   // Load Template Frame Image
   let templateImg: HTMLImageElement | null = null;

@@ -455,6 +455,54 @@ input[type="range"]::-moz-range-thumb {
   display: none !important;
 }
 
+/* Template Upload Button (Centered on Desktop/Landscape) */
+.template-upload-btn-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  margin-top: 6px;
+  pointer-events: auto;
+  position: relative;
+  z-index: 50;
+}
+
+.template-upload-btn-responsive {
+  padding: 12px 28px;
+  font-size: 0.94rem;
+  font-weight: 900;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 14px;
+  background: var(--neo-green);
+  color: var(--neo-black);
+  border: 2.5px solid var(--neo-black);
+  box-shadow: 4px 4px 0px var(--neo-black);
+  cursor: pointer;
+  pointer-events: auto;
+  touch-action: manipulation;
+  user-select: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.template-upload-btn-responsive:hover {
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 5.5px 5.5px 0px var(--neo-black);
+}
+
+.template-upload-btn-responsive:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0px var(--neo-black);
+}
+
+.upload-btn-text-desktop {
+  display: inline !important;
+}
+.upload-btn-text-mobile {
+  display: none !important;
+}
+
 @media (max-width: 640px) {
   .credits-badge-desktop {
     display: none !important;
@@ -462,5 +510,47 @@ input[type="range"]::-moz-range-thumb {
   .credits-badge-mobile-floating {
     display: flex !important;
   }
+
+  /* On Mobile Portrait: Floating Pill on Bottom-Left matching Credits Badge */
+  .template-upload-btn-container {
+    position: fixed;
+    bottom: 18px;
+    left: 16px;
+    width: auto;
+    margin: 0;
+    z-index: 99;
+    display: flex;
+    justify-content: flex-start;
+    pointer-events: auto;
+  }
+
+  .template-upload-btn-responsive {
+    padding: 8px 14px !important;
+    font-size: 0.82rem !important;
+    font-weight: 900 !important;
+    gap: 6px !important;
+    border-radius: 999px !important;
+    background: var(--neo-green) !important;
+    border: 2.5px solid var(--neo-black) !important;
+    box-shadow: 3px 3px 0px var(--neo-black) !important;
+    color: var(--neo-black) !important;
+  }
+
+  .template-upload-btn-responsive:hover {
+    transform: none !important;
+  }
+
+  .template-upload-btn-responsive:active {
+    transform: translate(2px, 2px) !important;
+    box-shadow: 1px 1px 0px var(--neo-black) !important;
+  }
+
+  .upload-btn-text-desktop {
+    display: none !important;
+  }
+  .upload-btn-text-mobile {
+    display: inline !important;
+  }
 }
+
 

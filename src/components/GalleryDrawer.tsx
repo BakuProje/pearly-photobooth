@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { GalleryItem } from '@/lib/types';
-import { TEMPLATES } from '@/lib/constants';
+import { getTemplateById } from '@/lib/templateManager';
 import { createAnimatedGif } from '@/lib/gifGenerator';
 import {
   X,
@@ -221,7 +221,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   </div>
                 ) : (
                   items.map((item) => {
-                    const tmpl = TEMPLATES.find((t) => t.id === item.config.selectedTemplateId);
+                    const tmpl = getTemplateById(item.config.selectedTemplateId);
                     return (
                       <div
                         key={item.id}
@@ -489,7 +489,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               >
                 <div>
                   <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-                    {TEMPLATES.find((t) => t.id === selectedItem.config.selectedTemplateId)?.name || 'Hasil Sesi'}
+                    {getTemplateById(selectedItem.config.selectedTemplateId)?.name || 'Hasil Sesi'}
                   </h3>
                   <p style={{ fontSize: '0.74rem', color: 'var(--neo-black)', fontWeight: 700 }}>
                     {new Date(selectedItem.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}

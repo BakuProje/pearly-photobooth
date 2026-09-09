@@ -9,6 +9,15 @@ export const AntiDevTools: React.FC = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
+    // Allow dev mode or bypass testing
+    if (
+      process.env.NODE_ENV === 'development' ||
+      window.location.search.includes('bypass=true') ||
+      window.location.search.includes('dev=1')
+    ) {
+      return;
+    }
+
     // 1. Block Context Menu (Right Click) & Drag
     const handleContextMenu = (e: MouseEvent) => {
       e.preventDefault();

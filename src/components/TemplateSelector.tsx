@@ -1,9 +1,15 @@
 'use client';
 
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { PhotoboothTemplate } from '@/lib/types';
 import { TEMPLATES } from '@/lib/constants';
-import { Camera, ImagePlus, X, Sparkles, FolderUp } from 'lucide-react';
+import {
+  getAllTemplates,
+  deleteCustomTemplate,
+} from '@/lib/templateManager';
+import { UploadTemplateModal } from './UploadTemplateModal';
+import { Camera, ImagePlus, X, Upload, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TemplateSelectorProps {
@@ -17,12 +23,41 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onSelectTemplate,
   onStartSession,
 }) => {
+  const [mounted, setMounted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+
   const [isMouseDown, setIsMouseDown] = useState(false);
   const [startX, setStartX] = useState(0);
   const [scrollLeftState, setScrollLeftState] = useState(0);
   const [hasDragged, setHasDragged] = useState(false);
   const [modalTemplate, setModalTemplate] = useState<PhotoboothTemplate | null>(null);
+  const [templateToDelete, setTemplateToDelete] = useState<PhotoboothTemplate | null>(null);
+  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // Dynamic templates list (initial state uses static TEMPLATES for clean SSR hydration)
+  const [templatesList, setTemplatesList] = useState<PhotoboothTemplate[]>(TEMPLATES);
+
+  const refreshTemplates = () => {
+    const all = getAllTemplates();
+    setTemplatesList(all);
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    refreshTemplates();
+    const handleUpdate = () => refreshTemplates();
+    window.addEventListener('snapbooth_templates_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('snapbooth_templates_updated', handleUpdate);
+    };
+  }, []);
+
+  // When custom template is uploaded via modal
+  const handleCustomTemplateCreated = (newTmpl: PhotoboothTemplate) => {
+    refreshTemplates();
+    onSelectTemplate(newTmpl.id);
+    setModalTemplate(newTmpl);
+  };
 
   // Wheel horizontal scrolling on PC
   const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
@@ -70,6 +105,18 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     setModalTemplate(null);
   };
 
+  const handleConfirmDelete = async () => {
+    if (!templateToDelete) return;
+    await deleteCustomTemplate(templateToDelete.id);
+    refreshTemplates();
+    if (selectedTemplateId === templateToDelete.id) {
+      onSelectTemplate('template-1');
+    }
+    setTemplateToDelete(null);
+  };
+
+  const templatesToRender = templatesList;
+
   return (
     <div style={{
       width: '100%',
@@ -110,7 +157,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           color: 'var(--neo-black)',
           letterSpacing: '-0.4px',
           lineHeight: '1.2',
-          margin: '3px 0',
+          margin: '2px 0',
           textTransform: 'uppercase',
           textAlign: 'center',
         }}>
@@ -150,7 +197,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             width: '100%',
           }}
         >
-          {TEMPLATES.map((tmpl, idx) => {
+          {/* Render All Templates: Built-in + Custom */}
+          {templatesToRender.map((tmpl, idx) => {
             const isSelected = selectedTemplateId === tmpl.id;
             return (
               <div
@@ -174,8 +222,42 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   boxShadow: isSelected ? '6px 6px 0px var(--neo-black)' : '4px 4px 0px var(--neo-black)',
                   transform: isSelected ? 'translate(-2px, -2px)' : 'none',
                   userSelect: 'none',
+                  position: 'relative',
                 }}
               >
+                {/* Delete button if custom template */}
+                {tmpl.isCustom && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setTemplateToDelete(tmpl);
+                    }}
+                    style={{
+                      position: 'absolute',
+                      top: '6px',
+                      right: '6px',
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: '#fee2e2',
+                      border: '1.8px solid var(--neo-black)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      zIndex: 10,
+                      color: '#dc2626',
+                      boxShadow: '1.8px 1.8px 0px var(--neo-black)',
+                      transition: 'transform 0.1s ease',
+                    }}
+                    className="neo-btn-hover"
+                    title="Hapus template kustom ini"
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                )}
+
                 {/* Template Image Preview */}
                 <div style={{
                   width: '100%',
@@ -188,6 +270,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   padding: '6px',
+                  position: 'relative',
                 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
@@ -201,6 +284,26 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     }}
                     draggable={false}
                   />
+
+                  {tmpl.isCustom && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        left: '8px',
+                        background: 'var(--neo-green)',
+                        color: 'var(--neo-black)',
+                        border: '1.5px solid var(--neo-black)',
+                        borderRadius: '6px',
+                        padding: '2px 6px',
+                        fontSize: '0.66rem',
+                        fontWeight: 900,
+                        boxShadow: '1.5px 1.5px 0px var(--neo-black)',
+                      }}
+                    >
+                      KUSTOM
+                    </div>
+                  )}
                 </div>
 
                 {/* Template Info: Title & Required Photos */}
@@ -211,22 +314,27 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   padding: '2px 4px',
                 }}>
                   <span style={{
-                    fontSize: '1rem',
+                    fontSize: '0.96rem',
                     fontWeight: 900,
                     color: 'var(--neo-black)',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: '140px',
                   }}>
                     {tmpl.name}
                   </span>
 
                   <span style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.74rem',
                     fontWeight: 900,
-                    padding: '3px 10px',
+                    padding: '3px 9px',
                     borderRadius: '999px',
                     background: 'var(--neo-primary)',
                     color: 'var(--neo-black)',
                     border: '1.8px solid var(--neo-black)',
                     boxShadow: '1.8px 1.8px 0px var(--neo-black)',
+                    whiteSpace: 'nowrap',
                   }}>
                     {tmpl.requiredPhotos} Foto
                   </span>
@@ -237,174 +345,313 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         </div>
       </div>
 
+      {/* Bottom Action Button: Upload Template dari Galeri (Pojok Kiri Bawah di Mobile Portrait, Tengah di Desktop/Landscape) */}
+      <div className="template-upload-btn-container">
+        <button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsUploadModalOpen(true);
+          }}
+          className="template-upload-btn-responsive"
+          title="Upload gambar template baru dari galeri"
+        >
+          <Upload size={15} />
+          <span className="upload-btn-text-desktop">Upload Template</span>
+          <span className="upload-btn-text-mobile">Upload</span>
+        </button>
+      </div>
+
+      {/* Pop-up Modal Upload Template */}
+      <UploadTemplateModal
+        isOpen={isUploadModalOpen}
+        onClose={() => setIsUploadModalOpen(false)}
+        onTemplateSaved={handleCustomTemplateCreated}
+      />
+
       {/* ================= MODAL PILIH METODE FOTO (FOTO LANGSUNG VS PILIH FOTO DARI FOLDER) ================= */}
-      <AnimatePresence>
-        {modalTemplate && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 999,
-              background: 'rgba(15, 23, 42, 0.75)',
-              backdropFilter: 'blur(6px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px',
-            }}
-            onClick={() => setModalTemplate(null)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="neo-card"
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {modalTemplate && (
+            <div
               style={{
-                maxWidth: '440px',
-                width: '100%',
-                padding: '24px 20px',
-                background: '#ffffff',
+                position: 'fixed',
+                inset: 0,
+                zIndex: 99999,
+                background: 'rgba(15, 23, 42, 0.75)',
+                backdropFilter: 'blur(6px)',
                 display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                borderRadius: '20px',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '16px',
               }}
-              onClick={(e) => e.stopPropagation()}
+              onClick={() => setModalTemplate(null)}
             >
-              {/* Header Modal */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-                    {modalTemplate.name}
-                  </span>
-                  <span style={{
-                    fontSize: '0.74rem',
-                    fontWeight: 900,
-                    padding: '2px 8px',
-                    borderRadius: '999px',
-                    background: 'var(--neo-primary)',
-                    color: 'var(--neo-black)',
-                    border: '1.5px solid var(--neo-black)',
-                  }}>
-                    {modalTemplate.requiredPhotos} Slot Foto
-                  </span>
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="neo-card"
+                style={{
+                  maxWidth: '440px',
+                  width: '100%',
+                  padding: '24px 20px',
+                  background: '#ffffff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '16px',
+                  borderRadius: '20px',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Header Modal */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)' }}>
+                      {modalTemplate.name}
+                    </span>
+                    <span style={{
+                      fontSize: '0.74rem',
+                      fontWeight: 900,
+                      padding: '2px 8px',
+                      borderRadius: '999px',
+                      background: 'var(--neo-primary)',
+                      color: 'var(--neo-black)',
+                      border: '1.5px solid var(--neo-black)',
+                    }}>
+                      {modalTemplate.requiredPhotos} Slot Foto
+                    </span>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setModalTemplate(null)}
+                    style={{
+                      background: '#ffffff',
+                      border: '2px solid var(--neo-black)',
+                      borderRadius: '8px',
+                      width: '32px',
+                      height: '32px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <X size={16} />
+                  </button>
                 </div>
 
-                <button
-                  onClick={() => setModalTemplate(null)}
+                <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600, margin: 0, marginTop: '-6px' }}>
+                  Pilih cara Anda ingin mengisi foto pada template ini:
+                </p>
+
+                {/* 2 Big Choice Cards */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
+                  {/* Option 1: Foto Langsung (Live Camera) */}
+                  <div
+                    onClick={() => handleChooseMode('camera')}
+                    className="neo-card-interactive"
+                    style={{
+                      padding: '16px',
+                      borderRadius: '14px',
+                      border: '2.5px solid var(--neo-black)',
+                      background: '#f0fdf4',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '3px 3px 0px var(--neo-black)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: 'var(--neo-green)',
+                        border: '2px solid var(--neo-black)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--neo-black)',
+                        flexShrink: 0,
+                        boxShadow: '2px 2px 0px var(--neo-black)',
+                      }}
+                    >
+                      <Camera size={24} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
+                        Foto Langsung
+                      </h4>
+                      <p style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
+                        Gunakan kamera live dengan countdown hitungan mundur otomatis.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Option 2: Pilih Foto (Upload dari Galeri / Folder) */}
+                  <div
+                    onClick={() => handleChooseMode('upload')}
+                    className="neo-card-interactive"
+                    style={{
+                      padding: '16px',
+                      borderRadius: '14px',
+                      border: '2.5px solid var(--neo-black)',
+                      background: '#eff6ff',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '14px',
+                      cursor: 'pointer',
+                      boxShadow: '3px 3px 0px var(--neo-black)',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        background: 'var(--neo-blue-light)',
+                        border: '2px solid var(--neo-black)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        color: 'var(--neo-black)',
+                        flexShrink: 0,
+                        boxShadow: '2px 2px 0px var(--neo-black)',
+                      }}
+                    >
+                      <ImagePlus size={24} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
+                        Pilih Foto (Upload Galeri)
+                      </h4>
+                      <p style={{ fontSize: '0.78rem', color: '#1d4ed8', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
+                        Pilih foto dari memori perangkat untuk tiap slot bingkai secara bebas.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
+
+      {/* ================= MODAL KONFIRMASI HAPUS TEMPLATE KUSTOM ================= */}
+      {mounted && typeof document !== 'undefined' && createPortal(
+        <AnimatePresence>
+          {templateToDelete && (
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 999999,
+                background: 'rgba(15, 23, 42, 0.8)',
+                backdropFilter: 'blur(6px)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '16px',
+              }}
+              onClick={() => setTemplateToDelete(null)}
+            >
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.9, opacity: 0 }}
+                transition={{ duration: 0.18 }}
+                className="neo-card"
+                style={{
+                  maxWidth: '380px',
+                  width: '100%',
+                  padding: '24px 20px',
+                  background: '#ffffff',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  textAlign: 'center',
+                  gap: '14px',
+                  borderRadius: '20px',
+                  border: '2.5px solid var(--neo-black)',
+                  boxShadow: '6px 6px 0px var(--neo-black)',
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Trash Icon Box */}
+                <div
                   style={{
-                    background: '#ffffff',
-                    border: '2px solid var(--neo-black)',
-                    borderRadius: '8px',
-                    width: '32px',
-                    height: '32px',
+                    width: '56px',
+                    height: '56px',
+                    borderRadius: '16px',
+                    background: '#fee2e2',
+                    border: '2.5px solid var(--neo-black)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              <p style={{ fontSize: '0.86rem', color: 'var(--text-secondary)', fontWeight: 600, margin: 0, marginTop: '-6px' }}>
-                Pilih cara Anda ingin mengisi foto pada template ini:
-              </p>
-
-              {/* 2 Big Choice Cards */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                {/* Option 1: Foto Langsung (Live Camera) */}
-                <div
-                  onClick={() => handleChooseMode('camera')}
-                  className="neo-card-interactive"
-                  style={{
-                    padding: '16px',
-                    borderRadius: '14px',
-                    border: '2.5px solid var(--neo-black)',
-                    background: '#f0fdf4',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    cursor: 'pointer',
+                    color: '#dc2626',
                     boxShadow: '3px 3px 0px var(--neo-black)',
                   }}
                 >
-                  <div
-                    style={{
-                      width: '48px',
-                      height: '48px',
-                      borderRadius: '12px',
-                      background: 'var(--neo-green)',
-                      border: '2px solid var(--neo-black)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: 'var(--neo-black)',
-                      flexShrink: 0,
-                      boxShadow: '2px 2px 0px var(--neo-black)',
-                    }}
-                  >
-                    <Camera size={24} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
-                      Foto Langsung
-                    </h4>
-                    <p style={{ fontSize: '0.78rem', color: '#15803d', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
-                      Gunakan kamera live dengan countdown hitungan mundur otomatis.
-                    </p>
-                  </div>
+                  <Trash2 size={26} />
                 </div>
 
-                {/* Option 2: Pilih Foto (Upload dari Galeri / Folder) */}
-                <div
-                  onClick={() => handleChooseMode('upload')}
-                  className="neo-card-interactive"
-                  style={{
-                    padding: '16px',
-                    borderRadius: '14px',
-                    border: '2.5px solid var(--neo-black)',
-                    background: '#eff6ff',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '14px',
-                    cursor: 'pointer',
-                    boxShadow: '3px 3px 0px var(--neo-black)',
-                  }}
-                >
-                  <div
+                {/* Text Info */}
+                <div>
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)', margin: '0 0 6px 0' }}>
+                    Hapus Template Kustom?
+                  </h3>
+                  <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600, margin: 0, lineHeight: 1.4 }}>
+                    Apakah Anda yakin ingin menghapus <strong>{templateToDelete.name}</strong>?
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', gap: '10px', width: '100%', marginTop: '4px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setTemplateToDelete(null)}
+                    className="neo-btn neo-btn-secondary"
+                    style={{ flex: 1, padding: '10px 14px', fontSize: '0.88rem', justifyContent: 'center' }}
+                  >
+                    Batal
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleConfirmDelete}
                     style={{
-                      width: '48px',
-                      height: '48px',
+                      flex: 1.2,
+                      padding: '10px 14px',
+                      fontSize: '0.88rem',
+                      fontWeight: 900,
+                      background: '#dc2626',
+                      color: '#ffffff',
+                      border: '2.5px solid var(--neo-black)',
                       borderRadius: '12px',
-                      background: 'var(--neo-blue-light)',
-                      border: '2px solid var(--neo-black)',
+                      boxShadow: '3px 3px 0px var(--neo-black)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: 'var(--neo-black)',
-                      flexShrink: 0,
-                      boxShadow: '2px 2px 0px var(--neo-black)',
+                      gap: '6px',
+                      cursor: 'pointer',
                     }}
                   >
-                    <ImagePlus size={24} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <h4 style={{ fontSize: '0.98rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '2px' }}>
-                      Pilih Foto (Upload Galeri)
-                    </h4>
-                    <p style={{ fontSize: '0.78rem', color: '#1d4ed8', fontWeight: 600, margin: 0, lineHeight: 1.3 }}>
-                      Pilih foto dari memori perangkat untuk tiap slot bingkai secara bebas.
-                    </p>
-                  </div>
+                    <Trash2 size={15} />
+                    <span>Hapus</span>
+                  </button>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>,
+        document.body
+      )}
     </div>
   );
 };

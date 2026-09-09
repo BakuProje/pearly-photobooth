@@ -6,7 +6,7 @@ import {
   PhotoboothTemplate,
   GalleryItem,
 } from '@/lib/types';
-import { TEMPLATES } from '@/lib/constants';
+import { getTemplateById } from '@/lib/templateManager';
 import { renderPhotoStripCanvas, generateDownloadBlob, renderFilteredPhotos } from '@/lib/canvasRenderer';
 import { createAnimatedGif } from '@/lib/gifGenerator';
 import { generateQrCodeDataUrl } from '@/lib/qrCode';
@@ -62,8 +62,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   onSaveToGalleryRef.current = onSaveToGallery;
   const renderedSessionKeyRef = React.useRef<string>('');
 
-  const currentTemplate: PhotoboothTemplate =
-    TEMPLATES.find((t) => t.id === config.selectedTemplateId) || TEMPLATES[0];
+  const currentTemplate: PhotoboothTemplate = getTemplateById(config.selectedTemplateId);
 
   // Cycling preview if GIF is rendering (only depends on length of processedPhotos)
   useEffect(() => {
