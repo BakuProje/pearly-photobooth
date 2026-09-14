@@ -4,8 +4,7 @@
   --neo-white: #ffffff;
   --neo-black: #0f172a;
   --neo-border: #0f172a;
-  
-  /* Brand Blues (Replacing yellow with brand blue) */
+
   --neo-primary: #38bdf8;
   --neo-primary-hover: #0ea5e9;
   --neo-primary-dark: #0284c7;
@@ -16,7 +15,7 @@
   --neo-pink: #f472b6;
   --neo-purple: #a855f7;
   --neo-gray-light: #f8fafc;
-  
+
   /* Text */
   --text-main: #0f172a;
   --text-secondary: #334155;
@@ -58,8 +57,9 @@ body {
   background-attachment: fixed;
 }
 
-/* Portrait orientation on Mobile / Tablets */
-@media (orientation: portrait), (max-width: 768px) {
+
+@media (orientation: portrait),
+(max-width: 768px) {
   body {
     background-image: url('/images/portrait.png') !important;
     background-size: cover !important;
@@ -69,7 +69,6 @@ body {
   }
 }
 
-/* Neo-Brutalism Card */
 .neo-card {
   background: var(--neo-white);
   border: 2.5px solid var(--neo-black);
@@ -96,7 +95,6 @@ body {
   box-shadow: var(--neo-shadow-active);
 }
 
-/* Neo-Brutalism Buttons */
 .neo-btn {
   display: inline-flex;
   align-items: center;
@@ -207,7 +205,6 @@ body {
   transition: opacity 0.02s ease;
 }
 
-/* Countdown */
 .countdown-number {
   font-size: 7.5rem;
   font-weight: 900;
@@ -219,12 +216,22 @@ body {
 }
 
 @keyframes pulseScale {
-  0% { transform: scale(0.7); opacity: 0.6; }
-  50% { transform: scale(1.15); opacity: 1; }
-  100% { transform: scale(1); opacity: 1; }
+  0% {
+    transform: scale(0.7);
+    opacity: 0.6;
+  }
+
+  50% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
-/* Range Sliders Touch-Friendly for Mobile & Desktop */
 input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
@@ -280,21 +287,26 @@ input[type="range"]::-moz-range-thumb {
   .studio-grid {
     grid-template-columns: 1fr !important;
   }
+
   .controls-sidebar {
     width: 100% !important;
   }
+
   .camera-grid-responsive {
     grid-template-columns: 1fr !important;
   }
+
   .review-preview-grid {
     grid-template-columns: 1fr !important;
     max-width: 100% !important;
     gap: 16px !important;
   }
+
   .review-photostrip-box {
     max-height: 420px !important;
     min-height: 240px !important;
   }
+
   .review-photostrip-img {
     max-height: 400px !important;
   }
@@ -304,17 +316,18 @@ input[type="range"]::-moz-range-thumb {
   .review-preview-grid {
     gap: 12px !important;
   }
+
   .review-photostrip-box {
     max-height: 350px !important;
     min-height: 180px !important;
     padding: 4px !important;
   }
+
   .review-photostrip-img {
     max-height: 335px !important;
   }
 }
 
-/* Custom smooth horizontal filter scrollbar */
 .filter-scroll-container {
   display: flex;
   gap: 8px;
@@ -333,27 +346,29 @@ input[type="range"]::-moz-range-thumb {
 .filter-scroll-container::-webkit-scrollbar {
   height: 6px;
 }
+
 .filter-scroll-container::-webkit-scrollbar-track {
   background: #f1f5f9;
   border-radius: 999px;
 }
+
 .filter-scroll-container::-webkit-scrollbar-thumb {
   background: #cbd5e1;
   border-radius: 999px;
   border: 1px solid #94a3b8;
 }
+
 .filter-scroll-container::-webkit-scrollbar-thumb:hover {
   background: #0284c7;
 }
 
-/* Interactive slot overlay on photostrip preview */
+
 .interactive-slot-overlay:hover {
   border-color: #0284c7 !important;
   background: rgba(2, 132, 199, 0.15);
   box-shadow: 0 0 12px rgba(2, 132, 199, 0.4);
 }
 
-/* Fullscreen Responsive Camera Viewfinder (Landscape & Portrait) */
 .camera-viewfinder-wrapper {
   width: 100%;
   max-width: 1080px;
@@ -376,7 +391,6 @@ input[type="range"]::-moz-range-thumb {
   justify-content: center;
 }
 
-/* Shooting State: 100% TRUE FULLSCREEN ON ANY SCREEN (LANDSCAPE & PORTRAIT) */
 .camera-viewfinder-wrapper.is-shooting {
   position: fixed !important;
   top: 0 !important;
@@ -416,11 +430,13 @@ input[type="range"]::-moz-range-thumb {
   border: none !important;
 }
 
-/* Portrait Screens (Mobile, Portrait Tablets) in Setup */
-@media (max-aspect-ratio: 1/1), (max-width: 768px) {
+
+@media (max-aspect-ratio: 1/1),
+(max-width: 768px) {
   .camera-viewfinder-wrapper {
     max-width: 100% !important;
   }
+
   .camera-video-container {
     aspect-ratio: 4 / 5 !important;
     height: auto !important;
@@ -442,20 +458,21 @@ input[type="range"]::-moz-range-thumb {
   body {
     background: #ffffff !important;
   }
+
   .no-print {
     display: none !important;
   }
 }
 
-/* Responsive Credits Badge (Navbar on Desktop, Floating Bottom-Right on Mobile) */
+
 .credits-badge-desktop {
   display: flex !important;
 }
+
 .credits-badge-mobile-floating {
   display: none !important;
 }
 
-/* Template Upload Button (Centered on Desktop/Landscape) */
 .template-upload-btn-container {
   display: flex;
   justify-content: center;
@@ -499,6 +516,7 @@ input[type="range"]::-moz-range-thumb {
 .upload-btn-text-desktop {
   display: inline !important;
 }
+
 .upload-btn-text-mobile {
   display: none !important;
 }
@@ -507,11 +525,11 @@ input[type="range"]::-moz-range-thumb {
   .credits-badge-desktop {
     display: none !important;
   }
+
   .credits-badge-mobile-floating {
     display: flex !important;
   }
 
-  /* On Mobile Portrait: Floating Pill on Bottom-Left matching Credits Badge */
   .template-upload-btn-container {
     position: fixed;
     bottom: 18px;
@@ -548,9 +566,8 @@ input[type="range"]::-moz-range-thumb {
   .upload-btn-text-desktop {
     display: none !important;
   }
+
   .upload-btn-text-mobile {
     display: inline !important;
   }
 }
-
-

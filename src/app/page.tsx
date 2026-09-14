@@ -44,7 +44,7 @@ export default function Home() {
   const [timeRemainingStr, setTimeRemainingStr] = useState<string>('');
   const [isQuotaModalOpen, setIsQuotaModalOpen] = useState(false);
 
-  // Load session quota & live 4-hour auto-reset timer
+
   useEffect(() => {
     const updateQuotaAndTimer = () => {
       try {
@@ -59,7 +59,6 @@ export default function Home() {
           if (depletedTime) {
             const elapsed = Date.now() - depletedTime;
             if (elapsed >= RESET_COOLDOWN_MS) {
-              // 4 hours reached -> Auto reset to 5
               currentQuota = 5;
               depletedTime = null;
               localStorage.setItem('snapbooth_photo_quota', '5');
@@ -69,7 +68,6 @@ export default function Home() {
               setTimeRemainingStr('');
               return;
             } else {
-              // Calculate remaining time
               const remainingMs = RESET_COOLDOWN_MS - elapsed;
               const hours = Math.floor(remainingMs / (1000 * 60 * 60));
               const minutes = Math.floor((remainingMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -110,7 +108,6 @@ export default function Home() {
     setIsQuotaModalOpen(false);
   };
 
-  // Check if opened via QR Scan mode or normal session
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
@@ -142,7 +139,6 @@ export default function Home() {
       const saved = localStorage.getItem('snapbooth_gallery');
       if (saved) {
         const parsed: GalleryItem[] = JSON.parse(saved);
-        // Filter out accidental duplicates
         const unique: GalleryItem[] = [];
         for (const item of parsed) {
           const exists = unique.some((u) =>
@@ -188,10 +184,8 @@ export default function Home() {
   const handleStartSession = (mode: 'camera' | 'upload' = 'camera') => {
     setSessionStartMode(mode);
 
-    // Check if 4-hour cooldown has already elapsed before blocking
     if (sessionQuota <= 0) {
       if (quotaDepletedAt && Date.now() - quotaDepletedAt >= RESET_COOLDOWN_MS) {
-        // 4 hours have passed! Auto-reset immediately to 4 (used 1 credit for new session)
         setSessionQuota(4);
         setQuotaDepletedAt(null);
         setTimeRemainingStr('');
@@ -240,10 +234,8 @@ export default function Home() {
 
   const handleSaveToGallery = React.useCallback((item: GalleryItem) => {
     setGallery((prev) => {
-      // 1. Avoid duplicate by ID
       if (prev.some((g) => g.id === item.id)) return prev;
 
-      // 2. Avoid duplicate by exact photos and template
       const isDuplicate = prev.some((g) =>
         g.config.selectedTemplateId === item.config.selectedTemplateId &&
         g.photos.length === item.photos.length &&
@@ -279,7 +271,6 @@ export default function Home() {
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative', zIndex: 1 }}>
-      {/* Top Navbar: only shown on Step 1 (Pilih Template) */}
       {currentStep === 'select-template' && (
         <Navbar
           galleryCount={gallery.length}
@@ -290,7 +281,6 @@ export default function Home() {
         />
       )}
 
-      {/* 3-Step Dynamic Viewport with Framer Motion */}
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: currentStep === 'select-template' ? 'visible' : 'hidden' }}>
         <AnimatePresence mode="wait">
           {currentStep === 'select-template' && (
@@ -356,7 +346,6 @@ export default function Home() {
         </AnimatePresence>
       </div>
 
-      {/* History Session Gallery Drawer */}
       <GalleryDrawer
         isOpen={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
@@ -429,7 +418,7 @@ export default function Home() {
                 </p>
               </div>
 
-              {/* Live 4-Hour Countdown Display */}
+
               <div
                 style={{
                   background: '#f8fafc',
@@ -506,7 +495,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      {/* Proactive Camera Permission Modal on Entry */}
       <CameraPermissionModal />
     </main>
   );

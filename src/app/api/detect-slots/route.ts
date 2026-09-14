@@ -34,10 +34,6 @@ function median(values: number[]): number {
   return s.length % 2 !== 0 ? s[mid] : (s[mid - 1] + s[mid]) / 2;
 }
 
-/**
- * Geometric Regularization Engine for Photobooth Slots
- * Guarantees that photo slots fit cleanly into template frames without jitter or misaligned borders.
- */
 function regularizeSlots(
   rawSlots: RawSlot[],
   layoutType?: string,
@@ -46,7 +42,6 @@ function regularizeSlots(
 ): FormattedSlot[] {
   if (!rawSlots || rawSlots.length === 0) return [];
 
-  // 1. Standardize raw inputs into percentage bounds (0-100%)
   const normalized = rawSlots.map((s, idx) => {
     let x = 10;
     let y = 10;
@@ -109,10 +104,8 @@ function regularizeSlots(
     ];
   }
 
-  // Sort top-to-bottom
   const sorted = [...normalized].sort((a, b) => a.centerY - b.centerY);
 
-  // Check if 2-Column Grid or Twin Strip (e.g. 2x2, 2x3, 2x4)
   const xCenters = sorted.map((s) => s.centerX);
   const minX = Math.min(...xCenters);
   const maxX = Math.max(...xCenters);
@@ -145,7 +138,6 @@ function regularizeSlots(
         const avgY = (leftY + rightY) / 2;
         const avgH = (medianLeftH + medianRightH) / 2;
 
-        // Left photo
         result.push({
           x: Number(medianLeftX.toFixed(1)),
           y: Number(avgY.toFixed(1)),
@@ -156,7 +148,6 @@ function regularizeSlots(
           label: `Foto #${r * 2 + 1}`,
         });
 
-        // Right photo
         result.push({
           x: Number(medianRightX.toFixed(1)),
           y: Number(avgY.toFixed(1)),
@@ -172,7 +163,6 @@ function regularizeSlots(
     }
   }
 
-  // Check if Single-Column Vertical Strip (Stacked 1xN)
   if (!isTilted && xSpan < 15) {
     const medianX = median(sorted.map((s) => s.x));
     const medianW = median(sorted.map((s) => s.width));
@@ -189,7 +179,6 @@ function regularizeSlots(
     }));
   }
 
-  // Tilted Diagonal Strip or Custom Layout
   return sorted.map((s, idx) => ({
     x: Number(s.x.toFixed(1)),
     y: Number(s.y.toFixed(1)),

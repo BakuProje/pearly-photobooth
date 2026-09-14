@@ -16,12 +16,10 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
   const [permissionStatus, setPermissionStatus] = useState<'idle' | 'granted' | 'denied'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // Check initial permission on mount
   useEffect(() => {
     let isMounted = true;
 
     const checkInitialPermission = async () => {
-      // Check if browser supports permissions query
       if (typeof navigator !== 'undefined' && navigator.permissions && navigator.permissions.query) {
         try {
           const status = await navigator.permissions.query({ name: 'camera' as PermissionName });
@@ -32,12 +30,9 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
             setIsOpen(false);
             onPermissionGranted?.();
           } else {
-            // 'prompt' or 'denied'
             setPermissionStatus(status.state === 'denied' ? 'denied' : 'idle');
             setIsOpen(true);
           }
-
-          // Listen for real-time permission changes (e.g. user toggles in browser address bar)
           status.onchange = () => {
             if (!isMounted) return;
             if (status.state === 'granted') {
@@ -50,8 +45,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
             }
           };
         } catch (err) {
-          // Some browsers (like Firefox or older Safari) may not support camera permission query
-          // In this case, show modal on visit if not previously granted in session
           const sessionGranted = sessionStorage.getItem('snapbooth_camera_granted');
           if (!sessionGranted) {
             setIsOpen(true);
@@ -72,7 +65,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
     };
   }, [onPermissionGranted]);
 
-  // Request camera permission explicitly when user clicks button
   const handleRequestCamera = useCallback(async () => {
     setIsRequesting(true);
     setErrorMessage(null);
@@ -82,7 +74,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
         throw new Error('Browser tidak mendukung akses kamera.');
       }
 
-      // Request stream to trigger browser native permission dialog
       const stream = await navigator.mediaDevices.getUserMedia({
         video: {
           width: { ideal: 1280 },
@@ -92,16 +83,13 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
         audio: false,
       });
 
-      // Stop stream immediately (it was only for testing permission)
       stream.getTracks().forEach((track) => track.stop());
 
-      // Permission granted successfully!
       setPermissionStatus('granted');
       sessionStorage.setItem('snapbooth_camera_granted', 'true');
       setIsRequesting(false);
       onPermissionGranted?.();
 
-      // Close modal smoothly after success indicator
       setTimeout(() => {
         setIsOpen(false);
       }, 700);
@@ -155,7 +143,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
             flexDirection: 'column',
           }}
         >
-          {/* Header Banner */}
           <div
             style={{
               background: permissionStatus === 'granted' ? 'var(--neo-green)' : 'var(--neo-primary)',
@@ -260,7 +247,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                   Snapbooth memerlukan <b>izin kamera</b> agar kamu bisa mengambil foto langsung di booth tanpa error atau terhambat.
                 </p>
 
-                {/* Feature Highlights without icons */}
                 <div
                   style={{
                     display: 'flex',
@@ -280,7 +266,6 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                   </div>
                 </div>
 
-                {/* Error Message if Denied */}
                 {errorMessage && (
                   <div
                     style={{
