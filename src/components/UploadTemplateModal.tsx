@@ -177,7 +177,7 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
             animate={{ scale: 1, opacity: 1, y: 0 }}
             exit={{ scale: 0.92, opacity: 0, y: 10 }}
             transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-            className="neo-card"
+            className="clean-card"
             style={{
               maxWidth: '500px',
               width: '100%',
@@ -187,7 +187,8 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
               borderRadius: '24px',
               overflow: 'hidden',
               padding: 0,
-              boxShadow: '10px 10px 0px var(--neo-black)',
+              border: '1.5px solid #e2e8f0',
+              boxShadow: '0 25px 60px rgba(0, 0, 0, 0.25)',
             }}
             onClick={(e) => e.stopPropagation()}
           >
@@ -200,38 +201,36 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
               onChange={handleFileChange}
             />
 
-            {/* Modal Header Bar */}
+            {/* Modal Header Bar - Clean Dark Slate Theme */}
             <div
               style={{
-                padding: '16px 20px',
-                borderBottom: '2.5px solid var(--neo-black)',
+                padding: '18px 22px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: 'var(--neo-primary)',
+                background: '#1e293b',
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <div
                   style={{
-                    width: '34px',
-                    height: '34px',
+                    width: '36px',
+                    height: '36px',
                     borderRadius: '10px',
-                    background: '#ffffff',
-                    border: '2px solid var(--neo-black)',
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    boxShadow: '2px 2px 0px var(--neo-black)',
                   }}
                 >
-                  <Wand2 size={18} color="var(--neo-black)" />
+                  <Wand2 size={18} color="#ffffff" />
                 </div>
                 <div>
-                  <h2 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)', margin: 0 }}>
+                  <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#ffffff', margin: 0, letterSpacing: '0.3px' }}>
                     {isProcessing ? 'Memindai Template' : 'Upload Template'}
                   </h2>
-                  <span style={{ fontSize: '0.74rem', fontWeight: 800, color: 'var(--neo-black)' }}>
+                  <span style={{ fontSize: '0.76rem', fontWeight: 500, color: 'rgba(255, 255, 255, 0.75)' }}>
                     {isProcessing ? 'AI Vision mendeteksi bingkai otomatis' : 'Membaca bingkai foto secara otomatis'}
                   </span>
                 </div>
@@ -241,20 +240,20 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                 type="button"
                 onClick={handleModalClose}
                 style={{
-                  background: '#ffffff',
-                  border: '2px solid var(--neo-black)',
-                  borderRadius: '10px',
-                  width: '34px',
-                  height: '34px',
+                  background: 'rgba(255, 255, 255, 0.12)',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '2px 2px 0px var(--neo-black)',
-                  transition: 'transform 0.1s ease',
+                  color: '#ffffff',
+                  transition: 'all 0.15s ease',
                 }}
               >
-                <X size={18} color="var(--neo-black)" />
+                <X size={16} />
               </button>
             </div>
 
@@ -508,13 +507,13 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                     style={{
                       width: '100%',
                       padding: '16px 18px',
-                      borderRadius: '18px',
-                      background: isScanSuccess ? '#f0fdf4' : '#ffffff',
-                      border: `2.5px solid ${isScanSuccess ? '#16a34a' : 'var(--neo-black)'}`,
+                      borderRadius: '16px',
+                      background: isScanSuccess ? '#f0fdf4' : '#f8fafc',
+                      border: `1.5px solid ${isScanSuccess ? '#16a34a' : '#e2e8f0'}`,
                       display: 'flex',
                       flexDirection: 'column',
                       gap: '12px',
-                      boxShadow: '4px 4px 0px var(--neo-black)',
+                      boxShadow: '0 4px 16px rgba(0, 0, 0, 0.05)',
                       transition: 'all 0.3s ease',
                     }}
                   >
@@ -527,15 +526,12 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                             width: '32px',
                             height: '32px',
                             borderRadius: '10px',
-                            background: isScanSuccess
-                              ? '#dcfce7'
-                              : 'linear-gradient(135deg, #e0f2fe 0%, #ede9fe 100%)',
-                            border: `2px solid ${isScanSuccess ? '#16a34a' : 'var(--neo-black)'}`,
+                            background: isScanSuccess ? '#dcfce7' : '#1e293b',
+                            border: `1px solid ${isScanSuccess ? '#16a34a' : '#334155'}`,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             flexShrink: 0,
-                            boxShadow: '1.5px 1.5px 0px var(--neo-black)',
                             position: 'relative',
                             overflow: 'hidden',
                           }}
@@ -546,7 +542,7 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                               animate={{ scale: 1, rotate: 0 }}
                               transition={{ type: 'spring', damping: 12, stiffness: 200 }}
                             >
-                              <CheckCircle2 size={20} color="#15803d" />
+                              <CheckCircle2 size={18} color="#15803d" />
                             </motion.div>
                           ) : (
                             <motion.div
@@ -554,7 +550,7 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                               transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <Sparkles size={18} color="#0284c7" />
+                              <Sparkles size={16} color="#ffffff" />
                             </motion.div>
                           )}
                         </div>
@@ -569,9 +565,9 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                               exit={{ opacity: 0, y: -5 }}
                               transition={{ duration: 0.18, ease: 'easeOut' }}
                               style={{
-                                fontSize: '0.92rem',
-                                fontWeight: 900,
-                                color: isScanSuccess ? '#15803d' : 'var(--neo-black)',
+                                fontSize: '0.9rem',
+                                fontWeight: 800,
+                                color: isScanSuccess ? '#15803d' : '#1e293b',
                                 whiteSpace: 'nowrap',
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis',
@@ -584,8 +580,8 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                           <span
                             style={{
                               fontSize: '0.72rem',
-                              fontWeight: 700,
-                              color: isScanSuccess ? '#16a34a' : 'var(--text-muted)',
+                              fontWeight: 600,
+                              color: isScanSuccess ? '#16a34a' : '#64748b',
                             }}
                           >
                             {isScanSuccess
@@ -595,23 +591,19 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                         </div>
                       </div>
 
-                      {/* Percentage Pill Badge with Pulse on Tick */}
+                      {/* Percentage Pill Badge */}
                       <motion.span
                         key={scanProgress}
                         initial={{ scale: 0.94 }}
                         animate={{ scale: 1 }}
                         transition={{ duration: 0.15 }}
                         style={{
-                          fontSize: '0.84rem',
-                          fontWeight: 900,
-                          background: isScanSuccess
-                            ? 'linear-gradient(135deg, #dcfce7, #bbf7d0)'
-                            : 'linear-gradient(135deg, #e0f2fe, #ede9fe)',
-                          color: isScanSuccess ? '#166534' : '#0369a1',
+                          fontSize: '0.82rem',
+                          fontWeight: 800,
+                          background: isScanSuccess ? '#dcfce7' : '#1e293b',
+                          color: isScanSuccess ? '#166534' : '#ffffff',
                           padding: '4px 10px',
                           borderRadius: '8px',
-                          border: `2px solid ${isScanSuccess ? '#16a34a' : 'var(--neo-black)'}`,
-                          boxShadow: '2px 2px 0px var(--neo-black)',
                           flexShrink: 0,
                           fontFamily: 'monospace',
                         }}
@@ -620,17 +612,15 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                       </motion.span>
                     </div>
 
-                    {/* Premium Shimmer Progress Bar Track */}
+                    {/* Shimmer Progress Bar Track */}
                     <div
                       style={{
                         width: '100%',
-                        height: '12px',
+                        height: '10px',
                         background: '#e2e8f0',
                         borderRadius: '9999px',
                         overflow: 'hidden',
-                        border: '2px solid var(--neo-black)',
                         position: 'relative',
-                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.1)',
                       }}
                     >
                       <motion.div
@@ -638,34 +628,14 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                           height: '100%',
                           background: isScanSuccess
                             ? 'linear-gradient(90deg, #22c55e, #16a34a)'
-                            : 'linear-gradient(90deg, #06b6d4 0%, #3b82f6 50%, #8b5cf6 100%)',
+                            : 'linear-gradient(90deg, #1e293b 0%, #475569 100%)',
                           borderRadius: '9999px',
                           position: 'relative',
-                          boxShadow: isScanSuccess
-                            ? '0 0 10px rgba(34, 197, 94, 0.6)'
-                            : '0 0 12px rgba(6, 182, 212, 0.7)',
                         }}
                         initial={{ width: '0%' }}
                         animate={{ width: `${scanProgress}%` }}
                         transition={{ duration: 0.3, ease: 'easeOut' }}
-                      >
-                        {/* Shimmer Light Reflection Sweep */}
-                        {!isScanSuccess && (
-                          <motion.div
-                            animate={{ x: ['-100%', '200%'] }}
-                            transition={{ duration: 1.4, repeat: Infinity, ease: 'linear' }}
-                            style={{
-                              position: 'absolute',
-                              top: 0,
-                              bottom: 0,
-                              width: '40%',
-                              background:
-                                'linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0) 100%)',
-                              transform: 'skewX(-20deg)',
-                            }}
-                          />
-                        )}
-                      </motion.div>
+                      />
                     </div>
 
                     {/* 4 Visual Step Chips Indicator */}
@@ -699,22 +669,22 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                               background: isDone
                                 ? '#dcfce7'
                                 : isCurrent
-                                ? '#e0f2fe'
+                                ? '#1e293b'
                                 : '#f1f5f9',
-                              border: `1.5px solid ${
+                              border: `1px solid ${
                                 isDone
                                   ? '#16a34a'
                                   : isCurrent
-                                  ? '#0284c7'
-                                  : '#cbd5e1'
+                                  ? '#1e293b'
+                                  : '#e2e8f0'
                               }`,
                               color: isDone
                                 ? '#166534'
                                 : isCurrent
-                                ? '#0369a1'
+                                ? '#ffffff'
                                 : '#94a3b8',
                               fontSize: '0.68rem',
-                              fontWeight: 800,
+                              fontWeight: 700,
                               transition: 'all 0.2s ease',
                             }}
                           >
@@ -728,7 +698,7 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                                   width: '5px',
                                   height: '5px',
                                   borderRadius: '50%',
-                                  background: '#0284c7',
+                                  background: '#ffffff',
                                 }}
                               />
                             ) : null}
@@ -744,7 +714,7 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                 <div
                   onClick={() => fileInputRef.current?.click()}
                   style={{
-                    border: '3px dashed var(--neo-black)',
+                    border: '2px dashed #cbd5e1',
                     borderRadius: '20px',
                     background: '#f8fafc',
                     padding: '38px 20px',
@@ -757,30 +727,29 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
                   }}
-                  className="neo-card-interactive"
+                  className="clean-card-interactive"
                 >
                   <div
                     style={{
                       width: '64px',
                       height: '64px',
-                      borderRadius: '16px',
-                      background: 'var(--neo-primary)',
-                      border: '2.5px solid var(--neo-black)',
+                      borderRadius: '18px',
+                      background: '#1e293b',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      boxShadow: '3px 3px 0px var(--neo-black)',
+                      boxShadow: '0 4px 14px rgba(30, 41, 59, 0.2)',
                     }}
                   >
-                    <Scan size={30} color="var(--neo-black)" />
+                    <Scan size={30} color="#ffffff" />
                   </div>
 
                   <div>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '4px' }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#1e293b', marginBottom: '4px' }}>
                       Pilih Template dari Galeri
                     </h3>
-                    <p style={{ fontSize: '0.84rem', color: 'var(--text-secondary)', fontWeight: 600, maxWidth: '380px', margin: '0 auto' }}>
-                      Format didukung: <strong>PNG</strong>, <strong>JPG</strong>, atau <strong>WEBP</strong>
+                    <p style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: 500, maxWidth: '380px', margin: '0 auto' }}>
+                      Format didukung: <strong style={{ color: '#1e293b' }}>PNG</strong>, <strong style={{ color: '#1e293b' }}>JPG</strong>, atau <strong style={{ color: '#1e293b' }}>WEBP</strong>
                     </p>
                   </div>
 
@@ -790,10 +759,10 @@ export const UploadTemplateModal: React.FC<UploadTemplateModalProps> = ({
                       e.stopPropagation();
                       fileInputRef.current?.click();
                     }}
-                    className="neo-btn neo-btn-primary"
-                    style={{ padding: '12px 28px', fontSize: '0.95rem', marginTop: '2px' }}
+                    className="btn-pill-dark"
+                    style={{ padding: '10px 28px', fontSize: '0.92rem', marginTop: '4px' }}
                   >
-                    <Upload size={18} />
+                    <Upload size={16} />
                     <span>Buka Galeri</span>
                   </button>
                 </div>

@@ -447,13 +447,19 @@ export const FILTERS: { id: FilterType; name: string; cssFilter: string; desc: s
     id: 'korean-glow',
     name: 'Korean Glow',
     cssFilter: 'brightness(1.08) contrast(0.96) saturate(1.15) hue-rotate(-3deg)',
-    desc: 'Kulit glowing & cerah khas Korea'
+    desc: 'Kulit dewy glowing & cerah khas Korea'
   },
   {
     id: 'korean-clean',
-    name: 'K-Beauty Clean',
+    name: 'K-Clean',
     cssFilter: 'brightness(1.12) contrast(1.02) saturate(1.08)',
     desc: 'Filter bersih & tone cerah estetik'
+  },
+  {
+    id: 'milky-soft',
+    name: 'Milky Soft',
+    cssFilter: 'brightness(1.14) contrast(0.92) saturate(1.05)',
+    desc: 'Efek lembut mulus & tone pastel dreamy'
   },
   {
     id: 'korean-film',
@@ -462,46 +468,136 @@ export const FILTERS: { id: FilterType; name: string; cssFilter: string; desc: s
     desc: 'Tone film lembut estetik Seoul'
   },
   {
-    id: 'vintage',
-    name: 'Vintage 90s',
-    cssFilter: 'sepia(0.25) contrast(1.12) brightness(1.05) saturate(1.2)',
-    desc: 'Nuansa hangat film analog'
+    id: 'y2k-digicam',
+    name: 'Y2K Digicam',
+    cssFilter: 'brightness(1.15) contrast(1.28) saturate(1.25)',
+    desc: 'Kamera digital flash era 2000-an'
   },
   {
-    id: 'mono',
-    name: 'Noir Mono',
-    cssFilter: 'grayscale(1) contrast(1.25) brightness(0.98)',
-    desc: 'Hitam putih klasik kontras'
+    id: 'fuji-chrome',
+    name: 'Fuji Film',
+    cssFilter: 'contrast(1.18) saturate(1.15) sepia(0.08) hue-rotate(-5deg) brightness(1.02)',
+    desc: 'Warna khas film analog Fujifilm'
+  },
+  {
+    id: 'kodak-portra',
+    name: 'Kodak Portra',
+    cssFilter: 'sepia(0.16) brightness(1.08) contrast(1.06) saturate(1.28) hue-rotate(-6deg)',
+    desc: 'Warm skin tones khas Kodak Portra'
+  },
+  {
+    id: 'polaroid-90s',
+    name: '90s Polaroid',
+    cssFilter: 'sepia(0.22) contrast(1.14) brightness(1.06) saturate(1.18)',
+    desc: 'Karakter foto polaroid vintage 90-an'
+  },
+  {
+    id: 'vintage',
+    name: 'Vintage 90s',
+    cssFilter: 'sepia(0.28) contrast(1.12) brightness(1.05) saturate(1.2)',
+    desc: 'Nuansa hangat film analog retro'
+  },
+  {
+    id: 'lo-fi',
+    name: 'Lo-Fi Nostalgia',
+    cssFilter: 'contrast(1.2) brightness(0.96) saturate(1.35) sepia(0.15)',
+    desc: 'Karakter retro lo-fi hangat'
+  },
+  {
+    id: 'peach-blush',
+    name: 'Peach Blossom',
+    cssFilter: 'brightness(1.1) saturate(1.3) hue-rotate(-8deg) contrast(1.02)',
+    desc: 'Nuansa peach manis & merona segar'
+  },
+  {
+    id: 'rose-gold',
+    name: 'Rose Gold',
+    cssFilter: 'brightness(1.08) saturate(1.25) sepia(0.15) hue-rotate(-15deg)',
+    desc: 'Aura blush pink keemasan romantis'
   },
   {
     id: 'pastel',
     name: 'Soft Pastel',
     cssFilter: 'brightness(1.1) contrast(0.94) saturate(1.2) hue-rotate(-5deg)',
-    desc: 'Warna lembut & cerah'
+    desc: 'Warna lembut & cerah manis'
+  },
+  {
+    id: 'lavender-dream',
+    name: 'Lavender Dream',
+    cssFilter: 'brightness(1.08) saturate(1.2) hue-rotate(25deg) contrast(1.02)',
+    desc: 'Sentuhan dreamy ungu pastel estetik'
   },
   {
     id: 'sunset',
     name: 'Golden Hour',
-    cssFilter: 'sepia(0.2) saturate(1.35) brightness(1.08) hue-rotate(-12deg)',
-    desc: 'Cahaya hangat matahari'
+    cssFilter: 'sepia(0.25) saturate(1.4) brightness(1.08) hue-rotate(-12deg)',
+    desc: 'Cahaya hangat matahari sore'
+  },
+  {
+    id: 'mono',
+    name: 'Noir Mono',
+    cssFilter: 'grayscale(1) contrast(1.28) brightness(0.98)',
+    desc: 'Hitam putih klasik kontras tajam'
+  },
+  {
+    id: 'classic-bw',
+    name: 'Silver B&W',
+    cssFilter: 'grayscale(1) contrast(1.08) brightness(1.04)',
+    desc: 'Hitam putih halus elegan'
+  },
+  {
+    id: 'moody-dark',
+    name: 'Moody Dark',
+    cssFilter: 'brightness(0.88) contrast(1.35) saturate(1.1) sepia(0.1)',
+    desc: 'Nuansa gelap dramatis & misterius'
+  },
+  {
+    id: 'matte-fade',
+    name: 'Matte Film',
+    cssFilter: 'contrast(0.9) brightness(1.06) saturate(1.1) sepia(0.12)',
+    desc: 'Warna matte majalah indie'
+  },
+  {
+    id: 'cinema-teal',
+    name: 'Teal & Orange',
+    cssFilter: 'contrast(1.22) saturate(1.3) hue-rotate(-18deg) brightness(1.02)',
+    desc: 'Color grading blockbuster sinematik'
   },
   {
     id: 'cyberpunk',
     name: 'Cyber Sky',
-    cssFilter: 'hue-rotate(190deg) contrast(1.15) saturate(1.3)',
+    cssFilter: 'hue-rotate(190deg) contrast(1.18) saturate(1.35)',
     desc: 'Aksen biru neon futuristik'
+  },
+  {
+    id: 'emerald-green',
+    name: 'Emerald Dream',
+    cssFilter: 'hue-rotate(50deg) saturate(1.25) contrast(1.1) brightness(0.98)',
+    desc: 'Nuansa hijau emerald sejuk'
+  },
+  {
+    id: 'tokyo-blue',
+    name: 'Tokyo Blue',
+    cssFilter: 'hue-rotate(160deg) saturate(1.15) contrast(1.12) brightness(1.02)',
+    desc: 'Tone dingin metropolitan estetik'
   },
   {
     id: 'sepia',
     name: 'Antique Sepia',
-    cssFilter: 'sepia(0.8) contrast(1.08) brightness(0.96)',
-    desc: 'Klasik antik vintage'
+    cssFilter: 'sepia(0.85) contrast(1.1) brightness(0.96)',
+    desc: 'Klasik antik tempo dulu'
   },
   {
     id: 'dramatic',
     name: 'Cinematic',
-    cssFilter: 'contrast(1.3) saturate(1.15) brightness(0.92)',
+    cssFilter: 'contrast(1.35) saturate(1.2) brightness(0.92)',
     desc: 'Sinematik kontras tegas'
+  },
+  {
+    id: 'vivid-pop',
+    name: 'Vivid Pop',
+    cssFilter: 'saturate(1.6) contrast(1.15) brightness(1.04)',
+    desc: 'Warna ekstra hidup & cerah ceria'
   }
 ];
 

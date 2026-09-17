@@ -1,13 +1,19 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   PhotoBoothConfig,
   PhotoboothTemplate,
   GalleryItem,
+  FilterType,
 } from '@/lib/types';
 import { getTemplateById } from '@/lib/templateManager';
-import { renderPhotoStripCanvas, generateDownloadBlob, renderFilteredPhotos } from '@/lib/canvasRenderer';
+import { FILTERS } from '@/lib/constants';
+import {
+  renderPhotoStripCanvas,
+  generateDownloadBlob,
+  renderFilteredPhotos,
+} from '@/lib/canvasRenderer';
 import { createAnimatedGif } from '@/lib/gifGenerator';
 import { generateQrCodeDataUrl } from '@/lib/qrCode';
 import confetti from 'canvas-confetti';
@@ -18,53 +24,108 @@ import {
   RotateCcw,
   Loader2,
   X,
+  Sparkles,
+  ArrowLeft,
+  Check,
+  Share2,
   Maximize2,
-  Image as ImageIcon,
+  ZoomIn,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface ResultViewProps {
   photos: string[];
   config: PhotoBoothConfig;
+  onChangeConfig?: React.Dispatch<React.SetStateAction<PhotoBoothConfig>>;
   isScanView?: boolean;
   disableAutoSave?: boolean;
   onRetakeNewSession: () => void;
+  onRetakeSinglePhoto?: (slotIndex: number) => void;
   onSaveToGallery: (item: GalleryItem) => void;
   onOpenGallery?: () => void;
   galleryCount?: number;
 }
 
 export const ResultView: React.FC<ResultViewProps> = ({
-  photos,
-  config,
+  photos: initialPhotos,
+  config: initialConfig,
+  onChangeConfig,
   isScanView = false,
   disableAutoSave = false,
   onRetakeNewSession,
+  onRetakeSinglePhoto,
   onSaveToGallery,
   onOpenGallery,
   galleryCount = 0,
 }) => {
+  // Current step in results: 'grid-review' (Gambar 5) -> 'editor-filter' (Gambar 6) -> 'final-gif' (Gambar 7)
+  const [resultStep, setResultStep] = useState<'grid-review' | 'editor-filter' | 'final-gif'>(
+    isScanView ? 'final-gif' : 'grid-review'
+  );
+
+  const [currentPhotos, setCurrentPhotos] = useState<string[]>(initialPhotos);
+  const [currentConfig, setCurrentConfig] = useState<PhotoBoothConfig>(initialConfig);
+  const [selectedSlotForSwap, setSelectedSlotForSwap] = useState<number | null>(null);
+
   const [photostripUrl, setPhotostripUrl] = useState<string | null>(null);
-  const [processedPhotos, setProcessedPhotos] = useState<string[]>(photos);
+  const [basePhotostripUrl, setBasePhotostripUrl] = useState<string | null>(null);
+  const [processedPhotos, setProcessedPhotos] = useState<string[]>(initialPhotos);
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
-  const [isQrModalOpen, setIsQrModalOpen] = useState(false);
-  const [isRendering, setIsRendering] = useState(true);
-  const [isGifGenerating, setIsGifGenerating] = useState(true);
-  const [activeFrameIndex, setActiveFrameIndex] = useState(0);
+  const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
+  const [isRendering, setIsRendering] = useState<boolean>(false);
+  const [isGifGenerating, setIsGifGenerating] = useState<boolean>(false);
+  const [activeFrameIndex, setActiveFrameIndex] = useState<number>(0);
+  const [previewModalUrl, setPreviewModalUrl] = useState<string | null>(null);
+  const [previewModalTitle, setPreviewModalTitle] = useState<string>('Perbesar Foto');
 
-  // Lightbox Zoom Modal State
-  const [zoomedImage, setZoomedImage] = useState<{ src: string; title: string } | null>(null);
+  // Filter Drag & Swipe States
+  const filterScrollRef = useRef<HTMLDivElement>(null);
+  const [isFilterDragging, setIsFilterDragging] = useState<boolean>(false);
+  const [filterStartX, setFilterStartX] = useState<number>(0);
+  const [filterScrollLeft, setFilterScrollLeft] = useState<number>(0);
+  const [filterDragMoved, setFilterDragMoved] = useState<boolean>(false);
 
-  // Prevent duplicate saves & duplicate re-renders for the same session
-  const hasAutoSavedRef = React.useRef(false);
-  const onSaveToGalleryRef = React.useRef(onSaveToGallery);
+  const handleFilterMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!filterScrollRef.current) return;
+    setIsFilterDragging(true);
+    setFilterDragMoved(false);
+    setFilterStartX(e.pageX - filterScrollRef.current.offsetLeft);
+    setFilterScrollLeft(filterScrollRef.current.scrollLeft);
+  };
+
+  const handleFilterMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!isFilterDragging || !filterScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - filterScrollRef.current.offsetLeft;
+    const walk = (x - filterStartX) * 1.5;
+    if (Math.abs(walk) > 5) {
+      setFilterDragMoved(true);
+    }
+    filterScrollRef.current.scrollLeft = filterScrollLeft - walk;
+  };
+
+  const handleFilterMouseUpOrLeave = () => {
+    setIsFilterDragging(false);
+    setTimeout(() => setFilterDragMoved(false), 60);
+  };
+
+  const hasAutoSavedRef = useRef(false);
+  const onSaveToGalleryRef = useRef(onSaveToGallery);
   onSaveToGalleryRef.current = onSaveToGallery;
-  const renderedSessionKeyRef = React.useRef<string>('');
 
-  const currentTemplate: PhotoboothTemplate = getTemplateById(config.selectedTemplateId);
+  const currentTemplate: PhotoboothTemplate = getTemplateById(currentConfig.selectedTemplateId);
 
-  // Cycling preview if GIF is rendering (only depends on length of processedPhotos)
+  // Sync photos and config when props update
+  useEffect(() => {
+    setCurrentPhotos(initialPhotos);
+  }, [initialPhotos]);
+
+  useEffect(() => {
+    setCurrentConfig(initialConfig);
+  }, [initialConfig]);
+
+  // Cycling preview for GIF animation
   useEffect(() => {
     if (processedPhotos.length === 0) return;
     const interval = setInterval(() => {
@@ -73,811 +134,1474 @@ export const ResultView: React.FC<ResultViewProps> = ({
     return () => clearInterval(interval);
   }, [processedPhotos.length]);
 
-  // Generate Photostrip Canvas + Filtered Photos + Animated GIF + QR Code ONCE on mount or when actual session changes
-  useEffect(() => {
-    if (photos.length === 0) return;
-
-    // Unique signature of current session
-    const sessionKey = `${config.selectedTemplateId}_${config.filter}_${config.brightness}_${config.contrast}_${config.saturation}_${photos.join('|')}`;
-
-    // If already rendered for this exact session, do NOT re-render (prevents infinite flicker)
-    if (renderedSessionKeyRef.current === sessionKey) {
-      return;
-    }
-    renderedSessionKeyRef.current = sessionKey;
-
+  // Render Photostrip Canvas and generate GIF
+  const renderCurrentSession = async (photosToRender: string[], cfg: PhotoBoothConfig) => {
+    if (photosToRender.length === 0) return;
     setIsRendering(true);
     setIsGifGenerating(true);
 
-    // Launch celebration confetti only ONCE
     try {
-      confetti({
-        particleCount: 90,
-        spread: 80,
-        origin: { y: 0.4 },
-        colors: ['#38bdf8', '#0284c7', '#34d399', '#0f172a', '#ffffff'],
+      const [canvas, filtered] = await Promise.all([
+        renderPhotoStripCanvas(photosToRender, cfg, 1333),
+        renderFilteredPhotos(photosToRender, cfg),
+      ]);
+
+      const url = canvas.toDataURL('image/png', 0.95);
+      setPhotostripUrl(url);
+      setProcessedPhotos(filtered);
+      setIsRendering(false);
+
+      // Also render unfiltered base photostrip for live filter thumbnail previews
+      renderPhotoStripCanvas(photosToRender, { ...cfg, filter: 'normal' }, 600)
+        .then((baseCanvas) => {
+          setBasePhotostripUrl(baseCanvas.toDataURL('image/jpeg', 0.85));
+        })
+        .catch(() => {});
+
+      // Save scan session to localStorage
+      try {
+        localStorage.setItem(
+          'snapbooth_scan_session',
+          JSON.stringify({ photos: filtered, config: cfg })
+        );
+      } catch (e) {}
+
+      // Auto save to gallery on initial load
+      if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
+        hasAutoSavedRef.current = true;
+        onSaveToGalleryRef.current({
+          id: `snap_${Date.now()}`,
+          previewUrl: url,
+          photos: [...filtered],
+          config: { ...cfg },
+          createdAt: Date.now(),
+        });
+      }
+
+      // Generate Animated GIF
+      const gif = await createAnimatedGif(filtered, {
+        interval: 0.45,
+        gifWidth: 600,
+        gifHeight: 450,
       });
-    } catch (e) {
-      // fallback
+      setGifUrl(gif);
+      setIsGifGenerating(false);
+    } catch (err) {
+      console.error('Failed to render session:', err);
+      setIsRendering(false);
+      setIsGifGenerating(false);
     }
 
-    // 1. Render Photostrip Canvas & Filtered Photos in parallel
-    Promise.all([
-      renderPhotoStripCanvas(photos, config, 1333),
-      renderFilteredPhotos(photos, config),
-    ])
-      .then(([canvas, filtered]) => {
-        const url = canvas.toDataURL('image/png', 0.95);
-        setPhotostripUrl(url);
-        setProcessedPhotos(filtered);
-        setIsRendering(false);
-
-        // Save scan session to localStorage with filtered photos
-        try {
-          localStorage.setItem('snapbooth_scan_session', JSON.stringify({ photos: filtered, config }));
-        } catch (e) {
-          console.warn('Failed to save scan session', e);
-        }
-
-        // Otomatis Simpan ke Galeri Sesi (Hanya 1x saat selesai sesi baru, tidak menduplikasi saat melihat kembali)
-        if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
-          hasAutoSavedRef.current = true;
-          onSaveToGalleryRef.current({
-            id: `snap_${Date.now()}`,
-            previewUrl: url,
-            photos: [...filtered],
-            config: { ...config },
-            createdAt: Date.now(),
-          });
-        }
-
-        // Create animated GIF from filtered photos with adjustments applied
-        return createAnimatedGif(filtered, { interval: 0.45, gifWidth: 600, gifHeight: 450 });
-      })
-      .then((gif) => {
-        setGifUrl(gif);
-        setIsGifGenerating(false);
-      })
-      .catch((err) => {
-        console.error('Failed to generate photostrip or GIF:', err);
-        setIsRendering(false);
-        setIsGifGenerating(false);
-      });
-
-    // 2. Generate QR Code with direct scan result URL and center logo
+    // Generate Barcode QR Code
     if (typeof window !== 'undefined') {
       const scanUrl = `${window.location.origin}${window.location.pathname}?mode=scan`;
       generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
         setQrCodeUrl(qr);
       });
     }
-  }, [photos, config, isScanView, disableAutoSave]);
+  };
 
-  // 1. Download Photostrip
-  const handleDownloadPhotostrip = async () => {
-    try {
-      const blob = await generateDownloadBlob(photos, config, 'image/png');
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `snapbooth-photostrip-${Date.now()}.png`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (e) {
-      console.error('Download photostrip error', e);
+  // Initial render
+  useEffect(() => {
+    renderCurrentSession(currentPhotos, currentConfig);
+  }, [currentPhotos, currentConfig.selectedTemplateId, currentConfig.filter]);
+
+  // Filter change handler
+  const handleSelectFilter = (filterId: FilterType) => {
+    const updated = { ...currentConfig, filter: filterId };
+    setCurrentConfig(updated);
+    if (onChangeConfig) onChangeConfig(updated);
+    renderCurrentSession(currentPhotos, updated);
+  };
+
+  // Swap photo positions in slots
+  const handleSlotClick = (index: number) => {
+    if (selectedSlotForSwap === null) {
+      setSelectedSlotForSwap(index);
+    } else if (selectedSlotForSwap === index) {
+      setSelectedSlotForSwap(null);
+    } else {
+      // Swap photos
+      const updated = [...currentPhotos];
+      const temp = updated[selectedSlotForSwap];
+      updated[selectedSlotForSwap] = updated[index];
+      updated[index] = temp;
+      setCurrentPhotos(updated);
+      setSelectedSlotForSwap(null);
+      renderCurrentSession(updated, currentConfig);
     }
   };
 
-  // 2. Download Animated GIF
+  // Download photostrip PNG
+  const handleDownloadPhotostrip = async () => {
+    if (!photostripUrl) return;
+    const link = document.createElement('a');
+    link.download = `Pearly-Photobooth-${Date.now()}.png`;
+    link.href = photostripUrl;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Download animated GIF
   const handleDownloadGif = () => {
     if (!gifUrl) return;
     const link = document.createElement('a');
+    link.download = `Pearly-Photobooth-${Date.now()}.gif`;
     link.href = gifUrl;
-    link.download = `snapbooth-animated-${Date.now()}.gif`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
   };
 
-  // 3. Download Individual Photo (with active filter & adjustments)
-  const handleDownloadRawPhoto = (photoSrc: string, index: number) => {
-    const link = document.createElement('a');
-    link.href = photoSrc;
-    link.download = `snapbooth-photo-${index + 1}-${Date.now()}.jpg`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  // Print photostrip directly without page navigation or blank tabs
+  const handlePrint = () => {
+    if (!photostripUrl) return;
 
-  // 4. Download All Photos (with active filter & adjustments)
-  const handleDownloadAllRaw = () => {
-    processedPhotos.forEach((src, idx) => {
-      setTimeout(() => {
-        handleDownloadRawPhoto(src, idx);
-      }, idx * 250);
-    });
-  };
-
-  // 5. Direct Silent Print (Ultra High-Res, Exact Colors, Beautiful Layout)
-  const handlePrint = async () => {
-    let printDataUrl = photostripUrl;
-    if (!printDataUrl && photos.length > 0) {
-      try {
-        const canvas = await renderPhotoStripCanvas(photos, config, 2000);
-        printDataUrl = canvas.toDataURL('image/png', 1.0);
-      } catch (e) {
-        console.error('Print canvas render error', e);
+    try {
+      let iframe = document.getElementById('snapbooth-hidden-print-frame') as HTMLIFrameElement | null;
+      if (!iframe) {
+        iframe = document.createElement('iframe');
+        iframe.id = 'snapbooth-hidden-print-frame';
+        iframe.style.position = 'fixed';
+        iframe.style.right = '0';
+        iframe.style.bottom = '0';
+        iframe.style.width = '0px';
+        iframe.style.height = '0px';
+        iframe.style.border = '0';
+        iframe.style.opacity = '0';
+        iframe.style.pointerEvents = 'none';
+        document.body.appendChild(iframe);
       }
-    }
-    if (!printDataUrl) return;
 
-    let iframe = document.getElementById('snapbooth-print-iframe') as HTMLIFrameElement;
-    if (!iframe) {
-      iframe = document.createElement('iframe');
-      iframe.id = 'snapbooth-print-iframe';
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = '0';
-      iframe.style.visibility = 'hidden';
-      document.body.appendChild(iframe);
-    }
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <title>Print Photostrip</title>
+              <style>
+                @page {
+                  size: auto;
+                  margin: 0mm;
+                }
+                * {
+                  margin: 0;
+                  padding: 0;
+                  box-sizing: border-box;
+                }
+                html, body {
+                  width: 100vw;
+                  height: 100vh;
+                  margin: 0;
+                  padding: 0;
+                  overflow: hidden;
+                  background: #ffffff;
+                  display: flex;
+                  align-items: center;
+                  justifyContent: center;
+                  -webkit-print-color-adjust: exact;
+                  print-color-adjust: exact;
+                }
+                img {
+                  width: 100vw;
+                  height: 100vh;
+                  max-width: 100vw;
+                  max-height: 100vh;
+                  object-fit: cover;
+                  object-position: center;
+                  display: block;
+                  margin: 0;
+                  padding: 0;
+                }
+              </style>
+            </head>
+            <body>
+              <img id="print-target" src="${photostripUrl}" />
+            </body>
+          </html>
+        `);
+        doc.close();
 
-    const isTwinStrip = currentTemplate.isTwin || currentTemplate.category === 'Twin Strip';
-
-    const doc = iframe.contentWindow?.document;
-    if (doc) {
-      doc.open();
-      doc.write(`
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <title>Snapbooth - ${currentTemplate.name}</title>
-            <style>
-              @page {
-                size: auto;
-                margin: 0mm;
-              }
-              *, *::before, *::after {
-                box-sizing: border-box;
-                margin: 0;
-                padding: 0;
-              }
-              html, body {
-                margin: 0 !important;
-                padding: 0 !important;
-                width: 100vw;
-                height: 100vh;
-                background: #ffffff !important;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                color-adjust: exact !important;
-              }
-              .print-wrap {
-                width: 100vw;
-                height: 100vh;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 16px;
-                page-break-inside: avoid;
-                padding: 4px;
-              }
-              img.single-print {
-                max-width: 98vw;
-                max-height: 98vh;
-                width: auto;
-                height: auto;
-                object-fit: contain;
-                display: block;
-                margin: auto;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                image-rendering: -webkit-optimize-contrast;
-              }
-              img.twin-print {
-                max-width: 48vw;
-                max-height: 98vh;
-                width: auto;
-                height: auto;
-                object-fit: contain;
-                display: block;
-                -webkit-print-color-adjust: exact !important;
-                print-color-adjust: exact !important;
-                image-rendering: -webkit-optimize-contrast;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="print-wrap">
-              ${isTwinStrip ? `
-                <img class="twin-print" src="${printDataUrl}" alt="Photostrip Left" />
-                <img class="twin-print" src="${printDataUrl}" alt="Photostrip Right" />
-              ` : `
-                <img class="single-print" src="${printDataUrl}" alt="Photostrip" />
-              `}
-            </div>
-          </body>
-        </html>
-      `);
-      doc.close();
-
-      const imgs = doc.querySelectorAll('img');
-      let loaded = 0;
-      const total = imgs.length;
-
-      const triggerPrint = () => {
-        setTimeout(() => {
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-        }, 150);
-      };
-
-      if (total === 0) {
-        triggerPrint();
-      } else {
-        imgs.forEach((img) => {
-          if (img.complete) {
-            loaded++;
-            if (loaded === total) triggerPrint();
-          } else {
-            img.onload = () => {
-              loaded++;
-              if (loaded === total) triggerPrint();
-            };
+        const img = doc.getElementById('print-target') as HTMLImageElement | null;
+        const triggerIframePrint = () => {
+          try {
+            iframe?.contentWindow?.focus();
+            iframe?.contentWindow?.print();
+          } catch {
+            window.print();
           }
-        });
+        };
+
+        if (img) {
+          if (img.complete) {
+            setTimeout(triggerIframePrint, 80);
+          } else {
+            img.onload = () => setTimeout(triggerIframePrint, 80);
+          }
+          return;
+        }
       }
+    } catch {
+      // Fallback
     }
+
+    // Fallback: window.print() (styled via @media print to only show #snapbooth-print-area)
+    window.print();
   };
 
-  return (
-    <div style={{
-      maxWidth: '1360px',
-      margin: '0 auto',
-      padding: '16px 12px 36px 12px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: '16px',
-      width: '100%',
-    }}>
-      {/* Top Action Buttons (Atas: Foto Ulang, Bawah: Cetak | Scan QR) */}
-      <div
-        className="neo-card"
-        style={{
-          padding: '14px',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '10px',
-          maxWidth: '560px',
-          margin: '0 auto',
-          width: '100%',
-          background: 'var(--neo-white)',
-        }}
-      >
-        {/* Row 1 (Top): Foto Ulang / Sesi Baru + Galeri Button (Hidden when opened via QR Scan link) */}
-        {!isScanView && (
-          <div style={{ display: 'grid', gridTemplateColumns: onOpenGallery ? '1fr auto' : '1fr', gap: '8px', width: '100%' }}>
-            <button
-              onClick={onRetakeNewSession}
-              className="neo-btn neo-btn-secondary"
-              style={{ width: '100%', padding: '12px', fontSize: '0.95rem' }}
-            >
-              <RotateCcw size={17} />
-              <span>Sesi Baru</span>
-            </button>
+  // Close lightbox on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && previewModalUrl) {
+        setPreviewModalUrl(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewModalUrl]);
 
-            {onOpenGallery && (
-              <button
-                onClick={onOpenGallery}
-                className="neo-btn neo-btn-secondary"
-                style={{ padding: '12px 18px', fontSize: '0.92rem', position: 'relative', display: 'flex', alignItems: 'center', gap: '6px' }}
-                title="Buka Galeri Sesi"
-              >
-                <ImageIcon size={17} />
-                <span>Galeri</span>
-                {galleryCount > 0 && (
-                  <span style={{
-                    position: 'absolute',
-                    top: '-6px',
-                    right: '-6px',
-                    width: '20px',
-                    height: '20px',
-                    borderRadius: '50%',
-                    background: 'var(--neo-primary)',
-                    color: 'var(--neo-black)',
-                    border: '2px solid var(--neo-black)',
-                    fontSize: '0.72rem',
-                    fontWeight: 900,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: '2px 2px 0px var(--neo-black)',
-                  }}>
-                    {galleryCount}
-                  </span>
-                )}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Row 2 (Bottom): Cetak / Print | Scan Qr */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-          <button
-            onClick={handlePrint}
-            disabled={!photostripUrl}
-            className="neo-btn neo-btn-secondary"
-            style={{ width: '100%', padding: '12px', fontSize: '0.92rem' }}
-          >
-            <Printer size={18} />
-            <span>Cetak</span>
-          </button>
-
-          <button
-            onClick={() => setIsQrModalOpen(true)}
-            className="neo-btn neo-btn-primary"
-            style={{ width: '100%', padding: '12px', fontSize: '0.92rem' }}
-          >
-            <QrCode size={18} />
-            <span>SCAN QR</span>
-          </button>
-        </div>
-      </div>
-
-      {/* Main Content: Left (Photostrip) + Right (GIF & Raw Photos) - 100% Mobile Responsive */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-        gap: '16px',
-        alignItems: 'start',
-        width: '100%',
-      }}>
-        {/* SECTION 1: Photostrip */}
-        <div
-          className="neo-card"
+  // Fullscreen Lightbox Zoom Modal Component (Close Button Only)
+  const renderLightboxModal = () => (
+    <AnimatePresence>
+      {previewModalUrl && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2 }}
+          onClick={() => setPreviewModalUrl(null)}
           style={{
-            padding: '18px',
+            position: 'fixed',
+            inset: 0,
+            zIndex: 99999,
+            background: 'rgba(0, 0, 0, 0.9)',
+            backdropFilter: 'blur(12px)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '14px',
-            background: '#ffffff',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
           }}
         >
-          {/* Section Header */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-              Photostrip
-            </h2>
-          </div>
-
-          {/* Photostrip Preview (Click to Zoom) */}
-          <div
-            onClick={() => photostripUrl && setZoomedImage({ src: photostripUrl, title: 'Photostrip' })}
+          {/* Floating Close Button in Top-Right Corner */}
+          <button
+            type="button"
+            onClick={() => setPreviewModalUrl(null)}
             style={{
-              width: '100%',
-              minHeight: '440px',
+              position: 'absolute',
+              top: '20px',
+              right: '24px',
+              zIndex: 100000,
+              background: 'rgba(255, 255, 255, 0.2)',
+              border: '1.5px solid rgba(255, 255, 255, 0.35)',
+              color: '#ffffff',
+              width: '42px',
+              height: '42px',
+              borderRadius: '50%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#f8fafc',
+              cursor: 'pointer',
+              backdropFilter: 'blur(8px)',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
+              transition: 'all 0.15s ease',
+            }}
+            title="Tutup (Esc)"
+          >
+            <X size={22} strokeWidth={2.5} />
+          </button>
+
+          {/* Enlarged Image Preview */}
+          <motion.div
+            initial={{ scale: 0.88, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0.88, opacity: 0 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+            style={{
+              maxWidth: '94vw',
+              maxHeight: '88vh',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={previewModalUrl}
+              alt="Enlarged Preview"
+              style={{
+                maxWidth: '100%',
+                maxHeight: '88vh',
+                objectFit: 'contain',
+                borderRadius: '12px',
+                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.65)',
+                border: '3px solid rgba(255, 255, 255, 0.25)',
+              }}
+            />
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+
+  // =========================================================================
+  // VIEW 1: Gambar 5 - Grid Overview & Retake
+  // =========================================================================
+  if (resultStep === 'grid-review') {
+    return (
+      <div
+        style={{
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          background: '#ffffff',
+          padding: '12px 16px 36px 16px',
+        }}
+      >
+        {/* Header as in Gambar 5: "photo results" & "Selesai" button */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '1100px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 12px',
+            marginBottom: '12px',
+          }}
+        >
+          <div style={{ width: '100px' }} />
+
+          <h1
+            className="font-script"
+            style={{
+              fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
+              color: '#1e293b',
+              margin: 0,
+              lineHeight: 1,
+              textAlign: 'center',
+            }}
+          >
+            photo results
+          </h1>
+
+          <button
+            onClick={() => setResultStep('editor-filter')}
+            className="btn-pill-dark"
+            style={{
+              padding: '10px 28px',
+              fontSize: '1.05rem',
+            }}
+          >
+            Selesai
+          </button>
+        </div>
+
+        {/* Main Photo Grid (Gambar 5: # hasil 1, # hasil 2, ...) */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '920px',
+            background: '#525252',
+            borderRadius: '12px',
+            border: '6px solid #ffffff',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
+            padding: '18px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+            gap: '14px',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {currentPhotos.map((photo, idx) => (
+            <motion.div
+              key={idx}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => {
+                if (onRetakeSinglePhoto) {
+                  onRetakeSinglePhoto(idx);
+                }
+              }}
+              style={{
+                background: '#cbd5e1',
+                borderRadius: '14px',
+                aspectRatio: '4 / 3',
+                overflow: 'hidden',
+                position: 'relative',
+                cursor: 'pointer',
+                border: '2.5px solid #ffffff',
+                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.2)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {photo ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={photo}
+                  alt={`Hasil Foto ${idx + 1}`}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                  }}
+                />
+              ) : (
+                <span
+                  style={{
+                    color: '#ef4444',
+                    fontSize: '1.4rem',
+                    fontWeight: 900,
+                  }}
+                >
+                  # hasil {idx + 1}
+                </span>
+              )}
+
+              {/* Zoom Button in Top-Right Corner */}
+              {photo && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewModalUrl(photo);
+                    setPreviewModalTitle(`Hasil Foto ${idx + 1}`);
+                  }}
+                  title="Perbesar Foto"
+                  style={{
+                    position: 'absolute',
+                    top: '8px',
+                    right: '8px',
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    backdropFilter: 'blur(4px)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '50%',
+                    width: '30px',
+                    height: '30px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                  }}
+                >
+                  <Maximize2 size={14} />
+                </button>
+              )}
+
+              {/* Retake Prompt Badge Overlay */}
+              <div
+                style={{
+                  position: 'absolute',
+                  bottom: '8px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  background: 'rgba(0, 0, 0, 0.75)',
+                  color: '#ffffff',
+                  padding: '3px 12px',
+                  borderRadius: '999px',
+                  fontSize: '0.74rem',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '5px',
+                  backdropFilter: 'blur(4px)',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                <RotateCcw size={11} />
+                <span>Foto Ulang</span>
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Universal Lightbox Modal */}
+        {renderLightboxModal()}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW 2: Gambar 6 - Layout Customizer & Circular Filter Picker
+  // =========================================================================
+  if (resultStep === 'editor-filter') {
+    return (
+      <div
+        style={{
+          width: '100%',
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          background: '#ffffff',
+          padding: '12px 16px 36px 16px',
+        }}
+      >
+        {/* Header as in Gambar 6: "photo results" & "Print" button */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '960px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '8px 12px',
+            marginBottom: '12px',
+          }}
+        >
+          <div style={{ width: '80px' }} />
+
+          <h1
+            className="font-script"
+            style={{
+              fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
+              color: '#1e293b',
+              margin: 0,
+              lineHeight: 1,
+              textAlign: 'center',
+            }}
+          >
+            photo results
+          </h1>
+
+          <button
+            onClick={() => {
+              confetti({
+                particleCount: 80,
+                spread: 70,
+                origin: { y: 0.4 },
+              });
+              setResultStep('final-gif');
+            }}
+            className="btn-pill-dark"
+            style={{
+              padding: '10px 32px',
+              fontSize: '1.05rem',
+            }}
+          >
+            Print
+          </button>
+        </div>
+
+        {/* Main Content Area (Gambar 6: Left = Frame/layout photostrip, Right = Photos & Circular Filters) */}
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '960px',
+            background: '#525252',
+            borderRadius: '12px',
+            border: '6px solid #ffffff',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
+            padding: '20px',
+            display: 'grid',
+            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)',
+            gap: '20px',
+            alignItems: 'start',
+          }}
+        >
+          {/* Left Column: Frame / layout Photostrip Preview (Clickable to Enlarge) */}
+          <div
+            onClick={() => {
+              if (photostripUrl) {
+                setPreviewModalUrl(photostripUrl);
+                setPreviewModalTitle('Preview Photostrip');
+              }
+            }}
+            title="Klik untuk memperbesar Photostrip"
+            style={{
+              background: '#cbd5e1',
               borderRadius: '16px',
+              border: '3px solid #ffffff',
               padding: '12px',
-              border: '2.5px solid var(--neo-black)',
-              cursor: photostripUrl ? 'zoom-in' : 'default',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '400px',
               position: 'relative',
-              boxShadow: '4px 4px 0px var(--neo-black)',
+              overflow: 'hidden',
+              cursor: photostripUrl ? 'zoom-in' : 'default',
+              transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
           >
             {isRendering ? (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', color: 'var(--neo-black)' }}>
-                <Loader2 className="animate-spin" size={36} />
-                <span style={{ fontSize: '0.92rem', fontWeight: 800 }}>Sedang Merender Photostrip...</span>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#1e293b',
+                  fontWeight: 700,
+                }}
+              >
+                <Loader2 size={32} className="animate-spin" />
+                <span>Memproses Photostrip...</span>
               </div>
             ) : photostripUrl ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={photostripUrl}
-                  alt="Photostrip"
+                  alt="Frame Layout Preview"
                   style={{
-                    maxHeight: '580px',
-                    maxWidth: '100%',
+                    width: '100%',
+                    maxHeight: '460px',
                     objectFit: 'contain',
                     borderRadius: '8px',
+                    transition: 'transform 0.2s ease',
                   }}
                 />
+
+                {/* Floating Zoom Button */}
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewModalUrl(photostripUrl);
+                    setPreviewModalTitle('Preview Photostrip');
+                  }}
+                  title="Perbesar Photostrip"
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: 'rgba(15, 23, 42, 0.85)',
+                    backdropFilter: 'blur(6px)',
+                    color: '#ffffff',
+                    border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                    borderRadius: '50%',
+                    width: '36px',
+                    height: '36px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.4)',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  <Maximize2 size={16} />
+                </button>
+
+                {/* Bottom Zoom Cue */}
                 <div
                   style={{
                     position: 'absolute',
-                    bottom: '14px',
-                    right: '14px',
-                    padding: '6px 12px',
-                    borderRadius: '999px',
-                    background: 'var(--neo-black)',
+                    bottom: '8px',
+                    background: 'rgba(0, 0, 0, 0.65)',
                     color: '#ffffff',
-                    fontSize: '0.75rem',
-                    fontWeight: 800,
+                    padding: '3px 12px',
+                    borderRadius: '999px',
+                    fontSize: '0.72rem',
+                    fontWeight: 700,
+                    backdropFilter: 'blur(4px)',
+                    pointerEvents: 'none',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',
-                    border: '1.5px solid #ffffff',
                   }}
                 >
-                  <Maximize2 size={13} />
-                  <span>Perbesar</span>
+                  <ZoomIn size={12} />
+                  <span>Klik untuk perbesar</span>
                 </div>
               </>
-            ) : null}
+            ) : (
+              <span style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 900 }}>
+                Frame / layout
+              </span>
+            )}
           </div>
 
-          {/* Download Photostrip Button (Brand Blue) */}
-          <button
-            onClick={handleDownloadPhotostrip}
-            disabled={!photostripUrl || isRendering}
-            className="neo-btn neo-btn-primary"
-            style={{
-              width: '100%',
-              padding: '14px',
-              fontSize: '1.05rem',
-              fontWeight: 900,
-            }}
-          >
-            <Download size={19} />
-            <span>Download Photostrip</span>
-          </button>
-        </div>
-
-        {/* Right Column: Animated GIF & Photos */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          {/* SECTION 2: Animated GIF */}
-          <div
-            className="neo-card"
-            style={{
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              background: '#ffffff',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-                Animated GIF
-              </h2>
-            </div>
-
-            {/* GIF Preview (Click to Zoom) */}
-            <div
-              onClick={() => {
-                const targetSrc = gifUrl || processedPhotos[activeFrameIndex] || processedPhotos[0];
-                if (targetSrc) setZoomedImage({ src: targetSrc, title: 'Animated GIF' });
-              }}
-              style={{
-                width: '100%',
-                borderRadius: '16px',
-                overflow: 'hidden',
-                background: '#0f172a',
-                aspectRatio: '4 / 3',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                border: '2.5px solid var(--neo-black)',
-                boxShadow: '4px 4px 0px var(--neo-black)',
-                cursor: 'zoom-in',
-                position: 'relative',
-              }}
-            >
-              {gifUrl ? (
-                <img
-                  src={gifUrl}
-                  alt="Animated GIF"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              ) : (
-                <img
-                  src={processedPhotos[activeFrameIndex] || processedPhotos[0]}
-                  alt="Frame Cycler"
-                  style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                />
-              )}
-
-              <div
+          {/* Right Column: Top = Photo Slots Reorder, Bottom = Circular Filters */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            {/* Top: Photo Cards (Foto, Foto, ...) */}
+            <div>
+              <p
                 style={{
-                  position: 'absolute',
-                  bottom: '12px',
-                  right: '12px',
-                  padding: '6px 12px',
-                  borderRadius: '999px',
-                  background: 'var(--neo-black)',
                   color: '#ffffff',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '4px',
-                  border: '1.5px solid #ffffff',
+                  fontSize: '0.86rem',
+                  fontWeight: 700,
+                  marginBottom: '8px',
                 }}
               >
-                <Maximize2 size={13} />
-                <span>Perbesar</span>
+                Tata Letak Foto (Klik 2 foto untuk tukar posisi):
+              </p>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(2, 1fr)',
+                  gap: '12px',
+                }}
+              >
+                {currentPhotos.map((photo, idx) => {
+                  const isSelected = selectedSlotForSwap === idx;
+                  return (
+                    <motion.div
+                      key={idx}
+                      whileHover={{ scale: 1.03 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={() => handleSlotClick(idx)}
+                      style={{
+                        background: '#cbd5e1',
+                        borderRadius: '14px',
+                        aspectRatio: '4 / 3',
+                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        border: isSelected ? '4px solid #38bdf8' : '2.5px solid #ffffff',
+                        boxShadow: isSelected
+                          ? '0 0 16px rgba(56, 189, 248, 0.6)'
+                          : '0 3px 10px rgba(0, 0, 0, 0.15)',
+                        position: 'relative',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      {photo ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={photo}
+                          alt={`Foto ${idx + 1}`}
+                          style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            color: '#ef4444',
+                            fontSize: '1.3rem',
+                            fontWeight: 900,
+                          }}
+                        >
+                          Foto {idx + 1}
+                        </span>
+                      )}
+
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          background: isSelected ? '#38bdf8' : 'rgba(0, 0, 0, 0.6)',
+                          color: isSelected ? '#000000' : '#ffffff',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '50%',
+                          fontSize: '0.72rem',
+                          fontWeight: 900,
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {idx + 1}
+                      </div>
+                    </motion.div>
+                  );
+                })}
               </div>
             </div>
 
-            {/* Download GIF Button */}
-            <button
-              onClick={handleDownloadGif}
-              disabled={isGifGenerating && !gifUrl}
-              className="neo-btn neo-btn-primary"
-              style={{
-                width: '100%',
-                padding: '13px',
-                fontSize: '0.95rem',
-                fontWeight: 900,
-              }}
-            >
-              <Download size={18} />
-              <span>Download GIF</span>
-            </button>
-          </div>
-
-          {/* SECTION 3: Photos */}
-          <div
-            className="neo-card"
-            style={{
-              padding: '18px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '14px',
-              background: '#ffffff',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: 'var(--neo-black)' }}>
-                Photos ({processedPhotos.length})
-              </h2>
-
-              <button
-                onClick={handleDownloadAllRaw}
-                className="neo-btn neo-btn-secondary"
-                style={{ padding: '6px 12px', fontSize: '0.78rem' }}
+            {/* Bottom: Circular Filters with Smooth Swipe & Drag */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', minWidth: 0 }}>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  padding: '0 2px',
+                }}
               >
-                <Download size={13} /> Download Semua
-              </button>
-            </div>
-
-            {/* Grid of Photos */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(80px, 1fr))',
-                gap: '10px',
-              }}
-            >
-              {processedPhotos.map((photoSrc, pIdx) => (
-                <div
-                  key={pIdx}
+                <p
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    borderRadius: '12px',
-                    overflow: 'hidden',
-                    background: '#ffffff',
-                    border: '2px solid var(--neo-black)',
-                    boxShadow: '3px 3px 0px var(--neo-black)',
+                    color: '#ffffff',
+                    fontSize: '0.88rem',
+                    fontWeight: 700,
+                    margin: 0,
                   }}
                 >
-                  {/* Thumbnail Click to Zoom */}
-                  <div
-                    onClick={() => setZoomedImage({ src: photoSrc, title: `Photo #${pIdx + 1}` })}
-                    style={{ width: '100%', aspectRatio: '1 / 1', overflow: 'hidden', cursor: 'zoom-in' }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photoSrc}
-                      alt={`Photo ${pIdx + 1}`}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </div>
+                  Pilih Filter Estetik ({FILTERS.length} Pilihan):
+                </p>
+                <span
+                  style={{
+                    fontSize: '0.72rem',
+                    color: '#38bdf8',
+                    background: 'rgba(56, 189, 248, 0.15)',
+                    border: '1px solid rgba(56, 189, 248, 0.4)',
+                    padding: '2px 8px',
+                    borderRadius: '999px',
+                    fontWeight: 700,
+                  }}
+                >
+                  {FILTERS.find((f) => f.id === currentConfig.filter)?.name || 'Natural'}
+                </span>
+              </div>
 
-                  {/* Individual Download Button */}
-                  <button
-                    onClick={() => handleDownloadRawPhoto(photoSrc, pIdx)}
-                    style={{
-                      width: '100%',
-                      padding: '7px 0',
-                      background: 'var(--neo-black)',
-                      color: '#ffffff',
-                      border: 'none',
-                      borderTop: '1.5px solid var(--neo-black)',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                    title={`Download Foto ${pIdx + 1}`}
-                  >
-                    <Download size={14} />
-                  </button>
+              {/* Swipeable & Draggable Filter Bar */}
+              <div
+                style={{
+                  position: 'relative',
+                  width: '100%',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
+                  background: 'rgba(0, 0, 0, 0.18)',
+                  padding: '4px 2px',
+                }}
+              >
+                {/* Horizontal Scroll Track */}
+                <div
+                  ref={filterScrollRef}
+                  onMouseDown={handleFilterMouseDown}
+                  onMouseMove={handleFilterMouseMove}
+                  onMouseUp={handleFilterMouseUpOrLeave}
+                  onMouseLeave={handleFilterMouseUpOrLeave}
+                  onWheel={(e) => {
+                    if (filterScrollRef.current && Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                      filterScrollRef.current.scrollLeft += e.deltaY;
+                    }
+                  }}
+                  style={{
+                    display: 'flex',
+                    gap: '12px',
+                    overflowX: 'auto',
+                    padding: '8px 10px 10px 10px',
+                    scrollbarWidth: 'none',
+                    cursor: isFilterDragging ? 'grabbing' : 'grab',
+                    userSelect: 'none',
+                    touchAction: 'pan-x',
+                    WebkitOverflowScrolling: 'touch',
+                  }}
+                >
+                  {FILTERS.map((flt) => {
+                    const isActive = currentConfig.filter === flt.id;
+                    return (
+                      <motion.button
+                        key={flt.id}
+                        type="button"
+                        whileHover={{ scale: 1.06 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => {
+                          if (!filterDragMoved) {
+                            handleSelectFilter(flt.id);
+                          }
+                        }}
+                        title={flt.desc}
+                        style={{
+                          background: 'transparent',
+                          border: 'none',
+                          cursor: isFilterDragging ? 'grabbing' : 'pointer',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          gap: '6px',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: '64px',
+                            height: '64px',
+                            borderRadius: '50%',
+                            background: '#cbd5e1',
+                            border: isActive ? '3.5px solid #38bdf8' : '2.5px solid #ffffff',
+                            boxShadow: isActive
+                              ? '0 0 16px rgba(56, 189, 248, 0.85)'
+                              : '0 3px 8px rgba(0, 0, 0, 0.25)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#ef4444',
+                            fontWeight: 800,
+                            fontSize: '0.75rem',
+                            position: 'relative',
+                            overflow: 'hidden',
+                            transition: 'border 0.2s ease, box-shadow 0.2s ease',
+                          }}
+                        >
+                          {basePhotostripUrl || photostripUrl || currentTemplate.imageSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={basePhotostripUrl || photostripUrl || currentTemplate.imageSrc}
+                              alt={flt.name}
+                              draggable={false}
+                              style={{
+                                width: '100%',
+                                height: '100%',
+                                objectFit: 'cover',
+                                filter: flt.cssFilter,
+                                pointerEvents: 'none',
+                              }}
+                            />
+                          ) : (
+                            <span>Filter</span>
+                          )}
+
+                          {isActive && (
+                            <div
+                              style={{
+                                position: 'absolute',
+                                inset: 0,
+                                background: 'rgba(56, 189, 248, 0.35)',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <Check size={20} color="#ffffff" strokeWidth={3.5} />
+                            </div>
+                          )}
+                        </div>
+                        <span
+                          style={{
+                            color: isActive ? '#38bdf8' : '#ffffff',
+                            fontSize: '0.74rem',
+                            fontWeight: isActive ? 800 : 600,
+                            maxWidth: '72px',
+                            textAlign: 'center',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                          }}
+                        >
+                          {flt.name}
+                        </span>
+                      </motion.button>
+                    );
+                  })}
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         </div>
+
+        {/* Universal Lightbox Modal */}
+        {renderLightboxModal()}
+      </div>
+    );
+  }
+
+  // =========================================================================
+  // VIEW 3: Gambar 7 - Final Photostrip & Animated GIF Preview
+  // =========================================================================
+  return (
+    <div
+      style={{
+        width: '100%',
+        minHeight: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        background: '#ffffff',
+        padding: '12px 16px 36px 16px',
+      }}
+    >
+      {/* Header as in Gambar 7: "photo results" */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1100px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '8px 12px',
+          marginBottom: '12px',
+        }}
+      >
+        <div style={{ width: '100px' }} />
+
+        <h1
+          className="font-script"
+          style={{
+            fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
+            color: '#1e293b',
+            margin: 0,
+            lineHeight: 1,
+            textAlign: 'center',
+          }}
+        >
+          photo results
+        </h1>
+
+        <button
+          onClick={onRetakeNewSession}
+          style={{
+            background: '#f1f5f9',
+            border: '1.5px solid #cbd5e1',
+            borderRadius: '999px',
+            padding: '8px 18px',
+            fontSize: '0.86rem',
+            fontWeight: 700,
+            color: '#1e293b',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+          }}
+        >
+          <RotateCcw size={14} />
+          <span>Sesi Baru</span>
+        </button>
       </div>
 
-      {/* LIGHTBOX ZOOM MODAL (Neo-Brutalism) */}
-      {zoomedImage && (
+      {/* Main Content Area (Gambar 7: Left = Photostrip, Right Top = GIF, Right Bottom = barcode button) */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '960px',
+          background: '#525252',
+          borderRadius: '12px',
+          border: '6px solid #ffffff',
+          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
+          padding: '20px',
+          display: 'grid',
+          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)',
+          gap: '20px',
+          alignItems: 'center',
+        }}
+      >
+        {/* Left Column: Final Photostrip Canvas ("Foto") */}
         <div
-          onClick={() => setZoomedImage(null)}
+          onClick={() => {
+            if (photostripUrl) {
+              setPreviewModalUrl(photostripUrl);
+              setPreviewModalTitle('Final Photostrip');
+            }
+          }}
           style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 90,
+            background: '#cbd5e1',
+            borderRadius: '16px',
+            border: '3px solid #ffffff',
+            padding: '12px',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
-            background: 'rgba(15, 23, 42, 0.88)',
-            backdropFilter: 'blur(8px)',
-            padding: '16px',
-            cursor: 'zoom-out',
+            minHeight: '400px',
+            position: 'relative',
+            cursor: photostripUrl ? 'pointer' : 'default',
           }}
         >
-          {/* Close button & title bar */}
-          <div
-            onClick={(e) => e.stopPropagation()}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              width: '100%',
-              maxWidth: '860px',
-              marginBottom: '12px',
-              color: '#ffffff',
-            }}
-          >
-            <span style={{ fontSize: '1.15rem', fontWeight: 900 }}>{zoomedImage.title}</span>
-
-            <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <a
-                href={zoomedImage.src}
-                download={`${zoomedImage.title.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`}
-                className="neo-btn neo-btn-primary"
-                style={{ padding: '7px 16px', fontSize: '0.82rem' }}
-                onClick={(e) => e.stopPropagation()}
-              >
-                <Download size={15} /> Unduh
-              </a>
+          {photostripUrl ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={photostripUrl}
+                alt="Final Photostrip"
+                style={{
+                  width: '100%',
+                  maxHeight: '460px',
+                  objectFit: 'contain',
+                  borderRadius: '8px',
+                }}
+              />
               <button
-                onClick={() => setZoomedImage(null)}
-                className="neo-btn-icon"
-                style={{ width: '36px', height: '36px', background: '#ffffff' }}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setPreviewModalUrl(photostripUrl);
+                  setPreviewModalTitle('Final Photostrip');
+                }}
+                title="Perbesar Photostrip"
+                style={{
+                  position: 'absolute',
+                  top: '12px',
+                  right: '12px',
+                  background: 'rgba(15, 23, 42, 0.75)',
+                  backdropFilter: 'blur(4px)',
+                  color: '#ffffff',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                }}
               >
-                <X size={18} />
+                <Maximize2 size={15} />
               </button>
-            </div>
-          </div>
+            </>
+          ) : (
+            <span style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 900 }}>
+              Foto
+            </span>
+          )}
+        </div>
 
-          {/* Large Image Frame */}
+        {/* Right Column: Top = GIF (Foto/Video), Bottom = barcode button */}
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '20px',
+          }}
+        >
+          {/* Animated GIF Container */}
           <div
-            onClick={(e) => e.stopPropagation()}
+            onClick={() => {
+              if (gifUrl) {
+                setPreviewModalUrl(gifUrl);
+                setPreviewModalTitle('Animated Moment GIF');
+              }
+            }}
             style={{
-              maxWidth: '94vw',
-              maxHeight: '82vh',
+              width: '100%',
+              background: '#cbd5e1',
               borderRadius: '16px',
-              overflow: 'hidden',
               border: '3px solid #ffffff',
-              boxShadow: '8px 8px 0px #000000',
-              background: '#000000',
+              padding: '12px',
+              aspectRatio: '16 / 11',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
+              overflow: 'hidden',
+              position: 'relative',
+              cursor: gifUrl ? 'pointer' : 'default',
             }}
           >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={zoomedImage.src}
-              alt={zoomedImage.title}
+            {isGifGenerating ? (
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#1e293b',
+                  fontWeight: 700,
+                }}
+              >
+                <Loader2 size={30} className="animate-spin" />
+                <span>Membuat Animasi GIF...</span>
+              </div>
+            ) : gifUrl ? (
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={gifUrl}
+                  alt="Animated Moment GIF"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'cover',
+                    borderRadius: '10px',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewModalUrl(gifUrl);
+                    setPreviewModalTitle('Animated Moment GIF');
+                  }}
+                  title="Perbesar GIF"
+                  style={{
+                    position: 'absolute',
+                    top: '12px',
+                    right: '12px',
+                    background: 'rgba(15, 23, 42, 0.75)',
+                    backdropFilter: 'blur(4px)',
+                    color: '#ffffff',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    borderRadius: '50%',
+                    width: '32px',
+                    height: '32px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                  }}
+                >
+                  <Maximize2 size={15} />
+                </button>
+              </>
+            ) : processedPhotos.length > 0 ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={processedPhotos[activeFrameIndex]}
+                alt="GIF Animation Preview"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover',
+                  borderRadius: '10px',
+                }}
+              />
+            ) : (
+              <div style={{ textAlign: 'center' }}>
+                <p style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 900 }}>
+                  gif
+                </p>
+                <p style={{ color: '#2563eb', fontSize: '1.1rem', fontWeight: 800 }}>
+                  (Foto / Video)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Barcode Button as in Gambar 7 ("buat interaktif barcode") */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setIsQrModalOpen(true)}
+              className="btn-pill-dark"
               style={{
-                maxWidth: '94vw',
-                maxHeight: '82vh',
-                objectFit: 'contain',
+                padding: '14px 44px',
+                fontSize: '1.2rem',
+                letterSpacing: '1px',
+                background: '#474747',
               }}
-            />
+            >
+              barcode
+            </motion.button>
+            <span style={{ color: '#e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
+              Klik untuk scan barcode & unduh foto ke HP
+            </span>
           </div>
         </div>
-      )}
+      </div>
 
-      {/* QR CODE MODAL (Clean, Mobile Responsive Blue Neo-Brutalism with Framer Motion) */}
+      {/* =========================================================================
+          VIEW 4: Gambar 8 - Barcode / QR Popup Screen
+          ========================================================================= */}
       <AnimatePresence>
         {isQrModalOpen && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            onClick={() => setIsQrModalOpen(false)}
+          <div
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 80,
+              zIndex: 9999,
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(8px)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: 'rgba(15, 23, 42, 0.75)',
-              backdropFilter: 'blur(6px)',
-              padding: '20px',
+              padding: '16px',
             }}
+            onClick={() => setIsQrModalOpen(false)}
           >
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-              onClick={(e) => e.stopPropagation()}
-              className="neo-card"
+              initial={{ scale: 0.85, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.85, opacity: 0 }}
+              transition={{ duration: 0.25, ease: 'easeOut' }}
               style={{
+                maxWidth: '460px',
                 width: '100%',
-                maxWidth: '380px',
                 background: '#ffffff',
-                padding: '22px',
+                borderRadius: '24px',
+                padding: '28px 22px',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
                 gap: '14px',
-                boxShadow: '8px 8px 0px var(--neo-black)',
+                position: 'relative',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.3)',
               }}
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Header Title Centered (Tanpa Tombol X) */}
-              <div style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <h3 style={{ fontSize: '1.2rem', fontWeight: 900, color: 'var(--neo-black)', textAlign: 'center' }}>
-                  Scan QR Code
-                </h3>
-              </div>
-
-              <p style={{ fontSize: '0.82rem', color: 'var(--text-secondary)', fontWeight: 600 }}>
-                Buka kamera HP kamu untuk memindai dan mengunduh Photostrip, GIF, serta Raw Photos langsung ke galeri smartphone!
-              </p>
-
-              {/* QR Code Container */}
-              {qrCodeUrl && (
-                <div
-                  style={{
-                    padding: '12px',
-                    borderRadius: '16px',
-                    background: '#ffffff',
-                    border: '3px solid var(--neo-black)',
-                    boxShadow: '5px 5px 0px var(--neo-black)',
-                  }}
-                >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={qrCodeUrl}
-                    alt="QR Code Scan to Phone"
-                    style={{ width: '200px', height: '200px', display: 'block' }}
-                  />
-                </div>
-              )}
-
+              {/* Close Button */}
               <button
                 onClick={() => setIsQrModalOpen(false)}
-                className="neo-btn neo-btn-primary"
-                style={{ width: '100%', padding: '11px', fontSize: '0.92rem' }}
+                style={{
+                  position: 'absolute',
+                  top: '16px',
+                  right: '16px',
+                  background: '#f1f5f9',
+                  border: 'none',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  color: '#475569',
+                }}
               >
-                Tutup
+                <X size={18} />
               </button>
+
+              {/* Title as in Gambar 8: "Foto Anda Siap!" */}
+              <h2
+                className="font-script"
+                style={{
+                  fontSize: 'clamp(2.5rem, 6vw, 3.4rem)',
+                  color: '#1e293b',
+                  lineHeight: 1,
+                  margin: 0,
+                }}
+              >
+                Foto Anda Siap!
+              </h2>
+
+              {/* QR Code Container as in Gambar 8 */}
+              <div
+                style={{
+                  background: '#ffffff',
+                  padding: '10px',
+                  borderRadius: '16px',
+                  border: '2px solid #e2e8f0',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.08)',
+                }}
+              >
+                {qrCodeUrl ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={qrCodeUrl}
+                    alt="QR Code Barcode"
+                    style={{
+                      width: '210px',
+                      height: '210px',
+                      objectFit: 'contain',
+                    }}
+                  />
+                ) : (
+                  <div
+                    style={{
+                      width: '210px',
+                      height: '210px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Loader2 size={32} className="animate-spin text-slate-400" />
+                  </div>
+                )}
+              </div>
+
+              {/* Subtitle as in Gambar 8 */}
+              <p
+                style={{
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  color: '#334155',
+                  lineHeight: 1.35,
+                  maxWidth: '340px',
+                }}
+              >
+                Simpan Foto barcode untuk mendapatkan foto dan gif dari momen anda !
+              </p>
+
+              {/* 3 Action Buttons: Row 1 = [ Print ] | [ Download Gif ], Row 2 = [ Download Photostrip (PNG) ] */}
+              <div
+                style={{
+                  width: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '10px',
+                  marginTop: '4px',
+                }}
+              >
+                {/* Row 1: Print & Download Gif side by side */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '10px',
+                    width: '100%',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handlePrint}
+                    className="btn-pill-dark"
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      fontSize: '0.92rem',
+                      background: '#1e293b',
+                      borderRadius: '999px',
+                      gap: '6px',
+                    }}
+                  >
+                    <Printer size={16} />
+                    <span>Print</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={handleDownloadGif}
+                    disabled={!gifUrl}
+                    style={{
+                      width: '100%',
+                      padding: '11px 14px',
+                      fontSize: '0.92rem',
+                      fontWeight: 800,
+                      borderRadius: '999px',
+                      background: '#f1f5f9',
+                      color: '#1e293b',
+                      border: '1.5px solid #cbd5e1',
+                      cursor: gifUrl ? 'pointer' : 'not-allowed',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      opacity: gifUrl ? 1 : 0.5,
+                      transition: 'all 0.15s ease',
+                    }}
+                  >
+                    <span>Download Gif</span>
+                  </button>
+                </div>
+
+                {/* Row 2: Download Photostrip (PNG) Full Width */}
+                <button
+                  type="button"
+                  onClick={handleDownloadPhotostrip}
+                  className="btn-pill-dark"
+                  style={{
+                    width: '100%',
+                    padding: '13px',
+                    fontSize: '0.96rem',
+                    background: '#0f172a',
+                    border: '2px solid #000000',
+                    borderRadius: '999px',
+                    gap: '8px',
+                  }}
+                >
+                  <Download size={17} />
+                  <span>Download Photostrip (PNG)</span>
+                </button>
+              </div>
             </motion.div>
-          </motion.div>
+          </div>
         )}
       </AnimatePresence>
+
+      {/* Universal Fullscreen Lightbox Zoom Modal */}
+      {renderLightboxModal()}
+
+      {/* Dedicated Photostrip Print Area for Clean In-Page Printing */}
+      {photostripUrl && (
+        <div id="snapbooth-print-area" style={{ display: 'none' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={photostripUrl} alt="Pearly Photostrip Print" />
+        </div>
+      )}
     </div>
   );
 };

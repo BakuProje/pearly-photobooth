@@ -8,7 +8,7 @@ export async function generateQrCodeDataUrl(url: string, logoSrc: string = '/ima
       margin: 2,
       errorCorrectionLevel: 'H',
       color: {
-        dark: '#0284c7',
+        dark: '#000000',
         light: '#ffffff',
       },
     });

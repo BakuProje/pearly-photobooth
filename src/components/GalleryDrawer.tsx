@@ -142,15 +142,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                 boxShadow: '-8px 0px 0px var(--neo-black)',
               }}
             >
-              {/* Header (Brand Blue) */}
+              {/* Header (Dark Slate Aesthetic) */}
               <div
                 style={{
                   padding: '18px 20px',
-                  borderBottom: '2.5px solid var(--neo-black)',
+                  borderBottom: '1px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: 'var(--neo-primary)',
+                  background: '#1e293b',
+                  color: '#ffffff',
                 }}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -159,32 +160,46 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       width: '38px',
                       height: '38px',
                       borderRadius: '10px',
-                      background: 'var(--neo-white)',
-                      border: '2px solid var(--neo-black)',
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: 'var(--neo-black)',
-                      boxShadow: '2px 2px 0px var(--neo-black)',
+                      color: '#ffffff',
                     }}
                   >
                     <ImageIcon size={20} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: 'var(--neo-black)' }}>Galeri Sesi</h3>
-                    <p style={{ fontSize: '0.76rem', color: 'var(--neo-black)', fontWeight: 700 }}>
+                    <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#ffffff', margin: 0 }}>Galeri Sesi</h3>
+                    <p style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600, margin: 0 }}>
                       {items.length} hasil foto tersimpan
                     </p>
                   </div>
                 </div>
 
-                <button onClick={onClose} className="neo-btn-icon" style={{ width: '36px', height: '36px' }}>
+                <button
+                  onClick={onClose}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
                   <X size={18} />
                 </button>
               </div>
 
               {/* List of items */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc' }}>
                 {items.length === 0 ? (
                   <div
                     style={{
@@ -193,7 +208,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       height: '100%',
-                      color: 'var(--text-muted)',
+                      color: '#64748b',
                       gap: '12px',
                       textAlign: 'center',
                       padding: '40px 20px',
@@ -204,18 +219,18 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                         width: '64px',
                         height: '64px',
                         borderRadius: '16px',
-                        background: '#f1f5f9',
-                        border: '2px dashed var(--neo-black)',
+                        background: '#ffffff',
+                        border: '1.5px dashed #cbd5e1',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: 'var(--text-muted)',
+                        color: '#94a3b8',
                       }}
                     >
                       <ImageIcon size={28} />
                     </div>
-                    <p style={{ fontSize: '1rem', fontWeight: 900, color: 'var(--neo-black)' }}>Belum Ada Foto Tersimpan</p>
-                    <p style={{ fontSize: '0.82rem', maxWidth: '240px', fontWeight: 600 }}>
+                    <p style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>Belum Ada Foto Tersimpan</p>
+                    <p style={{ fontSize: '0.82rem', maxWidth: '240px', fontWeight: 600, color: '#64748b', margin: 0 }}>
                       Selesaikan sesi foto dan tekan <strong>"Lihat Hasil"</strong> untuk menyimpan otomatis ke galeri.
                     </p>
                   </div>
@@ -225,14 +240,15 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     return (
                       <div
                         key={item.id}
-                        className="neo-card"
                         style={{
                           padding: '12px',
                           display: 'flex',
                           gap: '12px',
                           alignItems: 'center',
                           background: '#ffffff',
-                          boxShadow: '3px 3px 0px var(--neo-black)',
+                          borderRadius: '14px',
+                          border: '1px solid #e2e8f0',
+                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)',
                           transition: 'all 0.15s ease',
                         }}
                       >
@@ -245,8 +261,8 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                             cursor: 'pointer',
                             borderRadius: '8px',
                             overflow: 'hidden',
-                            border: '1.5px solid var(--neo-black)',
-                            background: '#f8fafc',
+                            border: '1px solid #cbd5e1',
+                            background: '#f1f5f9',
                             flexShrink: 0,
                             position: 'relative',
                           }}
@@ -273,7 +289,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                             style={{
                               fontSize: '0.92rem',
                               fontWeight: 900,
-                              color: 'var(--neo-black)',
+                              color: '#1e293b',
                               cursor: 'pointer',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
@@ -283,7 +299,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                             {tmpl ? tmpl.name : 'Snapbooth Photo'}
                           </span>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
                             <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                               <Calendar size={11} />
                               {new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -296,8 +312,19 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
                             <button
                               onClick={() => openDetailModal(item)}
-                              className="neo-btn neo-btn-primary"
-                              style={{ padding: '5px 10px', fontSize: '0.76rem', background: 'var(--neo-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                background: '#1e293b',
+                                color: '#ffffff',
+                                border: 'none',
+                                borderRadius: '999px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer',
+                              }}
                               title="Lihat Hasil (Photostrip, GIF & Pose)"
                             >
                               <Eye size={12} />
@@ -306,8 +333,19 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                             <button
                               onClick={() => handleDownloadStrip(item)}
-                              className="neo-btn neo-btn-secondary"
-                              style={{ padding: '5px 10px', fontSize: '0.76rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                              style={{
+                                padding: '6px 12px',
+                                fontSize: '0.78rem',
+                                fontWeight: 700,
+                                background: '#f1f5f9',
+                                color: '#1e293b',
+                                border: '1px solid #cbd5e1',
+                                borderRadius: '999px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                cursor: 'pointer',
+                              }}
                               title="Unduh Photostrip PNG"
                             >
                               <Download size={12} />
@@ -316,8 +354,18 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                             <button
                               onClick={() => setDeleteConfirmTarget({ id: item.id, name: tmpl ? tmpl.name : 'Sesi Foto' })}
-                              className="neo-btn neo-btn-secondary"
-                              style={{ padding: '5px 8px', fontSize: '0.76rem', color: '#ef4444' }}
+                              style={{
+                                padding: '6px 9px',
+                                fontSize: '0.78rem',
+                                background: '#fee2e2',
+                                color: '#ef4444',
+                                border: '1px solid #fca5a5',
+                                borderRadius: '999px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                cursor: 'pointer',
+                              }}
                               title="Hapus dari Galeri"
                             >
                               <Trash2 size={12} />
@@ -332,11 +380,24 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
               {/* Footer */}
               {items.length > 0 && (
-                <div style={{ padding: '14px 18px', borderTop: '2.5px solid var(--neo-black)', background: '#ffffff' }}>
+                <div style={{ padding: '14px 18px', borderTop: '1px solid #e2e8f0', background: '#ffffff' }}>
                   <button
                     onClick={() => setDeleteConfirmTarget('all')}
-                    className="neo-btn neo-btn-secondary"
-                    style={{ width: '100%', padding: '9px', fontSize: '0.82rem', color: '#ef4444' }}
+                    style={{
+                      width: '100%',
+                      padding: '10px',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      color: '#ef4444',
+                      background: '#fff1f2',
+                      border: '1px solid #fecdd3',
+                      borderRadius: '999px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
                   >
                     <Trash2 size={14} /> Bersihkan Semua Galeri
                   </button>
@@ -369,18 +430,18 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.18 }}
-              className="neo-card"
               style={{
                 maxWidth: '380px',
                 width: '100%',
-                padding: '22px',
+                padding: '24px',
                 background: '#ffffff',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
                 gap: '14px',
-                borderRadius: '16px',
+                borderRadius: '20px',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.25)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -390,22 +451,20 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   height: '54px',
                   borderRadius: '50%',
                   background: '#fee2e2',
-                  border: '2px solid var(--neo-black)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   color: '#dc2626',
-                  boxShadow: '2px 2px 0px var(--neo-black)',
                 }}
               >
                 <Trash2 size={26} />
               </div>
 
               <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: 'var(--neo-black)', marginBottom: '6px' }}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', marginBottom: '6px' }}>
                   {deleteConfirmTarget === 'all' ? 'Hapus Semua Galeri?' : 'Hapus Foto Sesi Ini?'}
                 </h3>
-                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', fontWeight: 600, lineHeight: 1.4 }}>
+                <p style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: 600, lineHeight: 1.4, margin: 0 }}>
                   {deleteConfirmTarget === 'all'
                     ? 'Apakah Anda yakin ingin menghapus semua hasil foto dari Galeri Sesi? Data yang dihapus tidak dapat dipulihkan.'
                     : `Apakah Anda yakin ingin menghapus ${deleteConfirmTarget.name} dari galeri sesi?`}
@@ -415,8 +474,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', width: '100%', marginTop: '4px' }}>
                 <button
                   onClick={() => setDeleteConfirmTarget(null)}
-                  className="neo-btn neo-btn-secondary"
-                  style={{ padding: '9px', fontSize: '0.86rem', justifyContent: 'center' }}
+                  style={{
+                    padding: '10px',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    background: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    color: '#334155',
+                    cursor: 'pointer',
+                  }}
                 >
                   Batal
                 </button>
@@ -429,8 +496,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     }
                     setDeleteConfirmTarget(null);
                   }}
-                  className="neo-btn neo-btn-primary"
-                  style={{ padding: '9px', fontSize: '0.86rem', background: '#ef4444', color: '#ffffff', justifyContent: 'center' }}
+                  style={{
+                    padding: '10px',
+                    fontSize: '0.86rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    background: '#ef4444',
+                    border: 'none',
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                  }}
                 >
                   Ya, Hapus
                 </button>
@@ -479,27 +554,38 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               {/* Modal Header */}
               <div
                 style={{
-                  padding: '14px 18px',
-                  background: 'var(--neo-primary)',
-                  borderBottom: '2.5px solid var(--neo-black)',
+                  padding: '16px 20px',
+                  background: '#1e293b',
+                  color: '#ffffff',
+                  borderBottom: '1px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}
               >
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: 'var(--neo-black)' }}>
+                  <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#ffffff', margin: 0 }}>
                     {getTemplateById(selectedItem.config.selectedTemplateId)?.name || 'Hasil Sesi'}
                   </h3>
-                  <p style={{ fontSize: '0.74rem', color: 'var(--neo-black)', fontWeight: 700 }}>
+                  <p style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 600, margin: '2px 0 0 0' }}>
                     {new Date(selectedItem.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
                 </div>
 
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="neo-btn-icon"
-                  style={{ width: '32px', height: '32px' }}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.12)',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    color: '#ffffff',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    cursor: 'pointer',
+                  }}
                 >
                   <X size={16} />
                 </button>
@@ -509,16 +595,31 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               <div
                 style={{
                   display: 'flex',
-                  background: '#f1f5f9',
-                  padding: '6px',
-                  borderBottom: '2px solid var(--neo-black)',
-                  gap: '6px',
+                  background: '#f8fafc',
+                  padding: '8px 12px',
+                  borderBottom: '1px solid #e2e8f0',
+                  gap: '8px',
                 }}
               >
                 <button
                   onClick={() => setActiveTab('strip')}
-                  className={`neo-btn ${activeTab === 'strip' ? 'neo-btn-primary' : 'neo-btn-secondary'}`}
-                  style={{ flex: 1, padding: '7px 4px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: activeTab === 'strip' ? '#1e293b' : '#ffffff',
+                    color: activeTab === 'strip' ? '#ffffff' : '#475569',
+                    boxShadow: activeTab === 'strip' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
                   <Layers size={13} />
                   <span>Photostrip</span>
@@ -526,8 +627,23 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                 <button
                   onClick={() => setActiveTab('gif')}
-                  className={`neo-btn ${activeTab === 'gif' ? 'neo-btn-primary' : 'neo-btn-secondary'}`}
-                  style={{ flex: 1, padding: '7px 4px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: activeTab === 'gif' ? '#1e293b' : '#ffffff',
+                    color: activeTab === 'gif' ? '#ffffff' : '#475569',
+                    boxShadow: activeTab === 'gif' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
                   <Film size={13} />
                   <span>Animasi GIF</span>
@@ -535,8 +651,23 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                 <button
                   onClick={() => setActiveTab('photos')}
-                  className={`neo-btn ${activeTab === 'photos' ? 'neo-btn-primary' : 'neo-btn-secondary'}`}
-                  style={{ flex: 1, padding: '7px 4px', fontSize: '0.8rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+                  style={{
+                    flex: 1,
+                    padding: '8px',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    border: 'none',
+                    background: activeTab === 'photos' ? '#1e293b' : '#ffffff',
+                    color: activeTab === 'photos' ? '#ffffff' : '#475569',
+                    boxShadow: activeTab === 'photos' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '5px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
                 >
                   <ImageIcon size={13} />
                   <span>Foto Pose ({selectedItem.photos?.length || 0})</span>
@@ -548,27 +679,27 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                 style={{
                   flex: 1,
                   overflowY: 'auto',
-                  padding: '16px',
+                  padding: '20px',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
                   minHeight: '340px',
-                  background: '#fafafa',
+                  background: '#f8fafc',
                 }}
               >
                 {/* TAB 1: PHOTOSTRIP PREVIEW */}
                 {activeTab === 'strip' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
                     <div
                       onClick={() => setZoomedImage({ src: selectedItem.previewUrl, title: 'Photostrip Lengkap' })}
                       style={{
                         position: 'relative',
                         maxHeight: '380px',
-                        borderRadius: '10px',
+                        borderRadius: '12px',
                         overflow: 'hidden',
-                        border: '2px solid var(--neo-black)',
-                        boxShadow: '4px 4px 0px var(--neo-black)',
+                        border: '1px solid #cbd5e1',
+                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                         background: '#ffffff',
                         cursor: 'pointer',
                       }}
@@ -592,10 +723,10 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           right: '8px',
                           background: 'rgba(15, 23, 42, 0.85)',
                           color: '#ffffff',
-                          padding: '4px 8px',
-                          borderRadius: '6px',
-                          fontSize: '0.7rem',
-                          fontWeight: 800,
+                          padding: '4px 10px',
+                          borderRadius: '999px',
+                          fontSize: '0.72rem',
+                          fontWeight: 700,
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px',
@@ -608,8 +739,21 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '360px' }}>
                       <button
                         onClick={() => handleDownloadStrip(selectedItem)}
-                        className="neo-btn neo-btn-primary"
-                        style={{ flex: 1, padding: '10px', fontSize: '0.88rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        style={{
+                          flex: 1,
+                          padding: '11px',
+                          fontSize: '0.88rem',
+                          fontWeight: 700,
+                          borderRadius: '999px',
+                          background: '#1e293b',
+                          color: '#ffffff',
+                          border: 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          cursor: 'pointer',
+                        }}
                       >
                         <Download size={15} />
                         <span>Unduh Photostrip</span>
@@ -620,26 +764,26 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                 {/* TAB 2: ANIMATED GIF */}
                 {activeTab === 'gif' && (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
                     {isGeneratingGif ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '260px' }}>
-                        <Loader2 className="animate-spin" size={36} color="#0284c7" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--neo-black)' }}>
+                        <Loader2 className="animate-spin" size={36} color="#1e293b" />
+                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
                           Membuat Animasi GIF...
                         </span>
                       </div>
                     ) : generatedGifUrl ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', width: '100%' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
                         <div
                           onClick={() => setZoomedImage({ src: generatedGifUrl, title: 'Animasi GIF' })}
                           style={{
                             position: 'relative',
                             maxHeight: '340px',
                             maxWidth: '420px',
-                            borderRadius: '10px',
+                            borderRadius: '12px',
                             overflow: 'hidden',
-                            border: '2px solid var(--neo-black)',
-                            boxShadow: '4px 4px 0px var(--neo-black)',
+                            border: '1px solid #cbd5e1',
+                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                             background: '#000000',
                             cursor: 'pointer',
                           }}
@@ -661,8 +805,21 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                         <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '360px' }}>
                           <button
                             onClick={handleDownloadGif}
-                            className="neo-btn neo-btn-primary"
-                            style={{ flex: 1, padding: '10px', fontSize: '0.88rem', background: '#38bdf8', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                            style={{
+                              flex: 1,
+                              padding: '11px',
+                              fontSize: '0.88rem',
+                              fontWeight: 700,
+                              borderRadius: '999px',
+                              background: '#1e293b',
+                              color: '#ffffff',
+                              border: 'none',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              gap: '6px',
+                              cursor: 'pointer',
+                            }}
                           >
                             <Download size={15} />
                             <span>Unduh Animasi GIF</span>
@@ -670,7 +827,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 700 }}>
+                      <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700 }}>
                         Gagal memuat animasi GIF untuk sesi ini.
                       </p>
                     )}
@@ -681,14 +838,25 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                 {activeTab === 'photos' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: 'var(--text-muted)' }}>
+                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
                         Total {selectedItem.photos?.length || 0} Foto Pose
                       </span>
                       {selectedItem.photos && selectedItem.photos.length > 1 && (
                         <button
                           onClick={() => handleDownloadAllPhotos(selectedItem.photos)}
-                          className="neo-btn neo-btn-secondary"
-                          style={{ padding: '5px 10px', fontSize: '0.75rem', display: 'flex', alignItems: 'center', gap: '4px' }}
+                          style={{
+                            padding: '6px 14px',
+                            fontSize: '0.78rem',
+                            fontWeight: 700,
+                            borderRadius: '999px',
+                            background: '#1e293b',
+                            color: '#ffffff',
+                            border: 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            cursor: 'pointer',
+                          }}
                         >
                           <Download size={12} /> Unduh Semua
                         </button>
@@ -699,7 +867,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       style={{
                         display: 'grid',
                         gridTemplateColumns: selectedItem.photos?.length === 1 ? '1fr' : 'repeat(auto-fit, minmax(130px, 1fr))',
-                        gap: '10px',
+                        gap: '12px',
                         width: '100%',
                         justifyItems: 'center',
                       }}
@@ -710,11 +878,11 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            borderRadius: '8px',
+                            borderRadius: '12px',
                             overflow: 'hidden',
-                            border: '2px solid var(--neo-black)',
+                            border: '1px solid #e2e8f0',
                             background: '#ffffff',
-                            boxShadow: '2.5px 2.5px 0px var(--neo-black)',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
                             width: selectedItem.photos.length === 1 ? '180px' : '100%',
                             maxWidth: '220px',
                           }}
@@ -740,20 +908,21 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                           <button
                             onClick={() => handleDownloadSinglePhoto(photoSrc, pIdx)}
-                            className="neo-btn neo-btn-secondary"
                             style={{
-                              padding: '5px 0',
-                              borderTop: '1.5px solid var(--neo-black)',
+                              padding: '7px 0',
+                              borderTop: '1px solid #e2e8f0',
                               borderLeft: 'none',
                               borderRight: 'none',
                               borderBottom: 'none',
-                              borderRadius: 0,
-                              fontSize: '0.72rem',
-                              fontWeight: 800,
+                              background: '#f8fafc',
+                              color: '#1e293b',
+                              fontSize: '0.74rem',
+                              fontWeight: 700,
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '4px',
+                              cursor: 'pointer',
                             }}
                           >
                             <Download size={11} />
@@ -769,9 +938,9 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               {/* Modal Footer (Buka di Studio Hasil / Tutup) */}
               <div
                 style={{
-                  padding: '12px 18px',
+                  padding: '14px 20px',
                   background: '#ffffff',
-                  borderTop: '2px solid var(--neo-black)',
+                  borderTop: '1px solid #e2e8f0',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -784,8 +953,19 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       onSelectSession(selectedItem);
                       setSelectedItem(null);
                     }}
-                    className="neo-btn neo-btn-secondary"
-                    style={{ padding: '8px 14px', fontSize: '0.82rem', display: 'flex', alignItems: 'center', gap: '6px' }}
+                    style={{
+                      padding: '9px 18px',
+                      fontSize: '0.84rem',
+                      fontWeight: 700,
+                      borderRadius: '999px',
+                      background: '#1e293b',
+                      color: '#ffffff',
+                      border: 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      cursor: 'pointer',
+                    }}
                   >
                     <ArrowUpRight size={14} />
                     <span>Buka di Layar Hasil</span>
@@ -794,8 +974,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
                 <button
                   onClick={() => setSelectedItem(null)}
-                  className="neo-btn neo-btn-secondary"
-                  style={{ padding: '8px 16px', fontSize: '0.82rem' }}
+                  style={{
+                    padding: '9px 18px',
+                    fontSize: '0.84rem',
+                    fontWeight: 700,
+                    borderRadius: '999px',
+                    background: '#f1f5f9',
+                    color: '#334155',
+                    border: '1px solid #cbd5e1',
+                    cursor: 'pointer',
+                  }}
                 >
                   Tutup
                 </button>

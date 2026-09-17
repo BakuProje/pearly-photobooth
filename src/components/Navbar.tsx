@@ -1,182 +1,100 @@
 'use client';
 
 import React from 'react';
-import { Image as ImageIcon, Clock } from 'lucide-react';
+import { Image as ImageIcon } from 'lucide-react';
 
 interface NavbarProps {
   galleryCount: number;
   onOpenGallery: () => void;
-  sessionQuota?: number;
-  timeRemainingStr?: string;
-  onOpenQuotaModal?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
   galleryCount,
   onOpenGallery,
-  sessionQuota = 5,
-  timeRemainingStr,
-  onOpenQuotaModal,
 }) => {
   return (
-    <>
-      <header className="no-print" style={{
+    <header
+      className="no-print"
+      style={{
         width: '100%',
-        padding: '12px 16px',
+        padding: '14px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         background: 'transparent',
-        border: 'none',
+        borderBottom: 'none',
         boxShadow: 'none',
-      }}>
-        {/* Clean Brand Logo & Name */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/logo.png"
-            alt="Snapbooth Logo"
-            style={{
-              height: '42px',
-              width: 'auto',
-              objectFit: 'contain',
-              filter: 'drop-shadow(2.5px 2.5px 0px #0f172a)',
-            }}
-          />
-          <span style={{
-            fontSize: '1.45rem',
-            fontWeight: 900,
-            letterSpacing: '-0.5px',
-            color: 'var(--neo-black)',
-          }}>
-            Snapbooth
-          </span>
-        </div>
+      }}
+    >
+      {/* Brand Logo & Name */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/images/logo.png"
+          alt="Pearly Photobooth Logo"
+          style={{
+            height: '36px',
+            width: 'auto',
+            objectFit: 'contain',
+          }}
+        />
+        <span
+          className="font-script"
+          style={{
+            fontSize: '1.9rem',
+            color: '#1e293b',
+            lineHeight: 1,
+          }}
+        >
+          Pearly PhotoBooth
+        </span>
+      </div>
 
-        {/* Right Controls: Desktop Quota Indicator & Gallery Button */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {/* Desktop Quota Badge (Hidden on Mobile) */}
-          <div
-            className="credits-badge-desktop"
-            onClick={sessionQuota === 0 ? onOpenQuotaModal : undefined}
-            style={{
-              alignItems: 'center',
-              gap: '6px',
-              padding: '7px 12px',
-              borderRadius: '8px',
-              background: sessionQuota > 0 ? '#ffffff' : '#fef2f2',
-              border: `2px solid ${sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626'}`,
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              color: sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626',
-              boxShadow: '2px 2px 0px var(--neo-black)',
-              cursor: sessionQuota === 0 ? 'pointer' : 'default',
-            }}
-            title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Klik untuk info reset.`}
-          >
-            {sessionQuota > 0 ? (
-              <>
-                <span>Credits:</span>
-                <span style={{
-                  background: 'var(--neo-primary)',
-                  color: 'var(--neo-black)',
-                  padding: '1px 6px',
-                  borderRadius: '4px',
-                  fontWeight: 900,
-                  fontSize: '0.76rem',
-                }}>
-                  {sessionQuota}/5
-                </span>
-              </>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: '#dc2626' }}>
-                <Clock size={13} />
-                <span>Reset: <strong>{timeRemainingStr || '04:00:00'}</strong></span>
-              </div>
-            )}
-          </div>
-
-          <button
-            onClick={onOpenGallery}
-            className="neo-btn neo-btn-secondary"
-            style={{
-              padding: '8px 18px',
-              fontSize: '0.88rem',
-              position: 'relative',
-            }}
-          >
-            <ImageIcon size={16} />
-            <span>Galeri</span>
-            {galleryCount > 0 && (
-              <span style={{
+      {/* Right Controls: Gallery Button */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <button
+          onClick={onOpenGallery}
+          className="clean-card-interactive"
+          style={{
+            padding: '7px 16px',
+            fontSize: '0.86rem',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            borderRadius: '999px',
+            color: '#1e293b',
+            background: '#f8fafc',
+            border: '1.5px solid #e2e8f0',
+            position: 'relative',
+            cursor: 'pointer',
+          }}
+        >
+          <ImageIcon size={15} />
+          <span>Galeri</span>
+          {galleryCount > 0 && (
+            <span
+              style={{
                 position: 'absolute',
-                top: '-6px',
-                right: '-6px',
-                width: '20px',
-                height: '20px',
+                top: '-5px',
+                right: '-5px',
+                width: '18px',
+                height: '18px',
                 borderRadius: '50%',
-                background: 'var(--neo-primary)',
-                color: 'var(--neo-black)',
-                border: '2px solid var(--neo-black)',
-                fontSize: '0.72rem',
-                fontWeight: 900,
+                background: '#1e293b',
+                color: '#ffffff',
+                fontSize: '0.7rem',
+                fontWeight: 800,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: '2px 2px 0px var(--neo-black)',
-              }}>
-                {galleryCount}
-              </span>
-            )}
-          </button>
-        </div>
-      </header>
-
-      {/* Mobile Floating Credits Badge (Pojok Kanan Bawah pada Mobile / Android) */}
-      <div
-        className="credits-badge-mobile-floating"
-        onClick={sessionQuota === 0 ? onOpenQuotaModal : undefined}
-        style={{
-          position: 'fixed',
-          bottom: '18px',
-          right: '16px',
-          zIndex: 95,
-          alignItems: 'center',
-          gap: '6px',
-          padding: '8px 14px',
-          borderRadius: '999px',
-          background: sessionQuota > 0 ? '#ffffff' : '#fef2f2',
-          border: `2.5px solid ${sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626'}`,
-          fontSize: '0.82rem',
-          fontWeight: 900,
-          color: sessionQuota > 0 ? 'var(--neo-black)' : '#dc2626',
-          boxShadow: '3px 3px 0px var(--neo-black)',
-          cursor: sessionQuota === 0 ? 'pointer' : 'default',
-        }}
-        title={sessionQuota > 0 ? `Sisa kuota: ${sessionQuota} sesi` : `Kuota habis. Klik untuk info reset.`}
-      >
-        {sessionQuota > 0 ? (
-          <>
-            <span>Credits:</span>
-            <span style={{
-              background: 'var(--neo-primary)',
-              color: 'var(--neo-black)',
-              padding: '2px 8px',
-              borderRadius: '999px',
-              fontWeight: 900,
-              fontSize: '0.78rem',
-              border: '1.5px solid var(--neo-black)',
-            }}>
-              {sessionQuota}/5
+              }}
+            >
+              {galleryCount}
             </span>
-          </>
-        ) : (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#dc2626' }}>
-            <Clock size={14} />
-            <span>Reset: <strong>{timeRemainingStr || '04:00:00'}</strong></span>
-          </div>
-        )}
+          )}
+        </button>
       </div>
-    </>
+    </header>
   );
 };
