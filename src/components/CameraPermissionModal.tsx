@@ -130,48 +130,49 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
-          className="neo-card"
           style={{
             background: '#ffffff',
-            border: '3px solid var(--neo-black)',
             borderRadius: '24px',
-            boxShadow: '8px 8px 0px var(--neo-black)',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.35)',
+            border: '1px solid #e2e8f0',
             width: '100%',
-            maxWidth: '460px',
+            maxWidth: '440px',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
+          {/* Modal Header */}
           <div
             style={{
-              background: permissionStatus === 'granted' ? 'var(--neo-green)' : 'var(--neo-primary)',
-              padding: '16px 20px',
-              borderBottom: '3px solid var(--neo-black)',
+              background: permissionStatus === 'granted' ? '#166534' : '#1e293b',
+              padding: '18px 22px',
+              borderBottom: '1px solid #e2e8f0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               transition: 'background 0.3s ease',
+              color: '#ffffff',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
                 style={{
-                  background: '#ffffff',
-                  border: '2px solid var(--neo-black)',
-                  boxShadow: '2px 2px 0px var(--neo-black)',
+                  background: 'rgba(255, 255, 255, 0.15)',
+                  border: '1px solid rgba(255, 255, 255, 0.25)',
                   borderRadius: '12px',
-                  width: '38px',
-                  height: '38px',
+                  width: '40px',
+                  height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  color: '#ffffff',
                 }}
               >
                 {permissionStatus === 'granted' ? (
-                  <CheckCircle2 size={22} color="var(--neo-black)" strokeWidth={2.5} />
+                  <CheckCircle2 size={22} color="#ffffff" strokeWidth={2.5} />
                 ) : (
-                  <Camera size={22} color="var(--neo-black)" strokeWidth={2.5} />
+                  <Camera size={22} color="#ffffff" strokeWidth={2.5} />
                 )}
               </div>
               <div>
@@ -180,28 +181,27 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                     margin: 0,
                     fontSize: '1.05rem',
                     fontWeight: 900,
-                    color: 'var(--neo-black)',
-                    textTransform: 'uppercase',
-                    letterSpacing: '-0.3px',
+                    color: '#ffffff',
+                    letterSpacing: '0.3px',
                   }}
                 >
-                  {permissionStatus === 'granted' ? 'KAMERA AKTIF!' : 'AKTIFKAN KAMERA'}
+                  {permissionStatus === 'granted' ? 'Kamera Aktif!' : 'Aktifkan Kamera'}
                 </h3>
-                <span style={{ fontSize: '0.75rem', fontWeight: 800, opacity: 0.85 }}>
-                  Snapbooth Studio 📸
+                <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>
+                  Pearly PhotoBooth 📸
                 </span>
               </div>
             </div>
           </div>
 
           {/* Modal Body */}
-          <div style={{ padding: '20px 22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
             {permissionStatus === 'granted' ? (
               <div
                 style={{
-                  padding: '16px',
-                  background: 'rgba(34, 197, 94, 0.12)',
-                  border: '2px solid #22c55e',
+                  padding: '18px',
+                  background: 'rgba(34, 197, 94, 0.1)',
+                  border: '1px solid #86efac',
                   borderRadius: '16px',
                   textAlign: 'center',
                   display: 'flex',
@@ -216,21 +216,19 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                     height: '48px',
                     borderRadius: '50%',
                     background: '#22c55e',
-                    border: '2px solid var(--neo-black)',
-                    boxShadow: '3px 3px 0px var(--neo-black)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#ffffff',
                   }}
                 >
-                  <CheckCircle2 size={28} strokeWidth={3} />
+                  <CheckCircle2 size={26} strokeWidth={3} />
                 </div>
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: 'var(--neo-black)' }}>
+                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#166534' }}>
                   Izin Kamera Berhasil Diberikan! 🎉
                 </h4>
-                <p style={{ margin: 0, fontSize: '0.82rem', fontWeight: 600, color: '#15803d' }}>
-                  Kamu sekarang bisa langsung foto estetik di Snapbooth tanpa hambatan.
+                <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 600, color: '#15803d' }}>
+                  Kamu sekarang bisa langsung foto estetik di Pearly PhotoBooth tanpa hambatan.
                 </p>
               </div>
             ) : (
@@ -238,30 +236,30 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '0.88rem',
-                    color: 'var(--neo-black)',
+                    fontSize: '0.9rem',
+                    color: '#334155',
                     fontWeight: 600,
-                    lineHeight: '1.45',
+                    lineHeight: '1.5',
                   }}
                 >
-                  Snapbooth memerlukan <b>izin kamera</b> agar kamu bisa mengambil foto langsung di booth tanpa error atau terhambat.
+                  Pearly PhotoBooth memerlukan <b>izin kamera</b> agar kamu bisa mengambil foto langsung di booth tanpa hambatan.
                 </p>
 
                 <div
                   style={{
                     display: 'flex',
                     flexDirection: 'column',
-                    gap: '8px',
+                    gap: '10px',
                     background: '#f8fafc',
                     padding: '14px 16px',
-                    borderRadius: '14px',
-                    border: '2px solid var(--neo-black)',
+                    borderRadius: '16px',
+                    border: '1px solid #e2e8f0',
                   }}
                 >
-                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--neo-black)', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', lineHeight: 1.4 }}>
                     • Ambil pose & countdown otomatis live
                   </div>
-                  <div style={{ fontSize: '0.84rem', fontWeight: 700, color: 'var(--neo-black)', lineHeight: 1.4 }}>
+                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', lineHeight: 1.4 }}>
                     • 100% Aman & Privat (Kamera hanya di browser kamu)
                   </div>
                 </div>
@@ -269,17 +267,17 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                 {errorMessage && (
                   <div
                     style={{
-                      background: '#fee2e2',
-                      border: '2px solid #ef4444',
+                      background: '#fef2f2',
+                      border: '1px solid #fecaca',
                       borderRadius: '12px',
-                      padding: '10px 12px',
+                      padding: '10px 14px',
                       display: 'flex',
                       gap: '10px',
                       alignItems: 'flex-start',
                     }}
                   >
                     <AlertCircle size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ fontSize: '0.78rem', color: '#991b1b', fontWeight: 700, lineHeight: '1.35' }}>
+                    <div style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 700, lineHeight: '1.4' }}>
                       {errorMessage}
                     </div>
                   </div>
@@ -288,29 +286,29 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
             )}
 
             {/* Action Buttons */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '4px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '6px' }}>
               {permissionStatus !== 'granted' && (
                 <button
+                  type="button"
                   onClick={handleRequestCamera}
                   disabled={isRequesting}
-                  className="neo-btn"
+                  className="btn-pill-dark"
                   style={{
                     width: '100%',
-                    padding: '13px 16px',
-                    background: 'var(--neo-primary)',
-                    color: 'var(--neo-black)',
-                    border: '2.5px solid var(--neo-black)',
-                    borderRadius: '14px',
-                    boxShadow: '4px 4px 0px var(--neo-black)',
-                    fontWeight: 900,
+                    padding: '14px 20px',
+                    background: '#1e293b',
+                    color: '#ffffff',
+                    borderRadius: '999px',
+                    fontWeight: 800,
                     fontSize: '0.96rem',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '8px',
                     cursor: isRequesting ? 'wait' : 'pointer',
-                    textTransform: 'uppercase',
-                    letterSpacing: '0.2px',
+                    boxShadow: '0 6px 18px rgba(30, 41, 59, 0.25)',
+                    border: 'none',
+                    transition: 'all 0.15s ease',
                   }}
                 >
                   {isRequesting ? (
@@ -320,7 +318,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                     </>
                   ) : (
                     <>
-                      <Camera size={20} strokeWidth={2.5} />
+                      <Camera size={19} strokeWidth={2.5} />
                       <span>{permissionStatus === 'denied' ? 'Coba Izinkan Kamera Lagi' : 'Izinkan Kamera Sekarang'}</span>
                     </>
                   )}
