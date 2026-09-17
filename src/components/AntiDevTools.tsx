@@ -75,14 +75,14 @@ export const AntiDevTools: React.FC = () => {
           const detectorTypes = disableDevtool.DetectorType;
           const detectors = detectorTypes
             ? [
-                detectorTypes.RegToString,
-                detectorTypes.DefineId,
-                detectorTypes.DateToString,
-                detectorTypes.FuncToString,
-                detectorTypes.Debugger,
-                detectorTypes.Performance,
-                detectorTypes.DebugLib,
-              ]
+              detectorTypes.RegToString,
+              detectorTypes.DefineId,
+              detectorTypes.DateToString,
+              detectorTypes.FuncToString,
+              detectorTypes.Debugger,
+              detectorTypes.Performance,
+              detectorTypes.DebugLib,
+            ]
             : 'all';
 
           disableDevtoolCleanup = disableDevtool({
@@ -101,16 +101,16 @@ export const AntiDevTools: React.FC = () => {
           });
         }
       })
-      .catch(() => {});
+      .catch(() => { });
 
     // 4. Clean console output in production
     if (process.env.NODE_ENV === 'production') {
       try {
-        console.log = () => {};
-        console.warn = () => {};
-        console.info = () => {};
-        console.debug = () => {};
-      } catch {}
+        console.log = () => { };
+        console.warn = () => { };
+        console.info = () => { };
+        console.debug = () => { };
+      } catch { }
     }
 
     return () => {
@@ -227,7 +227,7 @@ export const AntiDevTools: React.FC = () => {
           }}
         >
           <Lock size={14} color="#0284c7" />
-          <span>Snapbooth Security Guard Aktif</span>
+          <span>Snapboooth Security Guard Aktif</span>
         </div>
       </div>
     </div>
