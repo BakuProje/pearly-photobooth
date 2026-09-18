@@ -280,17 +280,18 @@ export const TEMPLATES: PhotoboothTemplate[] = [
   {
     id: 'template-18',
     name: 'Template 18',
-    category: 'Minimalist',
+    category: 'Twin Strip',
     imageSrc: '/images/template/template 18.png',
-    requiredPhotos: 5,
+    requiredPhotos: 6,
     aspectRatio: '1333 / 2000',
-    description: 'Minimalist Clean Strip (5 Pose Asymmetric)',
+    description: 'Minimalist Dual Strip (6 Pose)',
     slots: [
-      { x: 11.4, y: 7.6, width: 27.0, height: 25.8, borderRadius: 4, label: 'Kiri 1' },
-      { x: 11.4, y: 37.0, width: 27.0, height: 25.8, borderRadius: 4, label: 'Kiri 2' },
-      { x: 11.4, y: 66.4, width: 27.0, height: 25.8, borderRadius: 4, label: 'Kiri 3' },
-      { x: 44.4, y: 5.4, width: 43.5, height: 42.0, borderRadius: 4, label: 'Kanan Atas' },
-      { x: 44.4, y: 52.4, width: 43.5, height: 42.0, borderRadius: 4, label: 'Kanan Bawah' },
+      { x: 6.8, y: 7.8, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kiri 1' },
+      { x: 53.1, y: 7.8, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kanan 1' },
+      { x: 6.8, y: 34.6, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kiri 2' },
+      { x: 53.1, y: 34.6, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kanan 2' },
+      { x: 6.8, y: 61.5, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kiri 3' },
+      { x: 53.1, y: 61.5, width: 40.1, height: 23.3, borderRadius: 4, label: 'Kanan 3' },
     ],
   },
   {
@@ -298,16 +299,18 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     name: 'Template 19',
     category: 'Twin Strip',
     imageSrc: '/images/template/template 19.png',
-    requiredPhotos: 6,
-    aspectRatio: '1333 / 2000',
-    description: 'Orange Sunny Strip (Twin Strip 6 Pose)',
+    requiredPhotos: 8,
+    aspectRatio: '1080 / 1920',
+    description: 'Twin Strip Aesthetic (8 Pose)',
     slots: [
-      { x: 6.9, y: 7.8, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kiri 1' },
-      { x: 53.1, y: 7.8, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kanan 1' },
-      { x: 6.9, y: 34.6, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kiri 2' },
-      { x: 53.1, y: 34.6, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kanan 2' },
-      { x: 6.9, y: 61.6, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kiri 3' },
-      { x: 53.1, y: 61.6, width: 39.9, height: 23.2, borderRadius: 6, label: 'Kanan 3' },
+      { x: 19.1, y: 16.1, width: 28.7, height: 16.7, borderRadius: 2, label: 'Kiri 1' },
+      { x: 54.5, y: 16.1, width: 28.7, height: 16.7, borderRadius: 2, label: 'Kanan 1' },
+      { x: 18.6, y: 33.6, width: 28.8, height: 16.8, borderRadius: 2, label: 'Kiri 2' },
+      { x: 54.2, y: 33.6, width: 28.7, height: 16.8, borderRadius: 2, label: 'Kanan 2' },
+      { x: 18.2, y: 51.2, width: 28.7, height: 16.7, borderRadius: 2, label: 'Kiri 3' },
+      { x: 53.8, y: 51.2, width: 28.7, height: 16.8, borderRadius: 2, label: 'Kanan 3' },
+      { x: 17.9, y: 68.7, width: 28.7, height: 16.8, borderRadius: 2, label: 'Kiri 4' },
+      { x: 53.3, y: 68.7, width: 28.7, height: 16.8, borderRadius: 2, label: 'Kanan 4' },
     ],
   },
   {
@@ -315,28 +318,9 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     name: 'Template 20',
     category: 'Twin Strip',
     imageSrc: '/images/template/template 20.png',
-    requiredPhotos: 8,
-    aspectRatio: '1080 / 1920',
-    description: 'Lavender Floral Strip (Twin Strip 8 Pose)',
-    slots: [
-      { x: 18.9, y: 16.0, width: 28.9, height: 16.7, borderRadius: 4, label: 'Kiri 1' },
-      { x: 54.4, y: 16.0, width: 28.9, height: 16.9, borderRadius: 4, label: 'Kanan 1' },
-      { x: 18.5, y: 33.5, width: 28.9, height: 16.9, borderRadius: 4, label: 'Kiri 2' },
-      { x: 54.1, y: 33.8, width: 28.9, height: 16.7, borderRadius: 4, label: 'Kanan 2' },
-      { x: 18.1, y: 51.0, width: 28.9, height: 16.9, borderRadius: 4, label: 'Kiri 3' },
-      { x: 53.7, y: 51.2, width: 28.5, height: 16.7, borderRadius: 4, label: 'Kanan 3' },
-      { x: 17.8, y: 68.5, width: 28.9, height: 16.9, borderRadius: 4, label: 'Kiri 4' },
-      { x: 53.3, y: 68.8, width: 28.5, height: 16.7, borderRadius: 4, label: 'Kanan 4' },
-    ],
-  },
-  {
-    id: 'template-21',
-    name: 'Template 21',
-    category: 'Twin Strip',
-    imageSrc: '/images/template/template 21.png',
     requiredPhotos: 6,
     aspectRatio: '1333 / 2000',
-    description: 'Sweet Pink Ribbon (Twin Strip 6 Pose)',
+    description: 'Sweet Ribbon Frame (Twin Strip 6 Pose)',
     slots: [
       { x: 12.0, y: 24.2, width: 31.5, height: 15.4, borderRadius: 6, label: 'Kiri 1' },
       { x: 53.7, y: 23.2, width: 36.0, height: 16.2, borderRadius: 6, label: 'Kanan 1' },
@@ -347,22 +331,22 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     ],
   },
   {
-    id: 'template-22',
-    name: 'Template 22',
+    id: 'template-21',
+    name: 'Template 21',
     category: 'Minimalist',
-    imageSrc: '/images/template/template 22.png',
+    imageSrc: '/images/template/template 21.png',
     requiredPhotos: 1,
     aspectRatio: '1080 / 1920',
     description: 'Spotify Music Player (1 Pose Hero Polaroid)',
     slots: [
-      { x: 19.5, y: 14.3, width: 59.8, height: 45.4, rotation: -0.6, borderRadius: 2, label: 'Polaroid Player' },
+      { x: 19.5, y: 14.3, width: 59.8, height: 45.4, borderRadius: 2, label: 'Polaroid Player' },
     ],
   },
   {
-    id: 'template-23',
-    name: 'Template 23',
+    id: 'template-22',
+    name: 'Template 22',
     category: 'Vintage Collage',
-    imageSrc: '/images/template/template 23.png',
+    imageSrc: '/images/template/template 22.png',
     requiredPhotos: 6,
     aspectRatio: '1080 / 1350',
     description: 'Horizontal Film Roll Strip (6 Pose Cinematic)',
@@ -376,16 +360,31 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     ],
   },
   {
-    id: 'template-24',
-    name: 'Template 24',
+    id: 'template-23',
+    name: 'Template 23',
     category: 'Vintage Collage',
-    imageSrc: '/images/template/template 24.png',
+    imageSrc: '/images/template/template 23.png',
     requiredPhotos: 2,
     aspectRatio: '1414 / 2000',
-    description: 'Vintage Navy Scrapbook (Polaroid + Prangko)',
+    description: 'Vintage Navy Scrapbook (Polaroid + Card)',
     slots: [
-      { x: 14.8, y: 28.0, width: 41.0, height: 27.7, rotation: 4.4, borderRadius: 4, label: 'Polaroid Utama' },
-      { x: 65.0, y: 29.6, width: 22.6, height: 18.5, borderRadius: 4, label: 'Prangko Stamp' },
+      { x: 14.4, y: 27.5, width: 41.6, height: 28.0, rotation: 4.4, borderRadius: 2, label: 'Polaroid Utama' },
+      { x: 68.5, y: 30.2, width: 17.5, height: 17.0, rotation: -8.7, borderRadius: 2, label: 'Foto Kanan' },
+    ],
+  },
+  {
+    id: 'template-24',
+    name: 'Template 24',
+    category: 'Grid 2x2',
+    imageSrc: '/images/template/template 24.png',
+    requiredPhotos: 4,
+    aspectRatio: '1080 / 1620',
+    description: 'Grid 2x2 Clean (4 Pose)',
+    slots: [
+      { x: 6.1, y: 12.8, width: 40.6, height: 30.2, borderRadius: 6, label: 'Kiri Atas' },
+      { x: 51.9, y: 12.8, width: 40.6, height: 30.2, borderRadius: 6, label: 'Kanan Atas' },
+      { x: 6.1, y: 48.1, width: 40.6, height: 30.2, borderRadius: 6, label: 'Kiri Bawah' },
+      { x: 51.9, y: 48.1, width: 40.6, height: 30.2, borderRadius: 6, label: 'Kanan Bawah' },
     ],
   },
   {
@@ -393,16 +392,18 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     name: 'Template 25',
     category: 'Twin Strip',
     imageSrc: '/images/template/template 25.png',
-    requiredPhotos: 6,
+    requiredPhotos: 8,
     aspectRatio: '1080 / 1620',
-    description: 'Twin Strip Grid (6 Pose)',
+    description: 'Twin Strip Grid (8 Pose)',
     slots: [
-      { x: 6.9, y: 6.4, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kiri 1' },
-      { x: 54.6, y: 6.4, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kanan 1' },
-      { x: 6.9, y: 26.2, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kiri 2' },
-      { x: 54.6, y: 26.2, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kanan 2' },
-      { x: 6.9, y: 46.0, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kiri 3' },
-      { x: 54.6, y: 46.0, width: 35.0, height: 14.6, borderRadius: 6, label: 'Kanan 3' },
+      { x: 6.9, y: 6.5, width: 34.8, height: 14.5, borderRadius: 6, label: 'Kiri 1' },
+      { x: 54.7, y: 6.5, width: 34.8, height: 14.5, borderRadius: 6, label: 'Kanan 1' },
+      { x: 6.9, y: 26.3, width: 34.8, height: 14.3, borderRadius: 6, label: 'Kiri 2' },
+      { x: 54.7, y: 26.3, width: 34.8, height: 14.3, borderRadius: 6, label: 'Kanan 2' },
+      { x: 6.9, y: 46.1, width: 34.8, height: 14.3, borderRadius: 6, label: 'Kiri 3' },
+      { x: 54.7, y: 46.1, width: 34.8, height: 14.3, borderRadius: 6, label: 'Kanan 3' },
+      { x: 6.9, y: 65.7, width: 34.8, height: 14.5, borderRadius: 6, label: 'Kiri 4' },
+      { x: 54.7, y: 65.7, width: 34.8, height: 14.5, borderRadius: 6, label: 'Kanan 4' },
     ],
   },
   {
@@ -444,15 +445,14 @@ export const TEMPLATES: PhotoboothTemplate[] = [
     name: 'Template 28',
     category: 'Scrapbook',
     imageSrc: '/images/template/template 28.png',
-    requiredPhotos: 5,
+    requiredPhotos: 4,
     aspectRatio: '1080 / 1620',
-    description: 'Magazine Collage (5 Pose Hero & Strip)',
+    description: 'Magazine Collage (4 Pose Hero & Strip)',
     slots: [
-      { x: 0.8, y: 9.9, width: 46.3, height: 20.5, borderRadius: 4, label: 'Kiri 1' },
-      { x: 0.8, y: 33.8, width: 46.3, height: 20.6, borderRadius: 4, label: 'Kiri 2' },
-      { x: 0.8, y: 57.7, width: 46.3, height: 20.6, borderRadius: 4, label: 'Kiri 3' },
-      { x: 49.4, y: 0.2, width: 50.5, height: 60.9, borderRadius: 4, label: 'Hero Kanan' },
-      { x: 49.4, y: 63.6, width: 50.5, height: 20.6, borderRadius: 4, label: 'Kanan Bawah' },
+      { x: 0.8, y: 10.0, width: 46.2, height: 20.2, borderRadius: 4, label: 'Kiri 1' },
+      { x: 0.8, y: 33.9, width: 46.2, height: 20.4, borderRadius: 4, label: 'Kiri 2' },
+      { x: 0.8, y: 57.8, width: 46.2, height: 20.4, borderRadius: 4, label: 'Kiri 3' },
+      { x: 49.4, y: 0.4, width: 50.4, height: 99.5, borderRadius: 4, label: 'Hero Kanan' },
     ],
   },
   {
@@ -530,181 +530,181 @@ export const FILTERS: { id: FilterType; name: string; cssFilter: string; desc: s
     id: 'normal',
     name: 'Natural',
     cssFilter: 'none',
-    desc: 'Warna asli natural'
+    desc: 'Warna asli natural kamera'
   },
   {
     id: 'white-glow',
     name: 'Putih Glowing',
-    cssFilter: 'brightness(1.18) contrast(1.04) saturate(1.08) hue-rotate(-2deg)',
-    desc: 'Wajah tampak putih, cerah & glowing bersinar'
+    cssFilter: 'brightness(1.12) contrast(1.03) saturate(1.04)',
+    desc: 'Wajah tampak cerah, putih & glowing bersih'
   },
   {
     id: 'snow-white',
     name: 'Snow White',
-    cssFilter: 'brightness(1.22) contrast(1.08) saturate(0.96)',
-    desc: 'Efek memutihkan kulit wajah secara maksimal & mulus'
+    cssFilter: 'brightness(1.15) contrast(1.05) saturate(0.95)',
+    desc: 'Efek mencerahkan kulit wajah secara halus & mulus'
   },
   {
     id: 'porcelain',
     name: 'Porcelain Skin',
-    cssFilter: 'brightness(1.15) contrast(1.12) saturate(1.12) hue-rotate(-4deg)',
-    desc: 'Kulit putih halus seperti porselen & merona'
+    cssFilter: 'brightness(1.10) contrast(1.08) saturate(1.06) hue-rotate(-3deg)',
+    desc: 'Kulit putih halus porselen dengan rona segar'
   },
   {
     id: 'korean-glow',
     name: 'Korean Glow',
-    cssFilter: 'brightness(1.08) contrast(0.96) saturate(1.15) hue-rotate(-3deg)',
-    desc: 'Kulit dewy glowing & cerah khas Korea'
+    cssFilter: 'brightness(1.08) contrast(0.98) saturate(1.10) hue-rotate(-2deg)',
+    desc: 'Kulit dewy glowing segar khas idol Korea'
   },
   {
     id: 'korean-clean',
     name: 'K-Clean',
-    cssFilter: 'brightness(1.12) contrast(1.02) saturate(1.08)',
-    desc: 'Filter bersih & tone cerah estetik'
+    cssFilter: 'brightness(1.09) contrast(1.04) saturate(1.05)',
+    desc: 'Filter jernih & tone cerah estetik'
   },
   {
     id: 'milky-soft',
     name: 'Milky Soft',
-    cssFilter: 'brightness(1.14) contrast(0.92) saturate(1.05)',
-    desc: 'Efek lembut mulus & tone pastel dreamy'
+    cssFilter: 'brightness(1.12) contrast(0.94) saturate(1.02)',
+    desc: 'Efek lembut dreamy & pastel halus'
   },
   {
     id: 'korean-film',
     name: 'Korean Film',
-    cssFilter: 'brightness(1.06) contrast(1.1) saturate(1.22) sepia(0.12)',
-    desc: 'Tone film lembut estetik Seoul'
+    cssFilter: 'brightness(1.05) contrast(1.08) saturate(1.12) sepia(0.08)',
+    desc: 'Tone film analog lembut estetik Seoul'
   },
   {
     id: 'y2k-digicam',
     name: 'Y2K Digicam',
-    cssFilter: 'brightness(1.15) contrast(1.28) saturate(1.25)',
-    desc: 'Kamera digital flash era 2000-an'
+    cssFilter: 'brightness(1.10) contrast(1.18) saturate(1.15)',
+    desc: 'Kamera saku digital era 2000-an tajam berkilau'
   },
   {
     id: 'fuji-chrome',
     name: 'Fuji Film',
-    cssFilter: 'contrast(1.18) saturate(1.15) sepia(0.08) hue-rotate(-5deg) brightness(1.02)',
-    desc: 'Warna khas film analog Fujifilm'
+    cssFilter: 'brightness(1.04) contrast(1.12) saturate(1.10) sepia(0.05) hue-rotate(-3deg)',
+    desc: 'Tone warna khas roll film Fujifilm analog'
   },
   {
     id: 'kodak-portra',
     name: 'Kodak Portra',
-    cssFilter: 'sepia(0.16) brightness(1.08) contrast(1.06) saturate(1.28) hue-rotate(-6deg)',
-    desc: 'Warm skin tones khas Kodak Portra'
+    cssFilter: 'brightness(1.06) contrast(1.06) saturate(1.14) sepia(0.10) hue-rotate(-4deg)',
+    desc: 'Tone kulit hangat merona khas Kodak Portra'
   },
   {
     id: 'polaroid-90s',
     name: '90s Polaroid',
-    cssFilter: 'sepia(0.22) contrast(1.14) brightness(1.06) saturate(1.18)',
-    desc: 'Karakter foto polaroid vintage 90-an'
+    cssFilter: 'brightness(1.05) contrast(1.08) saturate(1.08) sepia(0.15)',
+    desc: 'Karakter foto polaroid vintage instan'
   },
   {
     id: 'vintage',
     name: 'Vintage 90s',
-    cssFilter: 'sepia(0.28) contrast(1.12) brightness(1.05) saturate(1.2)',
+    cssFilter: 'brightness(1.04) contrast(1.06) saturate(1.10) sepia(0.18)',
     desc: 'Nuansa hangat film analog retro'
   },
   {
     id: 'lo-fi',
     name: 'Lo-Fi Nostalgia',
-    cssFilter: 'contrast(1.2) brightness(0.96) saturate(1.35) sepia(0.15)',
-    desc: 'Karakter retro lo-fi hangat'
+    cssFilter: 'brightness(1.02) contrast(1.12) saturate(1.15) sepia(0.08)',
+    desc: 'Karakter nostalgia retro lo-fi estetis'
   },
   {
     id: 'peach-blush',
     name: 'Peach Blossom',
-    cssFilter: 'brightness(1.1) saturate(1.3) hue-rotate(-8deg) contrast(1.02)',
-    desc: 'Nuansa peach manis & merona segar'
+    cssFilter: 'brightness(1.08) contrast(1.02) saturate(1.18) hue-rotate(-5deg)',
+    desc: 'Nuansa peach merona manis & segar di wajah'
   },
   {
     id: 'rose-gold',
     name: 'Rose Gold',
-    cssFilter: 'brightness(1.08) saturate(1.25) sepia(0.15) hue-rotate(-15deg)',
-    desc: 'Aura blush pink keemasan romantis'
+    cssFilter: 'brightness(1.07) contrast(1.04) saturate(1.15) sepia(0.08) hue-rotate(-8deg)',
+    desc: 'Aura blush pink keemasan romantis elegan'
   },
   {
     id: 'pastel',
     name: 'Soft Pastel',
-    cssFilter: 'brightness(1.1) contrast(0.94) saturate(1.2) hue-rotate(-5deg)',
-    desc: 'Warna lembut & cerah manis'
+    cssFilter: 'brightness(1.08) contrast(0.96) saturate(1.12) hue-rotate(-3deg)',
+    desc: 'Warna pastel lembut & cerah manis'
   },
   {
     id: 'lavender-dream',
     name: 'Lavender Dream',
-    cssFilter: 'brightness(1.08) saturate(1.2) hue-rotate(25deg) contrast(1.02)',
-    desc: 'Sentuhan dreamy ungu pastel estetik'
+    cssFilter: 'brightness(1.08) contrast(0.98) saturate(1.08) hue-rotate(-6deg) sepia(0.04)',
+    desc: 'Nuansa dreamy soft pink-lilac estetik'
   },
   {
     id: 'sunset',
     name: 'Golden Hour',
-    cssFilter: 'sepia(0.25) saturate(1.4) brightness(1.08) hue-rotate(-12deg)',
-    desc: 'Cahaya hangat matahari sore'
+    cssFilter: 'brightness(1.06) contrast(1.05) saturate(1.22) sepia(0.15) hue-rotate(-6deg)',
+    desc: 'Cahaya hangat keemasan matahari sore'
   },
   {
     id: 'mono',
     name: 'Noir Mono',
-    cssFilter: 'grayscale(1) contrast(1.28) brightness(0.98)',
-    desc: 'Hitam putih klasik kontras tajam'
+    cssFilter: 'grayscale(1) contrast(1.20) brightness(1.02)',
+    desc: 'Hitam putih klasik kontras tajam berkarakter'
   },
   {
     id: 'classic-bw',
     name: 'Silver B&W',
-    cssFilter: 'grayscale(1) contrast(1.08) brightness(1.04)',
-    desc: 'Hitam putih halus elegan'
+    cssFilter: 'grayscale(1) contrast(1.06) brightness(1.05)',
+    desc: 'Hitam putih lembut, bersih & elegan'
   },
   {
     id: 'moody-dark',
     name: 'Moody Dark',
-    cssFilter: 'brightness(0.88) contrast(1.35) saturate(1.1) sepia(0.1)',
-    desc: 'Nuansa gelap dramatis & misterius'
+    cssFilter: 'brightness(0.96) contrast(1.15) saturate(0.95) sepia(0.06)',
+    desc: 'Nuansa sinematik moody berdimensi'
   },
   {
     id: 'matte-fade',
     name: 'Matte Film',
-    cssFilter: 'contrast(0.9) brightness(1.06) saturate(1.1) sepia(0.12)',
-    desc: 'Warna matte majalah indie'
+    cssFilter: 'brightness(1.05) contrast(0.94) saturate(1.06) sepia(0.06)',
+    desc: 'Gaya tone matte editorial majalah modern'
   },
   {
     id: 'cinema-teal',
     name: 'Teal & Orange',
-    cssFilter: 'contrast(1.22) saturate(1.3) hue-rotate(-18deg) brightness(1.02)',
-    desc: 'Color grading blockbuster sinematik'
+    cssFilter: 'brightness(1.03) contrast(1.12) saturate(1.12) hue-rotate(-6deg)',
+    desc: 'Gradasi warna sinematik kekinian'
   },
   {
     id: 'cyberpunk',
     name: 'Cyber Sky',
-    cssFilter: 'hue-rotate(190deg) contrast(1.18) saturate(1.35)',
-    desc: 'Aksen biru neon futuristik'
+    cssFilter: 'brightness(1.06) contrast(1.15) saturate(1.18) hue-rotate(-12deg)',
+    desc: 'Aksen kontras modern vibrant & trendi'
   },
   {
     id: 'emerald-green',
     name: 'Emerald Dream',
-    cssFilter: 'hue-rotate(50deg) saturate(1.25) contrast(1.1) brightness(0.98)',
-    desc: 'Nuansa hijau emerald sejuk'
+    cssFilter: 'brightness(1.04) contrast(1.08) saturate(1.08) sepia(0.04) hue-rotate(-2deg)',
+    desc: 'Tone sejuk natural & segar dipandang'
   },
   {
     id: 'tokyo-blue',
     name: 'Tokyo Blue',
-    cssFilter: 'hue-rotate(160deg) saturate(1.15) contrast(1.12) brightness(1.02)',
-    desc: 'Tone dingin metropolitan estetik'
+    cssFilter: 'brightness(1.05) contrast(1.10) saturate(1.05) hue-rotate(-4deg)',
+    desc: 'Tone dingin metropolitan modern estetik'
   },
   {
     id: 'sepia',
     name: 'Antique Sepia',
-    cssFilter: 'sepia(0.85) contrast(1.1) brightness(0.96)',
-    desc: 'Klasik antik tempo dulu'
+    cssFilter: 'brightness(1.03) contrast(1.05) saturate(1.05) sepia(0.30)',
+    desc: 'Klasik vintage tempo dulu yang hangat'
   },
   {
     id: 'dramatic',
     name: 'Cinematic',
-    cssFilter: 'contrast(1.35) saturate(1.2) brightness(0.92)',
-    desc: 'Sinematik kontras tegas'
+    cssFilter: 'brightness(0.98) contrast(1.22) saturate(1.12)',
+    desc: 'Sinematik berdimensi tegas & tajam'
   },
   {
     id: 'vivid-pop',
     name: 'Vivid Pop',
-    cssFilter: 'saturate(1.6) contrast(1.15) brightness(1.04)',
-    desc: 'Warna ekstra hidup & cerah ceria'
+    cssFilter: 'brightness(1.05) contrast(1.10) saturate(1.25)',
+    desc: 'Warna cerah ceria ekstra segar & hidup'
   }
 ];
 

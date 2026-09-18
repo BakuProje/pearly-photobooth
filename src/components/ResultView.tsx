@@ -16,6 +16,7 @@ import {
 } from '@/lib/canvasRenderer';
 import { createAnimatedGif } from '@/lib/gifGenerator';
 import { generateQrCodeDataUrl } from '@/lib/qrCode';
+import { Print4RModal } from './Print4RModal';
 import confetti from 'canvas-confetti';
 import {
   Printer,
@@ -73,6 +74,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
+  const [isPrint4RModalOpen, setIsPrint4RModalOpen] = useState<boolean>(false);
   const [isRendering, setIsRendering] = useState<boolean>(false);
   const [isGifGenerating, setIsGifGenerating] = useState<boolean>(false);
   const [activeFrameIndex, setActiveFrameIndex] = useState<number>(0);
@@ -110,6 +112,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
     setTimeout(() => setFilterDragMoved(false), 60);
   };
 
+  const renderIdRef = useRef(0);
   const hasAutoSavedRef = useRef(false);
   const onSaveToGalleryRef = useRef(onSaveToGallery);
   onSaveToGalleryRef.current = onSaveToGallery;
@@ -137,6 +140,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   // Render Photostrip Canvas and generate GIF
   const renderCurrentSession = async (photosToRender: string[], cfg: PhotoBoothConfig) => {
     if (photosToRender.length === 0) return;
+    const thisRenderId = ++renderIdRef.current;
     setIsRendering(true);
     setIsGifGenerating(true);
 
@@ -146,6 +150,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
         renderFilteredPhotos(photosToRender, cfg),
       ]);
 
+      if (thisRenderId !== renderIdRef.current) return;
+
       const url = canvas.toDataURL('image/png', 0.95);
       setPhotostripUrl(url);
       setProcessedPhotos(filtered);
@@ -154,9 +160,11 @@ export const ResultView: React.FC<ResultViewProps> = ({
       // Also render unfiltered base photostrip for live filter thumbnail previews
       renderPhotoStripCanvas(photosToRender, { ...cfg, filter: 'normal' }, 600)
         .then((baseCanvas) => {
-          setBasePhotostripUrl(baseCanvas.toDataURL('image/jpeg', 0.85));
+          if (thisRenderId === renderIdRef.current) {
+            setBasePhotostripUrl(baseCanvas.toDataURL('image/jpeg', 0.85));
+          }
         })
-        .catch(() => {});
+        .catch(() => { });
 
       // Save scan session to localStorage
       try {
@@ -164,7 +172,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
           'snapbooth_scan_session',
           JSON.stringify({ photos: filtered, config: cfg })
         );
-      } catch (e) {}
+      } catch (e) { }
 
       // Auto save to gallery on initial load
       if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
@@ -183,12 +191,17 @@ export const ResultView: React.FC<ResultViewProps> = ({
         interval: 0.45,
         sampleInterval: 2,
       });
-      setGifUrl(gif);
-      setIsGifGenerating(false);
+
+      if (thisRenderId === renderIdRef.current) {
+        setGifUrl(gif);
+        setIsGifGenerating(false);
+      }
     } catch (err) {
       console.error('Failed to render session:', err);
-      setIsRendering(false);
-      setIsGifGenerating(false);
+      if (thisRenderId === renderIdRef.current) {
+        setIsRendering(false);
+        setIsGifGenerating(false);
+      }
     }
 
     // Generate Barcode QR Code
@@ -200,7 +213,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
     }
   };
 
-  // Initial render
+  // Initial and reactive render
   useEffect(() => {
     renderCurrentSession(currentPhotos, currentConfig);
   }, [currentPhotos, currentConfig.selectedTemplateId, currentConfig.filter]);
@@ -464,29 +477,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
         }}
       >
         {/* Header as in Gambar 5: "photo results" & "Selesai" button */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '1100px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 12px',
-            marginBottom: '12px',
-          }}
-        >
-          <div style={{ width: '100px' }} />
-
-          <h1
-            className="font-script"
-            style={{
-              fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
-              color: '#1e293b',
-              margin: 0,
-              lineHeight: 1,
-              textAlign: 'center',
-            }}
-          >
+        <div className="results-header-container">
+          <h1 className="results-header-title">
             photo results
           </h1>
 
@@ -494,8 +486,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
             onClick={() => setResultStep('editor-filter')}
             className="btn-pill-dark"
             style={{
-              padding: '10px 28px',
-              fontSize: '1.05rem',
+              padding: '10px 24px',
+              fontSize: '1rem',
+              flexShrink: 0,
             }}
           >
             Selesai
@@ -503,22 +496,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
         </div>
 
         {/* Main Photo Grid (Gambar 5: # hasil 1, # hasil 2, ...) */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '920px',
-            background: '#525252',
-            borderRadius: '12px',
-            border: '6px solid #ffffff',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
-            padding: '18px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-            gap: '14px',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
+        <div className="results-grid-container">
           {currentPhotos.map((photo, idx) => (
             <motion.div
               key={idx}
@@ -636,6 +614,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
   // VIEW 2: Gambar 6 - Layout Customizer & Circular Filter Picker
   // =========================================================================
   if (resultStep === 'editor-filter') {
+    const activeFilterObj = FILTERS.find((f) => f.id === currentConfig.filter) || FILTERS[0];
+    const activeCssFilter = activeFilterObj && activeFilterObj.id !== 'normal' ? activeFilterObj.cssFilter : undefined;
+
     return (
       <div
         style={{
@@ -648,30 +629,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
           padding: '12px 16px 36px 16px',
         }}
       >
-        {/* Header as in Gambar 6: "photo results" & "Print" button */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '960px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '8px 12px',
-            marginBottom: '12px',
-          }}
-        >
-          <div style={{ width: '80px' }} />
-
-          <h1
-            className="font-script"
-            style={{
-              fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
-              color: '#1e293b',
-              margin: 0,
-              lineHeight: 1,
-              textAlign: 'center',
-            }}
-          >
+        {/* Header as in Gambar 6: "photo results" & "Selesai" button */}
+        <div className="results-header-container">
+          <h1 className="results-header-title">
             photo results
           </h1>
 
@@ -686,32 +646,20 @@ export const ResultView: React.FC<ResultViewProps> = ({
             }}
             className="btn-pill-dark"
             style={{
-              padding: '10px 32px',
-              fontSize: '1.05rem',
+              padding: '10px 24px',
+              fontSize: '0.95rem',
+              flexShrink: 0,
             }}
           >
-            Print
+            Selesai
           </button>
         </div>
 
         {/* Main Content Area (Gambar 6: Left = Frame/layout photostrip, Right = Photos & Circular Filters) */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '960px',
-            background: '#525252',
-            borderRadius: '12px',
-            border: '6px solid #ffffff',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
-            padding: '20px',
-            display: 'grid',
-            gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)',
-            gap: '20px',
-            alignItems: 'start',
-          }}
-        >
-          {/* Left Column: Frame / layout Photostrip Preview (Clickable to Enlarge) */}
+        <div className="results-card-container">
+          {/* Left Column / Mobile Top: Frame / layout Photostrip Preview (Clickable to Enlarge) */}
           <div
+            className="photo-prototype-box"
             onClick={() => {
               if (photostripUrl) {
                 setPreviewModalUrl(photostripUrl);
@@ -720,17 +668,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
             }}
             title="Klik untuk memperbesar Photostrip"
             style={{
-              background: '#cbd5e1',
-              borderRadius: '16px',
-              border: '3px solid #ffffff',
-              padding: '12px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '400px',
-              position: 'relative',
-              overflow: 'hidden',
               cursor: photostripUrl ? 'zoom-in' : 'default',
               transition: 'transform 0.15s ease, box-shadow 0.15s ease',
             }}
@@ -825,8 +762,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
             )}
           </div>
 
-          {/* Right Column: Top = Photo Slots Reorder, Bottom = Circular Filters */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          {/* Right Column / Mobile Lower: Top = Photo Slots Reorder, Bottom = Circular Filters */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%', minWidth: 0 }}>
             {/* Top: Photo Cards (Foto, Foto, ...) */}
             <div>
               <p
@@ -839,13 +776,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
               >
                 Tata Letak Foto (Klik 2 foto untuk tukar posisi):
               </p>
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '12px',
-                }}
-              >
+              <div className="swap-photos-grid">
                 {currentPhotos.map((photo, idx) => {
                   const isSelected = selectedSlotForSwap === idx;
                   return (
@@ -873,12 +804,14 @@ export const ResultView: React.FC<ResultViewProps> = ({
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={photo}
+                          src={processedPhotos[idx] || photo}
                           alt={`Foto ${idx + 1}`}
                           style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
+                            filter: activeCssFilter,
+                            transition: 'filter 0.25s ease',
                           }}
                         />
                       ) : (
@@ -1099,6 +1032,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
   // =========================================================================
   // VIEW 3: Gambar 7 - Final Photostrip & Animated GIF Preview
   // =========================================================================
+  const activeFilterObj = FILTERS.find((f) => f.id === currentConfig.filter) || FILTERS[0];
+  const activeCssFilter = activeFilterObj && activeFilterObj.id !== 'normal' ? activeFilterObj.cssFilter : undefined;
+
   return (
     <div
       style={{
@@ -1111,30 +1047,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
         padding: '12px 16px 36px 16px',
       }}
     >
-      {/* Header as in Gambar 7: "photo results" */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '1100px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '8px 12px',
-          marginBottom: '12px',
-        }}
-      >
-        <div style={{ width: '100px' }} />
-
-        <h1
-          className="font-script"
-          style={{
-            fontSize: 'clamp(2.5rem, 6.5vw, 3.8rem)',
-            color: '#1e293b',
-            margin: 0,
-            lineHeight: 1,
-            textAlign: 'center',
-          }}
-        >
+      {/* Header as in Gambar 7: "photo results" & "Sesi Baru" */}
+      <div className="results-header-container">
+        <h1 className="results-header-title">
           photo results
         </h1>
 
@@ -1144,14 +1059,15 @@ export const ResultView: React.FC<ResultViewProps> = ({
             background: '#f1f5f9',
             border: '1.5px solid #cbd5e1',
             borderRadius: '999px',
-            padding: '8px 18px',
-            fontSize: '0.86rem',
+            padding: '8px 16px',
+            fontSize: '0.85rem',
             fontWeight: 700,
             color: '#1e293b',
             cursor: 'pointer',
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
+            flexShrink: 0,
           }}
         >
           <RotateCcw size={14} />
@@ -1160,23 +1076,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
       </div>
 
       {/* Main Content Area (Gambar 7: Left = Photostrip, Right Top = GIF, Right Bottom = barcode button) */}
-      <div
-        style={{
-          width: '100%',
-          maxWidth: '960px',
-          background: '#525252',
-          borderRadius: '12px',
-          border: '6px solid #ffffff',
-          boxShadow: '0 8px 30px rgba(0, 0, 0, 0.16)',
-          padding: '20px',
-          display: 'grid',
-          gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1.2fr)',
-          gap: '20px',
-          alignItems: 'center',
-        }}
-      >
-        {/* Left Column: Final Photostrip Canvas ("Foto") */}
+      <div className="final-result-card-container">
+        {/* Left Column / Mobile Top: Final Photostrip Canvas ("Foto") */}
         <div
+          className="photo-prototype-box"
           onClick={() => {
             if (photostripUrl) {
               setPreviewModalUrl(photostripUrl);
@@ -1184,16 +1087,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
             }
           }}
           style={{
-            background: '#cbd5e1',
-            borderRadius: '16px',
-            border: '3px solid #ffffff',
-            padding: '12px',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '400px',
-            position: 'relative',
             cursor: photostripUrl ? 'pointer' : 'default',
           }}
         >
@@ -1246,17 +1139,19 @@ export const ResultView: React.FC<ResultViewProps> = ({
           )}
         </div>
 
-        {/* Right Column: Top = GIF (Foto/Video), Bottom = barcode button */}
+        {/* Right Column / Mobile Middle & Bottom: Top = GIF (Foto/Video), Bottom = barcode button */}
         <div
           style={{
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '20px',
+            width: '100%',
           }}
         >
           {/* Animated GIF Container */}
           <div
+            className="gif-preview-box"
             onClick={() => {
               if (gifUrl) {
                 setPreviewModalUrl(gifUrl);
@@ -1264,35 +1159,54 @@ export const ResultView: React.FC<ResultViewProps> = ({
               }
             }}
             style={{
-              width: '100%',
-              background: '#f8fafc',
-              borderRadius: '16px',
-              border: '2px solid #e2e8f0',
-              padding: '6px',
-              aspectRatio: '16 / 11',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              overflow: 'hidden',
-              position: 'relative',
               cursor: gifUrl ? 'pointer' : 'default',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
             }}
           >
             {isGifGenerating ? (
               <div
                 style={{
+                  position: 'relative',
+                  width: '100%',
+                  height: '100%',
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
-                  gap: '8px',
-                  color: '#1e293b',
-                  fontWeight: 700,
+                  justifyContent: 'center',
+                  overflow: 'hidden',
+                  borderRadius: '12px',
                 }}
               >
-                <Loader2 size={30} className="animate-spin" />
-                <span>Membuat Animasi GIF...</span>
+                {processedPhotos.length > 0 && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={processedPhotos[activeFrameIndex]}
+                    alt="Membuat Animasi GIF..."
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      width: '100%',
+                      height: '100%',
+                      objectFit: 'cover',
+                      filter: `${activeCssFilter ? activeCssFilter + ' ' : ''}blur(2px) brightness(0.7)`,
+                    }}
+                  />
+                )}
+                <div
+                  style={{
+                    position: 'relative',
+                    zIndex: 2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: '8px',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    textShadow: '0 2px 8px rgba(0,0,0,0.6)',
+                  }}
+                >
+                  <Loader2 size={32} className="animate-spin text-sky-400" />
+                  <span style={{ fontSize: '0.88rem' }}>Membuat Animasi GIF...</span>
+                </div>
               </div>
             ) : gifUrl ? (
               <>
@@ -1346,6 +1260,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   height: '100%',
                   objectFit: 'cover',
                   borderRadius: '10px',
+                  filter: activeCssFilter,
                 }}
               />
             ) : (
@@ -1360,24 +1275,45 @@ export const ResultView: React.FC<ResultViewProps> = ({
             )}
           </div>
 
-          {/* Barcode Button as in Gambar 7 ("buat interaktif barcode") */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => setIsQrModalOpen(true)}
-              className="btn-pill-dark"
-              style={{
-                padding: '14px 44px',
-                fontSize: '1.2rem',
-                letterSpacing: '1px',
-                background: '#474747',
-              }}
-            >
-              barcode
-            </motion.button>
-            <span style={{ color: '#e2e8f0', fontSize: '0.8rem', fontWeight: 600 }}>
-              Klik untuk scan barcode & unduh foto ke HP
+          {/* Barcode & 4R Print Buttons Container */}
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsQrModalOpen(true)}
+                className="btn-pill-dark"
+                style={{
+                  padding: '13px 36px',
+                  fontSize: '1.15rem',
+                  letterSpacing: '1px',
+                  background: '#474747',
+                }}
+              >
+                barcode
+              </motion.button>
+
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsPrint4RModalOpen(true)}
+                className="btn-pill-dark"
+                style={{
+                  padding: '13px 26px',
+                  fontSize: '1rem',
+                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
+                  boxShadow: '0 4px 16px rgba(2, 132, 199, 0.35)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                }}
+              >
+                <Printer size={18} />
+                <span>Cetak 4R</span>
+              </motion.button>
+            </div>
+            <span style={{ color: '#64748b', fontSize: '0.8rem', fontWeight: 600, textAlign: 'center' }}>
+              Scan barcode untuk unduh ke HP atau cetak ukuran kertas foto 4R
             </span>
           </div>
         </div>
@@ -1507,7 +1443,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 Jangan sampai hilang! Yuk, foto atau scan barcode ini buat download soft file foto seru kalian!📸
               </p>
 
-              {/* 3 Action Buttons: Row 1 = [ Print ] | [ Download Gif ], Row 2 = [ Download Photostrip (PNG) ] */}
+              {/* Action Buttons inside QR Barcode Modal */}
               <div
                 style={{
                   width: '100%',
@@ -1517,7 +1453,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   marginTop: '4px',
                 }}
               >
-                {/* Row 1: Print & Download Gif side by side */}
+                {/* Row 1: Cetak 4R (Special) & Print Biasa */}
                 <div
                   style={{
                     display: 'grid',
@@ -1528,19 +1464,66 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 >
                   <button
                     type="button"
+                    onClick={() => {
+                      setIsQrModalOpen(false);
+                      setIsPrint4RModalOpen(true);
+                    }}
+                    className="btn-pill-dark"
+                    style={{
+                      width: '100%',
+                      padding: '11px 12px',
+                      fontSize: '0.90rem',
+                      background: '#0284c7',
+                      borderRadius: '999px',
+                      gap: '6px',
+                    }}
+                  >
+                    <Printer size={16} />
+                    <span>Cetak 4R</span>
+                  </button>
+
+                  <button
+                    type="button"
                     onClick={handlePrint}
                     className="btn-pill-dark"
                     style={{
                       width: '100%',
-                      padding: '11px 14px',
-                      fontSize: '0.92rem',
+                      padding: '11px 12px',
+                      fontSize: '0.90rem',
                       background: '#1e293b',
                       borderRadius: '999px',
                       gap: '6px',
                     }}
                   >
                     <Printer size={16} />
-                    <span>Print</span>
+                    <span>Print Biasa</span>
+                  </button>
+                </div>
+
+                {/* Row 2: Download Photostrip & Download Gif */}
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '10px',
+                    width: '100%',
+                  }}
+                >
+                  <button
+                    type="button"
+                    onClick={handleDownloadPhotostrip}
+                    className="btn-pill-dark"
+                    style={{
+                      width: '100%',
+                      padding: '11px 12px',
+                      fontSize: '0.90rem',
+                      background: '#0f172a',
+                      borderRadius: '999px',
+                      gap: '6px',
+                    }}
+                  >
+                    <Download size={16} />
+                    <span>Download PNG</span>
                   </button>
 
                   <button
@@ -1549,8 +1532,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     disabled={!gifUrl}
                     style={{
                       width: '100%',
-                      padding: '11px 14px',
-                      fontSize: '0.92rem',
+                      padding: '11px 12px',
+                      fontSize: '0.90rem',
                       fontWeight: 800,
                       borderRadius: '999px',
                       background: '#f1f5f9',
@@ -1567,25 +1550,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     <span>Download Gif</span>
                   </button>
                 </div>
-
-                {/* Row 2: Download Photostrip (PNG) Full Width */}
-                <button
-                  type="button"
-                  onClick={handleDownloadPhotostrip}
-                  className="btn-pill-dark"
-                  style={{
-                    width: '100%',
-                    padding: '13px',
-                    fontSize: '0.96rem',
-                    background: '#0f172a',
-                    border: '2px solid #000000',
-                    borderRadius: '999px',
-                    gap: '8px',
-                  }}
-                >
-                  <Download size={17} />
-                  <span>Download Photostrip (PNG)</span>
-                </button>
               </div>
             </motion.div>
           </div>
@@ -1594,6 +1558,14 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
       {/* Universal Fullscreen Lightbox Zoom Modal */}
       {renderLightboxModal()}
+
+      {/* 4R Print & Export Modal (4x6 Inch / 10x15 cm @ 300 DPI) */}
+      <Print4RModal
+        isOpen={isPrint4RModalOpen}
+        onClose={() => setIsPrint4RModalOpen(false)}
+        photos={currentPhotos}
+        config={currentConfig}
+      />
 
       {/* Dedicated Photostrip Print Area for Clean In-Page Printing */}
       {photostripUrl && (

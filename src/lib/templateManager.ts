@@ -217,10 +217,10 @@ export function compressImage(
 }
 
 /**
- * Returns all available templates: Built-in (1-27) + Custom uploaded (28, 29, ...)
+ * Returns all available templates: Built-in (1-32) + Custom uploaded
  */
 export function getAllTemplates(): PhotoboothTemplate[] {
-  const custom = loadCustomTemplates();
+  const custom = loadCustomTemplates().filter((c) => !TEMPLATES.some((t) => t.id === c.id));
   return [...TEMPLATES, ...custom];
 }
 

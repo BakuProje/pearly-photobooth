@@ -56,7 +56,6 @@ export async function renderPhotoStripCanvas(
   let contrastVal = 1 + (config.contrast || 0) / 100;
   let saturationVal = 1 + (config.saturation || 0) / 100;
 
-  // Enhance
   if (config.enhance && config.enhance > 0) {
     const boost = config.enhance / 100;
     brightnessVal *= 1 + boost * 0.06;
@@ -64,36 +63,46 @@ export async function renderPhotoStripCanvas(
     saturationVal *= 1 + boost * 0.18;
   }
 
-  // Highlights
   if (config.highlights && config.highlights !== 0) {
     brightnessVal += (config.highlights / 100) * 0.25;
   }
 
-  // Shadows
   if (config.shadows && config.shadows !== 0) {
     contrastVal += (config.shadows / 100) * 0.2;
   }
 
-  // Fade
   if (config.fade && config.fade > 0) {
     const fadeRatio = config.fade / 100;
     contrastVal *= Math.max(0.7, 1 - fadeRatio * 0.25);
     brightnessVal += fadeRatio * 0.08;
   }
 
-  let adjustString = `brightness(${Math.max(0.2, brightnessVal)}) contrast(${Math.max(0.2, contrastVal)}) saturate(${Math.max(0, saturationVal)})`;
-  
-  // Warmth
-  if (config.warmth && config.warmth !== 0) {
-    if (config.warmth > 0) {
-      const warmthSepia = Math.min(0.6, config.warmth / 100);
-      adjustString += ` sepia(${warmthSepia}) hue-rotate(${-config.warmth * 0.25}deg)`;
-    } else {
-      adjustString += ` hue-rotate(${Math.abs(config.warmth) * 0.3}deg)`;
+  const hasManualAdjust =
+    (config.brightness && config.brightness !== 0) ||
+    (config.contrast && config.contrast !== 0) ||
+    (config.saturation && config.saturation !== 0) ||
+    (config.enhance && config.enhance > 0) ||
+    (config.highlights && config.highlights !== 0) ||
+    (config.shadows && config.shadows !== 0) ||
+    (config.fade && config.fade > 0) ||
+    (config.warmth && config.warmth !== 0);
+
+  let adjustString = '';
+  if (hasManualAdjust) {
+    adjustString = `brightness(${Math.max(0.2, brightnessVal)}) contrast(${Math.max(0.2, contrastVal)}) saturate(${Math.max(0, saturationVal)})`;
+    if (config.warmth && config.warmth !== 0) {
+      if (config.warmth > 0) {
+        const warmthSepia = Math.min(0.6, config.warmth / 100);
+        adjustString += ` sepia(${warmthSepia}) hue-rotate(${-config.warmth * 0.25}deg)`;
+      } else {
+        adjustString += ` hue-rotate(${Math.abs(config.warmth) * 0.3}deg)`;
+      }
     }
   }
 
-  const combinedFilter = filterBase ? `${filterBase} ${adjustString}` : adjustString;
+  const combinedFilter = filterBase
+    ? (adjustString ? `${filterBase} ${adjustString}` : filterBase)
+    : (adjustString || 'none');
 
   const slots = template.slots;
   const loadedPhotos: (HTMLImageElement | null)[] = [];
@@ -368,18 +377,32 @@ export async function renderFilteredPhotos(
     brightnessVal += fadeRatio * 0.08;
   }
 
-  let adjustString = `brightness(${Math.max(0.2, brightnessVal)}) contrast(${Math.max(0.2, contrastVal)}) saturate(${Math.max(0, saturationVal)})`;
+  const hasManualAdjust =
+    (config.brightness && config.brightness !== 0) ||
+    (config.contrast && config.contrast !== 0) ||
+    (config.saturation && config.saturation !== 0) ||
+    (config.enhance && config.enhance > 0) ||
+    (config.highlights && config.highlights !== 0) ||
+    (config.shadows && config.shadows !== 0) ||
+    (config.fade && config.fade > 0) ||
+    (config.warmth && config.warmth !== 0);
 
-  if (config.warmth && config.warmth !== 0) {
-    if (config.warmth > 0) {
-      const warmthSepia = Math.min(0.6, config.warmth / 100);
-      adjustString += ` sepia(${warmthSepia}) hue-rotate(${-config.warmth * 0.25}deg)`;
-    } else {
-      adjustString += ` hue-rotate(${Math.abs(config.warmth) * 0.3}deg)`;
+  let adjustString = '';
+  if (hasManualAdjust) {
+    adjustString = `brightness(${Math.max(0.2, brightnessVal)}) contrast(${Math.max(0.2, contrastVal)}) saturate(${Math.max(0, saturationVal)})`;
+    if (config.warmth && config.warmth !== 0) {
+      if (config.warmth > 0) {
+        const warmthSepia = Math.min(0.6, config.warmth / 100);
+        adjustString += ` sepia(${warmthSepia}) hue-rotate(${-config.warmth * 0.25}deg)`;
+      } else {
+        adjustString += ` hue-rotate(${Math.abs(config.warmth) * 0.3}deg)`;
+      }
     }
   }
 
-  const combinedFilter = filterBase ? `${filterBase} ${adjustString}` : adjustString;
+  const combinedFilter = filterBase
+    ? (adjustString ? `${filterBase} ${adjustString}` : filterBase)
+    : (adjustString || 'none');
 
   const filteredResults: string[] = [];
 
@@ -428,4 +451,185 @@ export async function renderFilteredPhotos(
 
   return filteredResults;
 }
+
+export interface Print4ROptions {
+  layoutMode: 'fit-center' | 'twin-2in1' | 'full-bleed';
+  bgColor?: string; // '#ffffff' or '#000000'
+  showCutGuides?: boolean;
+  orientation?: 'portrait' | 'landscape';
+}
+
+/**
+ * Renders a high-resolution 4R photo sheet (4x6 inches / 10x15 cm @ 300 DPI = 1200 x 1800 px)
+ * optimized for photo lab & photobooth printers (Canon Selphy, Epson L805, DNP DS-RX1, Citizen).
+ */
+export async function render4RPrintCanvas(
+  photos: string[],
+  config: PhotoBoothConfig,
+  options: Print4ROptions = { layoutMode: 'fit-center', bgColor: '#ffffff', showCutGuides: true, orientation: 'portrait' }
+): Promise<HTMLCanvasElement> {
+  const { layoutMode = 'fit-center', bgColor = '#ffffff', showCutGuides = true } = options;
+
+  // 4R @ 300 DPI: 4 inches x 6 inches = 1200 x 1800 px
+  const isLandscape = options.orientation === 'landscape';
+  const paperW = isLandscape ? 1800 : 1200;
+  const paperH = isLandscape ? 1200 : 1800;
+
+  const canvas = document.createElement('canvas');
+  canvas.width = paperW;
+  canvas.height = paperH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D canvas context for 4R print');
+
+  // Fill background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, paperW, paperH);
+
+  // Render the core photostrip in high quality
+  const stripCanvas = await renderPhotoStripCanvas(photos, config, 1800);
+  const stripW = stripCanvas.width;
+  const stripH = stripCanvas.height;
+  const stripAspect = stripW / stripH;
+
+  if (layoutMode === 'twin-2in1') {
+    // Twin 2-in-1: Two duplicate strips side-by-side on 1200x1800 paper
+    // Each half is 600px wide x 1800px tall (ratio 1:3 = 2x6 inches)
+    const halfW = paperW / 2;
+    const halfH = paperH;
+    const margin = 20; // safety margin in px
+
+    const availW = halfW - margin * 2;
+    const availH = halfH - margin * 2;
+    const availAspect = availW / availH;
+
+    let finalW = availW;
+    let finalH = availH;
+
+    if (stripAspect > availAspect) {
+      finalW = availW;
+      finalH = availW / stripAspect;
+    } else {
+      finalH = availH;
+      finalW = availH * stripAspect;
+    }
+
+    // Left strip
+    const leftX = (halfW - finalW) / 2;
+    const leftY = (halfH - finalH) / 2;
+    ctx.drawImage(stripCanvas, leftX, leftY, finalW, finalH);
+
+    // Right strip
+    const rightX = halfW + (halfW - finalW) / 2;
+    const rightY = (halfH - finalH) / 2;
+    ctx.drawImage(stripCanvas, rightX, rightY, finalW, finalH);
+
+    // Draw Cut Guide Line (garis putus-putus tengah)
+    if (showCutGuides) {
+      const isDark = bgColor === '#000000' || bgColor === '#111827';
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(halfW, 0);
+      ctx.lineTo(halfW, paperH);
+      ctx.stroke();
+
+      // Scissor markers
+      ctx.setLineDash([]);
+      ctx.fillStyle = isDark ? '#ffffff' : '#475569';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('✂ POTONG DISINI (CUT HERE)', halfW, 8);
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('✂ POTONG DISINI (CUT HERE)', halfW, paperH - 8);
+      ctx.restore();
+    }
+  } else if (layoutMode === 'full-bleed') {
+    // Fill the 4R canvas
+    const paperAspect = paperW / paperH;
+    let drawW = paperW;
+    let drawH = paperH;
+    let drawX = 0;
+    let drawY = 0;
+
+    if (stripAspect > paperAspect) {
+      drawW = paperH * stripAspect;
+      drawX = (paperW - drawW) / 2;
+    } else {
+      drawH = paperW / stripAspect;
+      drawY = (paperH - drawH) / 2;
+    }
+    ctx.drawImage(stripCanvas, drawX, drawY, drawW, drawH);
+  } else {
+    // 'fit-center' (Default): Centered with elegant studio border
+    const margin = 32; // studio margin
+    const availW = paperW - margin * 2;
+    const availH = paperH - margin * 2;
+    const availAspect = availW / availH;
+
+    let finalW = availW;
+    let finalH = availH;
+
+    if (stripAspect > availAspect) {
+      finalW = availW;
+      finalH = availW / stripAspect;
+    } else {
+      finalH = availH;
+      finalW = availH * stripAspect;
+    }
+
+    const drawX = (paperW - finalW) / 2;
+    const drawY = (paperH - finalH) / 2;
+
+    ctx.drawImage(stripCanvas, drawX, drawY, finalW, finalH);
+
+    // Subtle corner cut guides if enabled
+    if (showCutGuides) {
+      const isDark = bgColor === '#000000' || bgColor === '#111827';
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.25)';
+      ctx.lineWidth = 1.5;
+      const guideLen = 22;
+      // Top-left
+      ctx.beginPath();
+      ctx.moveTo(drawX - 6, drawY); ctx.lineTo(drawX - 6 - guideLen, drawY);
+      ctx.moveTo(drawX, drawY - 6); ctx.lineTo(drawX, drawY - 6 - guideLen);
+      // Top-right
+      ctx.moveTo(drawX + finalW + 6, drawY); ctx.lineTo(drawX + finalW + 6 + guideLen, drawY);
+      ctx.moveTo(drawX + finalW, drawY - 6); ctx.lineTo(drawX + finalW, drawY - 6 - guideLen);
+      // Bottom-left
+      ctx.moveTo(drawX - 6, drawY + finalH); ctx.lineTo(drawX - 6 - guideLen, drawY + finalH);
+      ctx.moveTo(drawX, drawY + finalH + 6); ctx.lineTo(drawX, drawY + finalH + 6 + guideLen);
+      // Bottom-right
+      ctx.moveTo(drawX + finalW + 6, drawY + finalH); ctx.lineTo(drawX + finalW + 6 + guideLen, drawY + finalH);
+      ctx.moveTo(drawX + finalW, drawY + finalH + 6); ctx.lineTo(drawX + finalW, drawY + finalH + 6 + guideLen);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  return canvas;
+}
+
+export async function generate4RDownloadBlob(
+  photos: string[],
+  config: PhotoBoothConfig,
+  options: Print4ROptions = { layoutMode: 'fit-center', bgColor: '#ffffff', showCutGuides: true },
+  format: 'image/png' | 'image/jpeg' = 'image/png'
+): Promise<Blob> {
+  const canvas = await render4RPrintCanvas(photos, config, options);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('4R canvas blob generation failed'));
+      },
+      format,
+      0.95
+    );
+  });
+}
+
 

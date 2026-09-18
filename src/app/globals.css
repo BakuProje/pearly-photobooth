@@ -315,6 +315,193 @@ body {
   transition: all 0.15s ease;
 }
 
+/* Responsive Result View Layouts */
+.results-header-container {
+  width: 100%;
+  max-width: 960px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  margin-bottom: 14px;
+  gap: 12px;
+}
+
+.results-header-title {
+  font-family: 'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive !important;
+  font-size: clamp(2rem, 5.5vw, 3.4rem);
+  color: #1e293b;
+  margin: 0;
+  line-height: 1.1;
+  text-align: left;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .results-header-container {
+    padding: 6px 8px;
+    margin-bottom: 12px;
+  }
+  .results-header-title {
+    font-size: 2.15rem !important;
+  }
+}
+
+/* Screen 1 (Editor/Filter) & Screen 3 (Final GIF) Dark Card Containers */
+.results-card-container {
+  width: 100%;
+  max-width: 960px;
+  background: #525252;
+  border-radius: 16px;
+  border: 5px solid #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+  gap: 20px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .results-card-container {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 14px 12px !important;
+    gap: 18px !important;
+    border-width: 4px !important;
+    border-radius: 14px !important;
+  }
+}
+
+/* Screen 2 (Grid Review) Card Container */
+.results-grid-container {
+  width: 100%;
+  max-width: 920px;
+  background: #525252;
+  border-radius: 16px;
+  border: 5px solid #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+  padding: 18px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 768px) {
+  .results-grid-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+    padding: 12px 10px !important;
+    border-width: 4px !important;
+    border-radius: 14px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .results-grid-container {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+/* Photo Prototype Preview Box */
+.photo-prototype-box {
+  background: #cbd5e1;
+  border-radius: 14px;
+  border: 3px solid #ffffff;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 380px;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+}
+
+@media (max-width: 768px) {
+  .photo-prototype-box {
+    min-height: 280px !important;
+    max-height: 480px !important;
+    padding: 10px !important;
+    border-radius: 12px !important;
+  }
+}
+
+/* Swap Photos Grid (Tata Letak) */
+.swap-photos-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .swap-photos-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .swap-photos-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 6px !important;
+  }
+}
+
+/* Final GIF Container Box */
+.gif-preview-box {
+  width: 100%;
+  background: #f8fafc;
+  border-radius: 16px;
+  border: 2px solid #e2e8f0;
+  padding: 6px;
+  aspect-ratio: 16 / 11;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+@media (max-width: 768px) {
+  .gif-preview-box {
+    max-width: 380px;
+    border-radius: 12px;
+  }
+}
+
+/* Final Results Card Container */
+.final-result-card-container {
+  width: 100%;
+  max-width: 960px;
+  background: #525252;
+  border-radius: 16px;
+  border: 5px solid #ffffff;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.16);
+  padding: 20px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 20px;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .final-result-card-container {
+    display: flex !important;
+    flex-direction: column !important;
+    padding: 14px 12px !important;
+    gap: 18px !important;
+    border-width: 4px !important;
+    border-radius: 14px !important;
+  }
+}
+
 @media print {
   @page {
     size: auto;
