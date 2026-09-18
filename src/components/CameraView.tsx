@@ -46,26 +46,9 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const [hasCameraAccess, setHasCameraAccess] = useState<boolean | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  const [isSwitchingCamera, setIsSwitchingCamera] = useState(false);
-  // Mirror mode state (persisted in localStorage, defaults to true for natural front camera selfie)
-  const [isMirror, setIsMirror] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('snapbooth_camera_mirror');
-      if (saved !== null) return saved === 'true';
-    }
-    return true;
-  });
+  // Camera is set to Mirror ON (standard front-facing selfie camera behavior)
+  const isMirror = true;
   const [timerDuration, setTimerDuration] = useState<number>(5); // 3, 5, 7, 10
-
-  const handleToggleMirror = () => {
-    setIsMirror((prev) => {
-      const next = !prev;
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('snapbooth_camera_mirror', String(next));
-      }
-      return next;
-    });
-  };
 
   const [isShooting, setIsShooting] = useState<boolean>(false);
   const [countdownValue, setCountdownValue] = useState<number | null>(null);
@@ -135,10 +118,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
   }, [facingMode, startCamera]);
 
   const handleToggleCamera = () => {
-    setIsSwitchingCamera(true);
     const nextMode = facingMode === 'user' ? 'environment' : 'user';
     setFacingMode(nextMode);
-    setTimeout(() => setIsSwitchingCamera(false), 500);
   };
 
   // Capture single high-res frame from video
@@ -258,91 +239,36 @@ export const CameraView: React.FC<CameraViewProps> = ({
       {/* Flash Effect */}
       <div className={`flash-overlay ${isFlashing ? 'flash-active' : ''}`} />
 
-      {/* Floating Top Header Overlay: Back Button, Title, and Mirror Toggle */}
+      {/* Floating Top Header Overlay: "! Take Your Picture !" */}
       <div
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
-          padding: '16px 20px 36px 20px',
-          background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(0, 0, 0, 0) 100%)',
+          padding: '20px 16px 36px 16px',
+          background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 100%)',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           zIndex: 20,
+          pointerEvents: 'none',
         }}
       >
-        {/* Back to Frame Selection */}
-        <button
-          type="button"
-          onClick={onBackToTemplateSelect}
-          style={{
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(8px)',
-            color: '#ffffff',
-            border: '1.5px solid rgba(255, 255, 255, 0.3)',
-            borderRadius: '999px',
-            padding: '8px 14px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.85rem',
-            fontWeight: 700,
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
-            transition: 'all 0.15s ease',
-          }}
-          title="Kembali ke Pilih Frame"
-        >
-          <ArrowLeft size={16} />
-          <span>Frame</span>
-        </button>
-
-        {/* Title as in Gambar 3 */}
         <h1
           className="font-script"
           style={{
-            fontSize: 'clamp(2.2rem, 6.5vw, 3.8rem)',
+            fontSize: 'clamp(2.6rem, 7vw, 4.2rem)',
             color: '#ffffff',
             textShadow: '0 2px 14px rgba(0, 0, 0, 0.8), 0 4px 28px rgba(0, 0, 0, 0.5)',
             margin: 0,
             textAlign: 'center',
             lineHeight: 1,
             letterSpacing: '0.5px',
-            pointerEvents: 'none',
           }}
         >
           ! Take Your Picture !
         </h1>
-
-        {/* Right Controls: Mirror Toggle */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={handleToggleMirror}
-            style={{
-              background: isMirror ? 'rgba(30, 41, 59, 0.9)' : 'rgba(15, 23, 42, 0.65)',
-              backdropFilter: 'blur(8px)',
-              color: '#ffffff',
-              border: isMirror ? '1.5px solid #38bdf8' : '1.5px solid rgba(255, 255, 255, 0.3)',
-              borderRadius: '999px',
-              padding: '8px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.82rem',
-              fontWeight: 700,
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(0, 0, 0, 0.3)',
-              transition: 'all 0.15s ease',
-            }}
-            title={isMirror ? 'Mirror: Aktif (Klik untuk nonaktifkan mirror)' : 'Mirror: Nonaktif (Klik untuk aktifkan mirror)'}
-          >
-            <RefreshCw size={14} style={{ color: isMirror ? '#38bdf8' : '#94a3b8' }} />
-            <span>{isMirror ? 'Mirror: ON' : 'Mirror: OFF'}</span>
-          </button>
-        </div>
       </div>
 
       {/* Countdown Display Exactly Centered on Camera Screen */}
