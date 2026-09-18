@@ -1445,17 +1445,17 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 <X size={18} />
               </button>
 
-              {/* Title as in Gambar 8: "Foto Anda Siap!" */}
+              {/* Title as in Gambar 4: "Thank You" */}
               <h2
                 className="font-script"
                 style={{
-                  fontSize: 'clamp(2.5rem, 6vw, 3.4rem)',
+                  fontSize: 'clamp(2.7rem, 6.5vw, 3.6rem)',
                   color: '#1e293b',
                   lineHeight: 1,
                   margin: 0,
                 }}
               >
-                Foto Anda Siap!
+                Thank You
               </h2>
 
               {/* QR Code Container as in Gambar 8 */}
@@ -1494,17 +1494,17 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 )}
               </div>
 
-              {/* Subtitle as in Gambar 8 */}
+              {/* Subtitle as in Gambar 4 */}
               <p
                 style={{
-                  fontSize: '0.9rem',
+                  fontSize: '0.88rem',
                   fontWeight: 700,
                   color: '#334155',
-                  lineHeight: 1.35,
-                  maxWidth: '340px',
+                  lineHeight: 1.4,
+                  maxWidth: '360px',
                 }}
               >
-                Simpan Foto barcode untuk mendapatkan foto dan gif dari momen anda !
+                Jangan sampai hilang! Yuk, foto atau scan barcode ini buat download soft file foto seru kalian!📸
               </p>
 
               {/* 3 Action Buttons: Row 1 = [ Print ] | [ Download Gif ], Row 2 = [ Download Photostrip (PNG) ] */}

@@ -46,7 +46,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             lineHeight: 1,
           }}
         >
-          Pearly PhotoBooth
+          Pearly Booth
         </span>
       </div>
 

@@ -265,21 +265,16 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   />
                 </div>
 
-                {/* Frame Name & Details */}
-                <div style={{ textAlign: 'center', padding: '2px 4px' }}>
+                {/* Frame Details: Pose Count Only */}
+                <div style={{ textAlign: 'center', padding: '4px 4px 2px 4px' }}>
                   <p
                     style={{
                       fontSize: '0.88rem',
                       fontWeight: 800,
                       color: '#1e293b',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
+                      margin: 0,
                     }}
                   >
-                    {tmpl.name}
-                  </p>
-                  <p style={{ fontSize: '0.74rem', color: '#64748b', fontWeight: 600 }}>
                     {tmpl.requiredPhotos} Pose
                   </p>
                 </div>

@@ -255,7 +255,7 @@ export default function Home() {
                     letterSpacing: '0.5px',
                   }}
                 >
-                  Pearly PhotoBooth
+                  Pearly Booth
                 </h1>
               </div>
 
