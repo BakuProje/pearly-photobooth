@@ -77,6 +77,12 @@ export const metadata: Metadata = {
     images: ['/images/logo.png'],
     creator: '@pearlyphotobooth',
   },
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'Pearly Booth',
+  },
   robots: {
     index: true,
     follow: true,
@@ -84,6 +90,7 @@ export const metadata: Metadata = {
 };
 
 import { AntiDevTools } from '@/components/AntiDevTools';
+import { PwaRegister } from '@/components/PwaRegister';
 
 export default function RootLayout({
   children,
@@ -93,6 +100,11 @@ export default function RootLayout({
   return (
     <html lang="id">
       <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Pearly Booth" />
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
         <link rel="icon" href="/images/favico.ico" sizes="any" />
         <link rel="shortcut icon" href="/images/favicon.ico" />
@@ -105,6 +117,7 @@ export default function RootLayout({
         />
       </head>
       <body>
+        <PwaRegister />
         <AntiDevTools />
         {children}
       </body>
