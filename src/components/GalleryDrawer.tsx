@@ -52,7 +52,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
       setIsGeneratingGif(true);
       setGeneratedGifUrl(null);
 
-      createAnimatedGif(selectedItem.photos, { interval: 0.45, gifWidth: 600, gifHeight: 450 })
+      createAnimatedGif(selectedItem.photos, { interval: 0.45, sampleInterval: 2 })
         .then((gif) => {
           setGeneratedGifUrl(gif);
           setIsGeneratingGif(false);

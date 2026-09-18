@@ -178,11 +178,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
         });
       }
 
-      // Generate Animated GIF
+      // Generate Animated GIF with high clarity and smooth color sampling
       const gif = await createAnimatedGif(filtered, {
         interval: 0.45,
-        gifWidth: 600,
-        gifHeight: 450,
+        sampleInterval: 2,
       });
       setGifUrl(gif);
       setIsGifGenerating(false);
@@ -1266,10 +1265,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
             }}
             style={{
               width: '100%',
-              background: '#cbd5e1',
+              background: '#f8fafc',
               borderRadius: '16px',
-              border: '3px solid #ffffff',
-              padding: '12px',
+              border: '2px solid #e2e8f0',
+              padding: '6px',
               aspectRatio: '16 / 11',
               display: 'flex',
               flexDirection: 'column',
@@ -1278,6 +1277,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
               overflow: 'hidden',
               position: 'relative',
               cursor: gifUrl ? 'pointer' : 'default',
+              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.06)',
             }}
           >
             {isGifGenerating ? (
@@ -1304,7 +1304,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     width: '100%',
                     height: '100%',
                     objectFit: 'cover',
-                    borderRadius: '10px',
+                    borderRadius: '12px',
                   }}
                 />
                 <button

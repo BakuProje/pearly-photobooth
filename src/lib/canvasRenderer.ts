@@ -131,7 +131,60 @@ export async function renderPhotoStripCanvas(
 
       // Clip slot
       ctx.beginPath();
-      if (slot.borderRadius) {
+      if (slot.shape === 'ellipse' || slot.shape === 'circle') {
+        const cx = boxX + boxW / 2;
+        const cy = boxY + boxH / 2;
+        const rx = boxW / 2;
+        const ry = boxH / 2;
+        if (typeof ctx.ellipse === 'function') {
+          ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+        } else {
+          ctx.arc(cx, cy, Math.min(rx, ry), 0, Math.PI * 2);
+        }
+      } else if (slot.shape === 'heart') {
+        const hx = boxX;
+        const hy = boxY;
+        const hw = boxW;
+        const hh = boxH;
+        ctx.moveTo(hx + hw * 0.50, hy + hh * 0.18);
+        // Left lobe inner (cleft to top)
+        ctx.bezierCurveTo(
+          hx + hw * 0.48, hy,
+          hx + hw * 0.40, hy - hh * 0.02,
+          hx + hw * 0.28, hy - hh * 0.02
+        );
+        // Left lobe outer (top to left tip)
+        ctx.bezierCurveTo(
+          hx + hw * 0.12, hy - hh * 0.02,
+          hx - hw * 0.02, hy + hh * 0.10,
+          hx - hw * 0.02, hy + hh * 0.28
+        );
+        // Left bottom (left tip to bottom point)
+        ctx.bezierCurveTo(
+          hx - hw * 0.02, hy + hh * 0.60,
+          hx + hw * 0.30, hy + hh * 0.88,
+          hx + hw * 0.50, hy + hh * 1.02
+        );
+        // Right bottom (bottom point to right tip)
+        ctx.bezierCurveTo(
+          hx + hw * 0.70, hy + hh * 0.88,
+          hx + hw * 1.02, hy + hh * 0.60,
+          hx + hw * 1.02, hy + hh * 0.28
+        );
+        // Right lobe outer (right tip to top)
+        ctx.bezierCurveTo(
+          hx + hw * 1.02, hy + hh * 0.10,
+          hx + hw * 0.88, hy - hh * 0.02,
+          hx + hw * 0.72, hy - hh * 0.02
+        );
+        // Right lobe inner (top to cleft)
+        ctx.bezierCurveTo(
+          hx + hw * 0.60, hy - hh * 0.02,
+          hx + hw * 0.52, hy,
+          hx + hw * 0.50, hy + hh * 0.18
+        );
+        ctx.closePath();
+      } else if (slot.borderRadius) {
         const radius = (slot.borderRadius / 1000) * width;
         ctx.roundRect(boxX, boxY, boxW, boxH, radius);
       } else {

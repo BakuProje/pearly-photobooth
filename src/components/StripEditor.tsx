@@ -485,6 +485,15 @@ export const StripEditor: React.FC<StripEditorProps> = ({
               userSelect: 'none',
             }}
           >
+            {/* SVG Defs for custom clipping shapes */}
+            <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
+              <defs>
+                <clipPath id="photobooth-heart-clip" clipPathUnits="objectBoundingBox">
+                  <path d="M 0.50 0.18 C 0.48 0.00, 0.40 -0.02, 0.28 -0.02 C 0.12 -0.02, -0.02 0.10, -0.02 0.28 C -0.02 0.60, 0.30 0.88, 0.50 1.02 C 0.70 0.88, 1.02 0.60, 1.02 0.28 C 1.02 0.10, 0.88 -0.02, 0.72 -0.02 C 0.60 -0.02, 0.52 0.00, 0.50 0.18 Z" />
+                </clipPath>
+              </defs>
+            </svg>
+
             {/* 1. Underlying Photos positioned in exact slots */}
             {currentTemplate.slots.map((slot, sIdx) => {
               let photoIndex = sIdx;
@@ -492,6 +501,9 @@ export const StripEditor: React.FC<StripEditorProps> = ({
                 photoIndex = sIdx % currentTemplate.requiredPhotos;
               }
               const photoSrc = photos[photoIndex] || photos[photos.length - 1];
+
+              const isRound = slot.shape === 'ellipse' || slot.shape === 'circle';
+              const isHeart = slot.shape === 'heart';
 
               return (
                 <div
@@ -503,7 +515,8 @@ export const StripEditor: React.FC<StripEditorProps> = ({
                     width: `${slot.width}%`,
                     height: `${slot.height}%`,
                     transform: slot.rotation ? `rotate(${slot.rotation}deg)` : undefined,
-                    borderRadius: slot.borderRadius ? `${slot.borderRadius / 4}px` : '0px',
+                    borderRadius: isRound ? '50%' : (slot.borderRadius ? `${slot.borderRadius / 4}px` : '0px'),
+                    clipPath: isHeart ? 'url(#photobooth-heart-clip)' : undefined,
                     overflow: 'hidden',
                     background: '#e2e8f0',
                     zIndex: 10,

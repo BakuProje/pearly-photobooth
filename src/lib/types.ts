@@ -1,3 +1,5 @@
+export type SlotShape = 'rectangle' | 'ellipse' | 'circle' | 'heart';
+
 export interface TemplateSlot {
   x: number; // percentage 0-100
   y: number; // percentage 0-100
@@ -5,6 +7,7 @@ export interface TemplateSlot {
   height: number; // percentage 0-100
   borderRadius?: number; // px at standard 1000px width
   rotation?: number; // degrees
+  shape?: SlotShape; // 'rectangle' | 'ellipse' | 'circle' | 'heart'
   label?: string;
 }
 
