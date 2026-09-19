@@ -49,6 +49,9 @@ export const metadata: Metadata = {
     shortcut: ['/images/favicon.ico', '/images/favico.ico'],
     apple: [
       { url: '/images/logo.png', sizes: '180x180', type: 'image/png' },
+      { url: '/images/logo.png', sizes: '167x167', type: 'image/png' },
+      { url: '/images/logo.png', sizes: '152x152', type: 'image/png' },
+      { url: '/images/logo.png', sizes: '120x120', type: 'image/png' },
     ],
   },
   openGraph: {
@@ -82,6 +85,11 @@ export const metadata: Metadata = {
     capable: true,
     statusBarStyle: 'black-translucent',
     title: 'Pearly Booth',
+    startupImage: [
+      {
+        url: '/images/logo.png',
+      },
+    ],
   },
   robots: {
     index: true,
@@ -103,12 +111,18 @@ export default function RootLayout({
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-touch-fullscreen" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Pearly Booth" />
+        <meta name="format-detection" content="telephone=no" />
         <link rel="icon" href="/images/favicon.ico" sizes="any" />
         <link rel="icon" href="/images/favico.ico" sizes="any" />
         <link rel="shortcut icon" href="/images/favicon.ico" />
         <link rel="apple-touch-icon" href="/images/logo.png" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/images/logo.png" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/images/logo.png" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/images/logo.png" />
+        <link rel="apple-touch-icon" sizes="120x120" href="/images/logo.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePwaInstall } from '@/lib/usePwaInstall';
+import { IosPwaInstallModal } from '@/components/IosPwaInstallModal';
 
 interface GalleryDrawerProps {
   isOpen: boolean;
@@ -55,7 +56,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
   const [showIosGuide, setShowIosGuide] = useState(false);
   const [pwaToast, setPwaToast] = useState<string | null>(null);
 
-  const { isInstallable, isInstalled, isIOS, isStandalone, installPwa } = usePwaInstall();
+  const { isInstallable, isInstalled, isIOS, isInAppBrowser, isStandalone, installPwa } = usePwaInstall();
 
   const handlePwaClick = async () => {
     if (isStandalone || isInstalled) {
@@ -1162,206 +1163,12 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
         )}
       </AnimatePresence>
 
-      {/* ================= MODAL PANDUAN PWA IOS (IPHONE / IPAD) ================= */}
-      <AnimatePresence>
-        {showIosGuide && (
-          <div
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 350,
-              background: 'rgba(15, 23, 42, 0.82)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '16px',
-            }}
-            onClick={() => setShowIosGuide(false)}
-          >
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              style={{
-                maxWidth: '420px',
-                width: '100%',
-                padding: '24px 22px',
-                background: '#ffffff',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '16px',
-                borderRadius: '24px',
-                boxShadow: '0 25px 60px rgba(0, 0, 0, 0.35)',
-                color: '#1e293b',
-              }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* Header */}
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      borderRadius: '12px',
-                      background: 'linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#ffffff',
-                    }}
-                  >
-                    <Smartphone size={22} />
-                  </div>
-                  <div>
-                    <h3 style={{ fontSize: '1.05rem', fontWeight: 900, margin: 0, color: '#0f172a' }}>
-                      Pasang di iPhone / iPad
-                    </h3>
-                    <p style={{ fontSize: '0.76rem', color: '#64748b', fontWeight: 600, margin: 0 }}>
-                      Panduan instalasi Web App (PWA)
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setShowIosGuide(false)}
-                  style={{
-                    background: '#f1f5f9',
-                    border: 'none',
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    color: '#64748b',
-                  }}
-                >
-                  <X size={16} />
-                </button>
-              </div>
-
-              {/* Steps */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '4px' }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px',
-                    borderRadius: '14px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '10px',
-                      background: '#0284c7',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Share2 size={18} />
-                  </div>
-                  <div style={{ fontSize: '0.82rem', lineHeight: '1.35', color: '#334155' }}>
-                    <strong>1. Ketuk tombol Share (Bagikan)</strong> di bar menu bagian bawah browser Safari Anda.
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px',
-                    borderRadius: '14px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '10px',
-                      background: '#ec4899',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <PlusSquare size={18} />
-                  </div>
-                  <div style={{ fontSize: '0.82rem', lineHeight: '1.35', color: '#334155' }}>
-                    <strong>2. Gulir ke bawah</strong> dan pilih opsi <strong>"Add to Home Screen"</strong> (Tambah ke Layar Utama).
-                  </div>
-                </div>
-
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    padding: '12px',
-                    borderRadius: '14px',
-                    background: '#f8fafc',
-                    border: '1px solid #e2e8f0',
-                  }}
-                >
-                  <div
-                    style={{
-                      width: '34px',
-                      height: '34px',
-                      borderRadius: '10px',
-                      background: '#10b981',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Check size={18} />
-                  </div>
-                  <div style={{ fontSize: '0.82rem', lineHeight: '1.35', color: '#334155' }}>
-                    <strong>3. Ketuk "Add" (Tambah)</strong> di sudut kanan atas. Aplikasi Pearly Booth siap digunakan di layar depan!
-                  </div>
-                </div>
-              </div>
-
-              {/* Close Button */}
-              <button
-                onClick={() => setShowIosGuide(false)}
-                style={{
-                  width: '100%',
-                  padding: '11px',
-                  borderRadius: '12px',
-                  background: '#1e293b',
-                  color: '#ffffff',
-                  fontWeight: 800,
-                  fontSize: '0.88rem',
-                  border: 'none',
-                  cursor: 'pointer',
-                  marginTop: '4px',
-                }}
-              >
-                Saya Mengerti
-              </button>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {/* iOS PWA Installation Guide Modal */}
+      <IosPwaInstallModal
+        isOpen={showIosGuide}
+        onClose={() => setShowIosGuide(false)}
+        isInAppBrowser={isInAppBrowser}
+      />
     </>
   );
 };

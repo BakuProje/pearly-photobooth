@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 
-// Global reference for beforeinstallprompt event
+// Global reference for beforeinstallprompt event (Chromium-based browsers)
 let globalDeferredPrompt: any = null;
 const promptListeners = new Set<(prompt: any) => void>();
 
@@ -24,8 +24,12 @@ export interface PwaInstallState {
   isInstallable: boolean;
   isInstalled: boolean;
   isIOS: boolean;
+  isSafari: boolean;
+  isInAppBrowser: boolean;
   isStandalone: boolean;
-  installPwa: () => Promise<{ outcome: 'accepted' | 'dismissed' | 'ios' | 'already_installed' | 'unavailable' }>;
+  installPwa: () => Promise<{
+    outcome: 'accepted' | 'dismissed' | 'ios' | 'already_installed' | 'unavailable';
+  }>;
 }
 
 export function usePwaInstall(): PwaInstallState {
@@ -33,11 +37,13 @@ export function usePwaInstall(): PwaInstallState {
   const [isInstalled, setIsInstalled] = useState(false);
   const [isStandalone, setIsStandalone] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isSafari, setIsSafari] = useState(false);
+  const [isInAppBrowser, setIsInAppBrowser] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Check standalone mode
+    // 1. Check standalone mode (PWA active on iOS or Desktop/Android)
     const checkStandalone = () => {
       const isDisplayStandalone = window.matchMedia('(display-mode: standalone)').matches;
       const isNavStandalone = (window.navigator as any).standalone === true;
@@ -51,19 +57,30 @@ export function usePwaInstall(): PwaInstallState {
 
     checkStandalone();
 
-    // Check iOS
+    // 2. Comprehensive iOS / Apple Device Detection
     const ua = window.navigator.userAgent.toLowerCase();
-    const isIosDevice = /iphone|ipad|ipod/.test(ua);
+    const isIosDevice =
+      /iphone|ipad|ipod/.test(ua) ||
+      (window.navigator.platform === 'MacIntel' && window.navigator.maxTouchPoints > 1);
     setIsIOS(isIosDevice);
 
-    // Subscribe to prompt events
+    // 3. Detect Safari vs In-App WebViews (Instagram, TikTok, WhatsApp, Line, Facebook, etc.)
+    const isWebKit = /webkit/.test(ua);
+    const isChrome = /crios|chrome|crmo/.test(ua);
+    const isFirefox = /fxios|firefox/.test(ua);
+    const isEdge = /edgios|edg/.test(ua);
+    const isSocialApp = /instagram|fbav|fban|line|whatsapp|tiktok|micromessenger|snapchat/.test(ua);
+
+    setIsInAppBrowser(isSocialApp);
+    setIsSafari(isIosDevice && isWebKit && !isChrome && !isFirefox && !isEdge && !isSocialApp);
+
+    // 4. Subscribe to prompt events (Chromium)
     const handlePromptUpdate = (prompt: any) => {
       setDeferredPrompt(prompt);
     };
 
     promptListeners.add(handlePromptUpdate);
 
-    // Initial check
     if (globalDeferredPrompt) {
       setDeferredPrompt(globalDeferredPrompt);
     }
@@ -87,7 +104,7 @@ export function usePwaInstall(): PwaInstallState {
       return { outcome: 'already_installed' as const };
     }
 
-    // 2. If prompt is available (Chrome, Edge, Android, supported browsers)
+    // 2. If native prompt is available (Chrome, Edge, Android, supported browsers)
     const prompt = deferredPrompt || globalDeferredPrompt;
     if (prompt) {
       try {
@@ -106,7 +123,7 @@ export function usePwaInstall(): PwaInstallState {
       }
     }
 
-    // 3. If on iOS (Safari doesn't support beforeinstallprompt)
+    // 3. If on iOS (Safari doesn't support beforeinstallprompt, requires Share -> Add to Home Screen)
     if (isIOS) {
       return { outcome: 'ios' as const };
     }
@@ -119,6 +136,8 @@ export function usePwaInstall(): PwaInstallState {
     isInstallable: !!(deferredPrompt || globalDeferredPrompt || isIOS) && !isStandalone,
     isInstalled: isInstalled || isStandalone,
     isIOS,
+    isSafari,
+    isInAppBrowser,
     isStandalone,
     installPwa,
   };
