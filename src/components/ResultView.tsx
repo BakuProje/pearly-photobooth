@@ -137,12 +137,15 @@ export const ResultView: React.FC<ResultViewProps> = ({
     return () => clearInterval(interval);
   }, [processedPhotos.length]);
 
-  // Render Photostrip Canvas and generate GIF
-  const renderCurrentSession = async (photosToRender: string[], cfg: PhotoBoothConfig) => {
+  // Render Photostrip Canvas and generate GIF when needed
+  const renderCurrentSession = async (
+    photosToRender: string[],
+    cfg: PhotoBoothConfig,
+    generateGif: boolean = false
+  ) => {
     if (photosToRender.length === 0) return;
     const thisRenderId = ++renderIdRef.current;
     setIsRendering(true);
-    setIsGifGenerating(true);
 
     try {
       const [canvas, filtered] = await Promise.all([
@@ -187,14 +190,24 @@ export const ResultView: React.FC<ResultViewProps> = ({
       }
 
       // Generate Animated GIF with high clarity and smooth color sampling
-      const gif = await createAnimatedGif(filtered, {
-        interval: 0.45,
-        sampleInterval: 2,
-      });
-
-      if (thisRenderId === renderIdRef.current) {
-        setGifUrl(gif);
-        setIsGifGenerating(false);
+      if (generateGif || resultStep === 'final-gif') {
+        setIsGifGenerating(true);
+        createAnimatedGif(filtered, {
+          interval: 0.45,
+          sampleInterval: 2,
+        })
+          .then((gif) => {
+            if (thisRenderId === renderIdRef.current) {
+              setGifUrl(gif);
+              setIsGifGenerating(false);
+            }
+          })
+          .catch((err) => {
+            console.error('Failed to create GIF:', err);
+            if (thisRenderId === renderIdRef.current) {
+              setIsGifGenerating(false);
+            }
+          });
       }
     } catch (err) {
       console.error('Failed to render session:', err);
@@ -215,15 +228,15 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
   // Initial and reactive render
   useEffect(() => {
-    renderCurrentSession(currentPhotos, currentConfig);
-  }, [currentPhotos, currentConfig.selectedTemplateId, currentConfig.filter]);
+    renderCurrentSession(currentPhotos, currentConfig, resultStep === 'final-gif');
+  }, [currentPhotos, currentConfig.selectedTemplateId]);
 
   // Filter change handler
   const handleSelectFilter = (filterId: FilterType) => {
     const updated = { ...currentConfig, filter: filterId };
     setCurrentConfig(updated);
     if (onChangeConfig) onChangeConfig(updated);
-    renderCurrentSession(currentPhotos, updated);
+    renderCurrentSession(currentPhotos, updated, resultStep === 'final-gif');
   };
 
   // Swap photo positions in slots
@@ -240,7 +253,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
       updated[index] = temp;
       setCurrentPhotos(updated);
       setSelectedSlotForSwap(null);
-      renderCurrentSession(updated, currentConfig);
+      renderCurrentSession(updated, currentConfig, resultStep === 'final-gif');
     }
   };
 
@@ -643,6 +656,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 origin: { y: 0.4 },
               });
               setResultStep('final-gif');
+              renderCurrentSession(currentPhotos, currentConfig, true);
             }}
             className="btn-pill-dark"
             style={{
@@ -670,23 +684,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
             style={{
               cursor: photostripUrl ? 'zoom-in' : 'default',
               transition: 'transform 0.15s ease, box-shadow 0.15s ease',
+              position: 'relative',
             }}
           >
-            {isRendering ? (
-              <div
-                style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '8px',
-                  color: '#1e293b',
-                  fontWeight: 700,
-                }}
-              >
-                <Loader2 size={32} className="animate-spin" />
-                <span>Memproses Photostrip...</span>
-              </div>
-            ) : photostripUrl ? (
+            {photostripUrl ? (
               <>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -697,9 +698,33 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     maxHeight: '460px',
                     objectFit: 'contain',
                     borderRadius: '8px',
-                    transition: 'transform 0.2s ease',
+                    transition: 'opacity 0.2s ease',
                   }}
                 />
+
+                {isRendering && (
+                  <div
+                    style={{
+                      position: 'absolute',
+                      top: '12px',
+                      left: '12px',
+                      background: 'rgba(15, 23, 42, 0.75)',
+                      backdropFilter: 'blur(6px)',
+                      color: '#ffffff',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      zIndex: 10,
+                    }}
+                  >
+                    <Loader2 size={12} className="animate-spin text-sky-400" />
+                    <span>Filter Aktif...</span>
+                  </div>
+                )}
 
                 {/* Floating Zoom Button */}
                 <button
@@ -756,9 +781,19 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 </div>
               </>
             ) : (
-              <span style={{ color: '#ef4444', fontSize: '1.5rem', fontWeight: 900 }}>
-                Frame / layout
-              </span>
+              <div
+                style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: '8px',
+                  color: '#1e293b',
+                  fontWeight: 700,
+                }}
+              >
+                <Loader2 size={32} className="animate-spin" />
+                <span>Memproses Photostrip...</span>
+              </div>
             )}
           </div>
 
@@ -804,14 +839,14 @@ export const ResultView: React.FC<ResultViewProps> = ({
                       {photo ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={processedPhotos[idx] || photo}
+                          src={photo}
                           alt={`Foto ${idx + 1}`}
                           style={{
                             width: '100%',
                             height: '100%',
                             objectFit: 'cover',
                             filter: activeCssFilter,
-                            transition: 'filter 0.25s ease',
+                            transition: 'filter 0.2s ease',
                           }}
                         />
                       ) : (
@@ -923,6 +958,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 >
                   {FILTERS.map((flt) => {
                     const isActive = currentConfig.filter === flt.id;
+                    const samplePhoto = currentPhotos[0] || basePhotostripUrl || currentTemplate.imageSrc;
                     return (
                       <motion.button
                         key={flt.id}
@@ -967,10 +1003,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
                             transition: 'border 0.2s ease, box-shadow 0.2s ease',
                           }}
                         >
-                          {basePhotostripUrl || photostripUrl || currentTemplate.imageSrc ? (
+                          {samplePhoto ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
-                              src={basePhotostripUrl || photostripUrl || currentTemplate.imageSrc}
+                              src={samplePhoto}
                               alt={flt.name}
                               draggable={false}
                               style={{
@@ -1176,10 +1212,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   borderRadius: '12px',
                 }}
               >
-                {processedPhotos.length > 0 && (
+                {currentPhotos.length > 0 && (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={processedPhotos[activeFrameIndex]}
+                    src={currentPhotos[activeFrameIndex]}
                     alt="Membuat Animasi GIF..."
                     style={{
                       position: 'absolute',
@@ -1250,10 +1286,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   <Maximize2 size={15} />
                 </button>
               </>
-            ) : processedPhotos.length > 0 ? (
+            ) : currentPhotos.length > 0 ? (
               // eslint-disable-next-line @next/next/no-img-element
               <img
-                src={processedPhotos[activeFrameIndex]}
+                src={currentPhotos[activeFrameIndex]}
                 alt="GIF Animation Preview"
                 style={{
                   width: '100%',

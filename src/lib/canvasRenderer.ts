@@ -12,6 +12,201 @@ const loadImage = (src: string): Promise<HTMLImageElement> => {
   });
 };
 
+// =========================================================================
+// Universal Bulletproof Canvas Filter Pipeline (Cross-Browser Supported)
+// =========================================================================
+let _canvasFilterSupported: boolean | null = null;
+
+function checkCanvasFilterSupport(): boolean {
+  if (_canvasFilterSupported !== null) return _canvasFilterSupported;
+  if (typeof document === 'undefined') return false;
+  try {
+    const c = document.createElement('canvas');
+    c.width = 2;
+    c.height = 2;
+    const ctx = c.getContext('2d');
+    if (!ctx || typeof ctx.filter !== 'string') {
+      _canvasFilterSupported = false;
+      return false;
+    }
+    ctx.fillStyle = '#808080';
+    ctx.fillRect(0, 0, 2, 2);
+    ctx.filter = 'brightness(200%)';
+    ctx.drawImage(c, 0, 0);
+    const p = ctx.getImageData(0, 0, 1, 1).data;
+    _canvasFilterSupported = p[0] > 160;
+    return _canvasFilterSupported;
+  } catch {
+    _canvasFilterSupported = false;
+    return false;
+  }
+}
+
+interface ParsedFilter {
+  brightness: number;
+  contrast: number;
+  saturate: number;
+  sepia: number;
+  grayscale: number;
+  hueRotate: number;
+}
+
+function parseFilterString(filterStr: string): ParsedFilter {
+  const result: ParsedFilter = {
+    brightness: 1,
+    contrast: 1,
+    saturate: 1,
+    sepia: 0,
+    grayscale: 0,
+    hueRotate: 0,
+  };
+  if (!filterStr || filterStr === 'none') return result;
+
+  const regex = /([a-z-]+)\(([^)]+)\)/gi;
+  let match;
+  while ((match = regex.exec(filterStr)) !== null) {
+    const name = match[1].toLowerCase();
+    const rawVal = match[2].trim();
+    if (name === 'brightness') {
+      result.brightness = rawVal.endsWith('%') ? parseFloat(rawVal) / 100 : parseFloat(rawVal);
+    } else if (name === 'contrast') {
+      result.contrast = rawVal.endsWith('%') ? parseFloat(rawVal) / 100 : parseFloat(rawVal);
+    } else if (name === 'saturate') {
+      result.saturate = rawVal.endsWith('%') ? parseFloat(rawVal) / 100 : parseFloat(rawVal);
+    } else if (name === 'sepia') {
+      result.sepia = rawVal.endsWith('%') ? parseFloat(rawVal) / 100 : parseFloat(rawVal);
+    } else if (name === 'grayscale') {
+      result.grayscale = rawVal.endsWith('%') ? parseFloat(rawVal) / 100 : parseFloat(rawVal);
+    } else if (name === 'hue-rotate') {
+      result.hueRotate = parseFloat(rawVal);
+    }
+  }
+  return result;
+}
+
+function applyPixelFilter(imageData: ImageData, parsed: ParsedFilter) {
+  const data = imageData.data;
+  const len = data.length;
+  const { brightness, contrast, saturate, sepia, grayscale, hueRotate } = parsed;
+
+  const hasBrightness = Math.abs(brightness - 1) > 0.001;
+  const hasContrast = Math.abs(contrast - 1) > 0.001;
+  const hasSaturate = Math.abs(saturate - 1) > 0.001;
+  const hasSepia = sepia > 0.001;
+  const hasGrayscale = grayscale > 0.001;
+  const hasHue = Math.abs(hueRotate) > 0.001;
+
+  if (!hasBrightness && !hasContrast && !hasSaturate && !hasSepia && !hasGrayscale && !hasHue) {
+    return;
+  }
+
+  let cosA = 1, sinA = 0;
+  if (hasHue) {
+    const rad = (hueRotate * Math.PI) / 180;
+    cosA = Math.cos(rad);
+    sinA = Math.sin(rad);
+  }
+
+  const lut = new Uint8ClampedArray(256);
+  for (let i = 0; i < 256; i++) {
+    let v = i / 255;
+    if (hasContrast) {
+      v = (v - 0.5) * contrast + 0.5;
+    }
+    if (hasBrightness) {
+      v = v * brightness;
+    }
+    lut[i] = Math.max(0, Math.min(255, Math.round(v * 255)));
+  }
+
+  for (let i = 0; i < len; i += 4) {
+    let r = data[i];
+    let g = data[i + 1];
+    let b = data[i + 2];
+
+    if (hasGrayscale) {
+      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = r + (gray - r) * grayscale;
+      g = g + (gray - g) * grayscale;
+      b = b + (gray - b) * grayscale;
+    }
+
+    if (hasSepia) {
+      const sr = r * 0.393 + g * 0.769 + b * 0.189;
+      const sg = r * 0.349 + g * 0.686 + b * 0.168;
+      const sb = r * 0.272 + g * 0.534 + b * 0.131;
+      r = r + (sr - r) * sepia;
+      g = g + (sg - g) * sepia;
+      b = b + (sb - b) * sepia;
+    }
+
+    if (hasSaturate) {
+      const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+      r = gray + (r - gray) * saturate;
+      g = gray + (g - gray) * saturate;
+      b = gray + (b - gray) * saturate;
+    }
+
+    if (hasHue) {
+      const hr = (0.213 + cosA * 0.787 - sinA * 0.213) * r +
+                 (0.715 - cosA * 0.715 - sinA * 0.715) * g +
+                 (0.072 - cosA * 0.072 + sinA * 0.928) * b;
+      const hg = (0.213 - cosA * 0.213 + sinA * 0.143) * r +
+                 (0.715 + cosA * 0.285 + sinA * 0.140) * g +
+                 (0.072 - cosA * 0.072 - sinA * 0.283) * b;
+      const hb = (0.213 - cosA * 0.213 - sinA * 0.787) * r +
+                 (0.715 - cosA * 0.715 + sinA * 0.715) * g +
+                 (0.072 + cosA * 0.928 + sinA * 0.072) * b;
+      r = hr;
+      g = hg;
+      b = hb;
+    }
+
+    data[i] = lut[Math.max(0, Math.min(255, Math.round(r)))];
+    data[i + 1] = lut[Math.max(0, Math.min(255, Math.round(g)))];
+    data[i + 2] = lut[Math.max(0, Math.min(255, Math.round(b)))];
+  }
+}
+
+export function drawFilteredImage(
+  ctx: CanvasRenderingContext2D,
+  img: HTMLImageElement | HTMLCanvasElement,
+  dx: number,
+  dy: number,
+  dw: number,
+  dh: number,
+  filterString: string
+) {
+  const isFilterNone = !filterString || filterString === 'none';
+  const nativeOk = checkCanvasFilterSupport();
+
+  if (nativeOk || isFilterNone) {
+    ctx.save();
+    ctx.filter = filterString || 'none';
+    ctx.drawImage(img, dx, dy, dw, dh);
+    ctx.restore();
+    return;
+  }
+
+  // Fallback for browsers lacking native ctx.filter
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = Math.max(1, Math.round(dw));
+  offCanvas.height = Math.max(1, Math.round(dh));
+  const offCtx = offCanvas.getContext('2d', { willReadFrequently: true });
+  if (!offCtx) {
+    ctx.drawImage(img, dx, dy, dw, dh);
+    return;
+  }
+
+  offCtx.drawImage(img, 0, 0, offCanvas.width, offCanvas.height);
+  const imgData = offCtx.getImageData(0, 0, offCanvas.width, offCanvas.height);
+  const parsed = parseFilterString(filterString);
+  applyPixelFilter(imgData, parsed);
+  offCtx.putImageData(imgData, 0, 0);
+
+  ctx.drawImage(offCanvas, dx, dy, dw, dh);
+}
+
 export async function renderPhotoStripCanvas(
   photos: string[],
   config: PhotoBoothConfig,
@@ -156,37 +351,31 @@ export async function renderPhotoStripCanvas(
         const hw = boxW;
         const hh = boxH;
         ctx.moveTo(hx + hw * 0.50, hy + hh * 0.18);
-        // Left lobe inner (cleft to top)
         ctx.bezierCurveTo(
           hx + hw * 0.48, hy,
           hx + hw * 0.40, hy - hh * 0.02,
           hx + hw * 0.28, hy - hh * 0.02
         );
-        // Left lobe outer (top to left tip)
         ctx.bezierCurveTo(
           hx + hw * 0.12, hy - hh * 0.02,
           hx - hw * 0.02, hy + hh * 0.10,
           hx - hw * 0.02, hy + hh * 0.28
         );
-        // Left bottom (left tip to bottom point)
         ctx.bezierCurveTo(
           hx - hw * 0.02, hy + hh * 0.60,
           hx + hw * 0.30, hy + hh * 0.88,
           hx + hw * 0.50, hy + hh * 1.02
         );
-        // Right bottom (bottom point to right tip)
         ctx.bezierCurveTo(
           hx + hw * 0.70, hy + hh * 0.88,
           hx + hw * 1.02, hy + hh * 0.60,
           hx + hw * 1.02, hy + hh * 0.28
         );
-        // Right lobe outer (right tip to top)
         ctx.bezierCurveTo(
           hx + hw * 1.02, hy + hh * 0.10,
           hx + hw * 0.88, hy - hh * 0.02,
           hx + hw * 0.72, hy - hh * 0.02
         );
-        // Right lobe inner (top to cleft)
         ctx.bezierCurveTo(
           hx + hw * 0.60, hy - hh * 0.02,
           hx + hw * 0.52, hy,
@@ -200,9 +389,6 @@ export async function renderPhotoStripCanvas(
         ctx.rect(boxX, boxY, boxW, boxH);
       }
       ctx.clip();
-
-      // Apply filter
-      ctx.filter = combinedFilter;
 
       // Draw photo cover with per-slot user scale & offset
       const userScale = config.photoScales?.[sIdx] || 1;
@@ -224,10 +410,12 @@ export async function renderPhotoStripCanvas(
       const offsetX = boxX - (renderW - boxW) / 2 + userOffX;
       const offsetY = boxY - (renderH - boxH) / 2 + userOffY;
 
-      ctx.drawImage(photoImg, offsetX, offsetY, renderW, renderH);
+      // Draw filtered image reliably
+      drawFilteredImage(ctx, photoImg, offsetX, offsetY, renderW, renderH, combinedFilter);
 
       // Vignette effect if specified
       if (config.vignette && config.vignette > 0) {
+        ctx.save();
         ctx.filter = 'none';
         const vignetteAlpha = Math.min(0.85, config.vignette / 100);
         const radius = Math.max(boxW, boxH) * 0.75;
@@ -243,6 +431,7 @@ export async function renderPhotoStripCanvas(
         grad.addColorStop(1, `rgba(0,0,0,${vignetteAlpha})`);
         ctx.fillStyle = grad;
         ctx.fillRect(boxX, boxY, boxW, boxH);
+        ctx.restore();
       }
 
       ctx.restore();
@@ -419,11 +608,10 @@ export async function renderFilteredPhotos(
       offCanvas.width = img.naturalWidth || img.width || 1280;
       offCanvas.height = img.naturalHeight || img.height || 960;
 
-      offCtx.save();
-      offCtx.filter = combinedFilter;
-      offCtx.drawImage(img, 0, 0, offCanvas.width, offCanvas.height);
+      drawFilteredImage(offCtx, img, 0, 0, offCanvas.width, offCanvas.height, combinedFilter);
 
       if (config.vignette && config.vignette > 0) {
+        offCtx.save();
         offCtx.filter = 'none';
         const vignetteAlpha = Math.min(0.85, config.vignette / 100);
         const radius = Math.max(offCanvas.width, offCanvas.height) * 0.75;
@@ -439,6 +627,7 @@ export async function renderFilteredPhotos(
         grad.addColorStop(1, `rgba(0,0,0,${vignetteAlpha})`);
         offCtx.fillStyle = grad;
         offCtx.fillRect(0, 0, offCanvas.width, offCanvas.height);
+        offCtx.restore();
       }
 
       offCtx.restore();
