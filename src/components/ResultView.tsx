@@ -1470,16 +1470,25 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 }}
               >
                 {qrCodeUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={qrCodeUrl}
-                    alt="QR Code Barcode"
-                    style={{
-                      width: '210px',
-                      height: '210px',
-                      objectFit: 'contain',
-                    }}
-                  />
+                  <a
+                    href={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?session=${sessionIdRef.current}` : '#'}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    title="Klik untuk membuka Soft File"
+                    style={{ display: 'block', cursor: 'pointer' }}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={qrCodeUrl}
+                      alt="QR Code Barcode"
+                      style={{
+                        width: '210px',
+                        height: '210px',
+                        objectFit: 'contain',
+                        display: 'block',
+                      }}
+                    />
+                  </a>
                 ) : (
                   <div
                     style={{

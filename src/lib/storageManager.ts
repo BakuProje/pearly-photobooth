@@ -143,45 +143,103 @@ export async function clearAllGalleryItems(): Promise<void> {
 // =========================================================================
 
 export async function saveSoftFileSession(session: SoftFileSession): Promise<void> {
+  // 1. Save to IndexedDB
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const tx = db.transaction(STORE_SESSIONS, 'readwrite');
       const store = tx.objectStore(STORE_SESSIONS);
       const req = store.put(session);
-
       req.onsuccess = () => resolve();
       req.onerror = () => reject(req.error);
     });
   } catch (err) {
-    console.warn('Failed to save soft file session to IndexedDB, fallback to localStorage', err);
-    try {
-      localStorage.setItem(`snapbooth_session_${session.id}`, JSON.stringify(session));
-    } catch {}
+    console.warn('Failed to save soft file session to IndexedDB', err);
   }
+
+  // 2. Save to localStorage backup
+  try {
+    localStorage.setItem(`snapbooth_session_${session.id}`, JSON.stringify(session));
+    localStorage.setItem('snapbooth_last_session_id', session.id);
+  } catch {}
+
+  // 3. Sync to API route for cross-device QR scanning (e.g. smartphone scanning booth screen)
+  try {
+    if (typeof window !== 'undefined') {
+      fetch('/api/session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(session),
+      }).catch(() => {});
+    }
+  } catch {}
 }
 
 export async function getSoftFileSession(sessionId: string): Promise<SoftFileSession | null> {
+  // 1. Check IndexedDB
   try {
     const db = await getDB();
-    return new Promise((resolve, reject) => {
+    const localData = await new Promise<SoftFileSession | null>((resolve) => {
       const tx = db.transaction(STORE_SESSIONS, 'readonly');
       const store = tx.objectStore(STORE_SESSIONS);
       const req = store.get(sessionId);
-
-      req.onsuccess = () => {
-        resolve(req.result || null);
-      };
-      req.onerror = () => reject(req.error);
+      req.onsuccess = () => resolve(req.result || null);
+      req.onerror = () => resolve(null);
     });
-  } catch (err) {
-    try {
-      const saved = localStorage.getItem(`snapbooth_session_${sessionId}`);
-      if (saved) return JSON.parse(saved);
-      const fallback = localStorage.getItem('snapbooth_scan_session');
-      return fallback ? JSON.parse(fallback) : null;
-    } catch {
-      return null;
+
+    if (localData && localData.photos && localData.photos.length > 0) {
+      return localData;
     }
-  }
+  } catch {}
+
+  // 2. Check localStorage
+  try {
+    const saved = localStorage.getItem(`snapbooth_session_${sessionId}`);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.photos && parsed.photos.length > 0) {
+        return parsed;
+      }
+    }
+  } catch {}
+
+  // 3. Check Server API route (when scanning QR from another device / phone)
+  try {
+    if (typeof window !== 'undefined') {
+      const res = await fetch(`/api/session?id=${encodeURIComponent(sessionId)}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.session) {
+          // Cache locally in IndexedDB
+          saveSoftFileSession(json.session).catch(() => {});
+          return json.session;
+        }
+      }
+    }
+  } catch {}
+
+  // 4. Fallback to legacy scan session or last session
+  try {
+    const lastSessionId = localStorage.getItem('snapbooth_last_session_id');
+    if (lastSessionId && lastSessionId !== sessionId) {
+      const lastSession = localStorage.getItem(`snapbooth_session_${lastSessionId}`);
+      if (lastSession) return JSON.parse(lastSession);
+    }
+    const fallback = localStorage.getItem('snapbooth_scan_session');
+    if (fallback) {
+      const parsed = JSON.parse(fallback);
+      return {
+        id: sessionId,
+        templateId: parsed.config?.selectedTemplateId || 'template-1',
+        templateName: 'Pearly Photobooth',
+        photostripUrl: parsed.previewUrl || parsed.photos?.[0] || '',
+        gifUrl: parsed.gifUrl || null,
+        photos: parsed.photos || [],
+        config: parsed.config,
+        createdAt: Date.now(),
+      };
+    }
+  } catch {}
+
+  return null;
 }

@@ -68,17 +68,28 @@ export default function Home() {
             }
           });
         } else if (isScanMode) {
-          const savedScan = localStorage.getItem('snapbooth_scan_session');
-          if (savedScan) {
-            const parsed = JSON.parse(savedScan);
-            if (parsed.photos && parsed.photos.length > 0) {
-              setPhotos(parsed.photos);
-              if (parsed.config) setConfig(parsed.config);
-              setIsScanView(true);
-              setIsViewingSavedSession(true);
-              setCurrentStep('result');
+          getSoftFileSession('last').then((sessionData) => {
+            if (sessionData) {
+              setActiveSoftFileSession(sessionData);
+            } else {
+              const savedScan = localStorage.getItem('snapbooth_scan_session');
+              if (savedScan) {
+                const parsed = JSON.parse(savedScan);
+                if (parsed.photos && parsed.photos.length > 0) {
+                  setActiveSoftFileSession({
+                    id: 'scan_session',
+                    templateId: parsed.config?.selectedTemplateId || 'template-1',
+                    templateName: 'Pearly Photobooth',
+                    photostripUrl: parsed.previewUrl || parsed.photos[0],
+                    gifUrl: parsed.gifUrl || null,
+                    photos: parsed.photos,
+                    config: parsed.config || INITIAL_CONFIG,
+                    createdAt: Date.now(),
+                  });
+                }
+              }
             }
-          }
+          });
         }
       }
     } catch (e) {
