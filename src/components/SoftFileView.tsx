@@ -82,29 +82,17 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
           marginBottom: '20px',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/images/logo.png"
-            alt="Pearly Photobooth"
-            style={{
-              height: '38px',
-              width: 'auto',
-              objectFit: 'contain',
-            }}
-          />
-          <h1
-            className="font-script"
-            style={{
-              fontSize: 'clamp(2.4rem, 7vw, 3.2rem)',
-              color: '#1e293b',
-              margin: 0,
-              lineHeight: 1,
-            }}
-          >
-            Pearly Booth
-          </h1>
-        </div>
+        <h1
+          className="font-script"
+          style={{
+            fontSize: 'clamp(2.4rem, 7vw, 3.2rem)',
+            color: '#1e293b',
+            margin: 0,
+            lineHeight: 1,
+          }}
+        >
+          Pearly Booth
+        </h1>
 
         <div
           style={{
@@ -120,8 +108,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             color: '#475569',
           }}
         >
-          <Sparkles size={14} color="#0284c7" />
-          <span>Soft File Hasil Foto Seru Kalian! ✨</span>
+          <span>SOFT FILE FOTO KAMU</span>
         </div>
       </div>
 
@@ -236,7 +223,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 marginTop: '14px',
                 padding: '13px 20px',
                 borderRadius: '14px',
-                background: downloadedStatus['strip'] ? '#22c55e' : '#0284c7',
+                background: downloadedStatus['strip'] ? '#22c55e' : '#4b5563',
                 color: '#ffffff',
                 fontWeight: 800,
                 fontSize: '0.96rem',
@@ -246,7 +233,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                boxShadow: '0 4px 14px rgba(75, 85, 99, 0.35)',
                 transition: 'transform 0.1s ease, background-color 0.15s ease',
               }}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
@@ -367,7 +354,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 marginTop: '14px',
                 padding: '13px 20px',
                 borderRadius: '14px',
-                background: downloadedStatus['gif'] ? '#22c55e' : '#0284c7',
+                background: downloadedStatus['gif'] ? '#22c55e' : '#4b5563',
                 color: '#ffffff',
                 fontWeight: 800,
                 fontSize: '0.96rem',
@@ -377,7 +364,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                boxShadow: '0 4px 14px rgba(75, 85, 99, 0.35)',
                 transition: 'transform 0.1s ease, background-color 0.15s ease',
               }}
               onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
