@@ -235,20 +235,20 @@ export default function Home() {
       <main
         style={{
           minHeight: '100vh',
-          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)',
+          background: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '24px',
-          color: '#0f172a',
+          color: '#1e293b',
           textAlign: 'center',
         }}
       >
         <div
           style={{
             background: '#ffffff',
-            border: '2.5px solid #0f172a',
+            border: '2px solid #e2e8f0',
             borderRadius: '24px',
             padding: '36px 28px',
             maxWidth: '380px',
@@ -257,7 +257,7 @@ export default function Home() {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '16px',
-            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
           }}
         >
           <div
@@ -265,21 +265,20 @@ export default function Home() {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: '#38bdf8',
-              border: '2.5px solid #0f172a',
+              background: '#f0f9ff',
+              border: '2px solid #bae6fd',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 4px 0 #0f172a',
             }}
           >
-            <Loader2 size={32} className="animate-spin text-slate-900" />
+            <Loader2 size={32} className="animate-spin text-sky-600" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0' }}>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', margin: '0 0 6px 0' }}>
               Memuat Soft File Anda...
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, fontWeight: 600 }}>
+            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, fontWeight: 600 }}>
               Menyiapkan photostrip HD, animasi GIF & foto satuan per pose 📸
             </p>
           </div>
@@ -294,20 +293,20 @@ export default function Home() {
       <main
         style={{
           minHeight: '100vh',
-          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)',
+          background: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '24px',
-          color: '#0f172a',
+          color: '#1e293b',
           textAlign: 'center',
         }}
       >
         <div
           style={{
             background: '#ffffff',
-            border: '2.5px solid #0f172a',
+            border: '2px solid #e2e8f0',
             borderRadius: '24px',
             padding: '36px 24px',
             maxWidth: '400px',
@@ -316,11 +315,11 @@ export default function Home() {
             flexDirection: 'column',
             alignItems: 'center',
             gap: '16px',
-            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
           }}
         >
           <div style={{ fontSize: '2.4rem' }}>📷</div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>
             Soft File Belum Tersedia
           </h2>
           <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
@@ -335,14 +334,14 @@ export default function Home() {
             style={{
               marginTop: '8px',
               padding: '12px 24px',
-              borderRadius: '12px',
-              background: '#38bdf8',
-              color: '#0f172a',
-              fontWeight: 900,
-              fontSize: '0.95rem',
-              border: '2px solid #0f172a',
+              borderRadius: '999px',
+              background: '#0284c7',
+              color: '#ffffff',
+              fontWeight: 800,
+              fontSize: '0.92rem',
+              border: 'none',
               cursor: 'pointer',
-              boxShadow: '0 4px 0 #0f172a',
+              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
             }}
           >
             Coba Muat Ulang ↺
@@ -355,7 +354,7 @@ export default function Home() {
   // 3. If visiting via scanned QR Barcode with dedicated SoftFile session ID:
   if (activeSoftFileSession) {
     return (
-      <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)' }}>
+      <main style={{ minHeight: '100vh', background: '#ffffff' }}>
         <SoftFileView
           session={activeSoftFileSession}
           onStartNewSession={() => {

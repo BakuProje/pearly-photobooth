@@ -3,28 +3,24 @@
 import React, { useState } from 'react';
 import { SoftFileSession } from '@/lib/types';
 import { getTemplateById } from '@/lib/templateManager';
-import { Print4RModal } from './Print4RModal';
 import {
   Download,
   Maximize2,
   X,
-  Printer,
-  RotateCcw,
   Check,
+  Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface SoftFileViewProps {
   session: SoftFileSession;
-  onStartNewSession: () => void;
+  onStartNewSession?: () => void;
 }
 
 export const SoftFileView: React.FC<SoftFileViewProps> = ({
   session,
-  onStartNewSession,
 }) => {
   const [zoomedUrl, setZoomedUrl] = useState<{ url: string; title: string } | null>(null);
-  const [isPrint4RModalOpen, setIsPrint4RModalOpen] = useState(false);
   const [downloadedStatus, setDownloadedStatus] = useState<{ [key: string]: boolean }>({});
 
   const template = getTemplateById(session.templateId || session.config?.selectedTemplateId);
@@ -63,16 +59,72 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
       style={{
         width: '100%',
         minHeight: '100vh',
-        background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)',
-        color: '#0f172a',
+        background: '#ffffff',
+        color: '#1e293b',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        padding: '20px 16px 60px 16px',
+        padding: '24px 16px 60px 16px',
         overflowX: 'hidden',
         boxSizing: 'border-box',
       }}
     >
+      {/* Top Header matching Pearly Photobooth branding */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '480px',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          textAlign: 'center',
+          gap: '8px',
+          marginBottom: '20px',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/images/logo.png"
+            alt="Pearly Photobooth"
+            style={{
+              height: '38px',
+              width: 'auto',
+              objectFit: 'contain',
+            }}
+          />
+          <h1
+            className="font-script"
+            style={{
+              fontSize: 'clamp(2.4rem, 7vw, 3.2rem)',
+              color: '#1e293b',
+              margin: 0,
+              lineHeight: 1,
+            }}
+          >
+            Pearly Booth
+          </h1>
+        </div>
+
+        <div
+          style={{
+            background: '#f1f5f9',
+            border: '1.5px solid #e2e8f0',
+            borderRadius: '999px',
+            padding: '4px 16px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontSize: '0.82rem',
+            fontWeight: 800,
+            color: '#475569',
+          }}
+        >
+          <Sparkles size={14} color="#0284c7" />
+          <span>Soft File Hasil Foto Seru Kalian! ✨</span>
+        </div>
+      </div>
+
       {/* Centered Content Container */}
       <div
         style={{
@@ -83,7 +135,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
           gap: '20px',
         }}
       >
-        {/* ================= CARD 1: PHOTOSTRIP (Matches Gambar 2) ================= */}
+        {/* ================= CARD 1: PHOTOSTRIP ================= */}
         {session.photostripUrl && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -91,33 +143,33 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             transition={{ duration: 0.25 }}
             style={{
               background: '#ffffff',
-              border: '2.5px solid #0f172a',
-              borderRadius: '24px',
+              border: '2px solid #e2e8f0',
+              borderRadius: '20px',
               padding: '18px',
-              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
               display: 'flex',
               flexDirection: 'column',
             }}
           >
             <h2
               style={{
-                fontSize: '1.3rem',
+                fontSize: '1.25rem',
                 fontWeight: 900,
-                color: '#0f172a',
+                color: '#1e293b',
                 margin: '0 0 14px 0',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
                 letterSpacing: '-0.3px',
               }}
             >
               Photostrip
             </h2>
 
-            {/* Inner Image Container with Dark Border */}
+            {/* Inner Image Container with Clean Frame */}
             <div
               style={{
                 width: '100%',
-                background: '#0f172a',
-                border: '2px solid #0f172a',
+                background: '#1e293b',
+                border: '2px solid #1e293b',
                 borderRadius: '16px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -149,7 +201,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                   position: 'absolute',
                   bottom: '12px',
                   right: '12px',
-                  background: '#0f172a',
+                  background: 'rgba(30, 41, 59, 0.9)',
+                  backdropFilter: 'blur(6px)',
                   color: '#ffffff',
                   padding: '5px 14px',
                   borderRadius: '999px',
@@ -158,7 +211,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '5px',
-                  border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                  border: '1.5px solid rgba(255, 255, 255, 0.3)',
                   cursor: 'pointer',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                 }}
@@ -183,20 +236,20 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 marginTop: '14px',
                 padding: '13px 20px',
                 borderRadius: '14px',
-                background: downloadedStatus['strip'] ? '#22c55e' : '#38bdf8',
-                color: downloadedStatus['strip'] ? '#ffffff' : '#0f172a',
-                fontWeight: 900,
-                fontSize: '1rem',
-                border: '2.5px solid #0f172a',
+                background: downloadedStatus['strip'] ? '#22c55e' : '#0284c7',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.96rem',
+                border: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 0 #0f172a',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
                 transition: 'transform 0.1s ease, background-color 0.15s ease',
               }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(2px)')}
+              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
             >
               {downloadedStatus['strip'] ? (
@@ -214,7 +267,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
           </motion.div>
         )}
 
-        {/* ================= CARD 2: ANIMATED GIF (Matches Gambar 3) ================= */}
+        {/* ================= CARD 2: ANIMATED GIF ================= */}
         {session.gifUrl && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -222,21 +275,21 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             transition={{ duration: 0.25, delay: 0.05 }}
             style={{
               background: '#ffffff',
-              border: '2.5px solid #0f172a',
-              borderRadius: '24px',
+              border: '2px solid #e2e8f0',
+              borderRadius: '20px',
               padding: '18px',
-              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
               display: 'flex',
               flexDirection: 'column',
             }}
           >
             <h2
               style={{
-                fontSize: '1.3rem',
+                fontSize: '1.25rem',
                 fontWeight: 900,
-                color: '#0f172a',
+                color: '#1e293b',
                 margin: '0 0 14px 0',
-                fontFamily: 'system-ui, -apple-system, sans-serif',
+                fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
                 letterSpacing: '-0.3px',
               }}
             >
@@ -247,8 +300,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             <div
               style={{
                 width: '100%',
-                background: '#0f172a',
-                border: '2px solid #0f172a',
+                background: '#1e293b',
+                border: '2px solid #1e293b',
                 borderRadius: '16px',
                 overflow: 'hidden',
                 position: 'relative',
@@ -279,7 +332,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                   position: 'absolute',
                   bottom: '12px',
                   right: '12px',
-                  background: '#0f172a',
+                  background: 'rgba(30, 41, 59, 0.9)',
+                  backdropFilter: 'blur(6px)',
                   color: '#ffffff',
                   padding: '5px 14px',
                   borderRadius: '999px',
@@ -288,7 +342,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   gap: '5px',
-                  border: '1.5px solid rgba(255, 255, 255, 0.25)',
+                  border: '1.5px solid rgba(255, 255, 255, 0.3)',
                   cursor: 'pointer',
                   boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                 }}
@@ -313,20 +367,20 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 marginTop: '14px',
                 padding: '13px 20px',
                 borderRadius: '14px',
-                background: downloadedStatus['gif'] ? '#22c55e' : '#38bdf8',
-                color: downloadedStatus['gif'] ? '#ffffff' : '#0f172a',
-                fontWeight: 900,
-                fontSize: '1rem',
-                border: '2.5px solid #0f172a',
+                background: downloadedStatus['gif'] ? '#22c55e' : '#0284c7',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.96rem',
+                border: 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '8px',
                 cursor: 'pointer',
-                boxShadow: '0 4px 0 #0f172a',
+                boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
                 transition: 'transform 0.1s ease, background-color 0.15s ease',
               }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(2px)')}
+              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
               onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
             >
               {downloadedStatus['gif'] ? (
@@ -344,7 +398,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
           </motion.div>
         )}
 
-        {/* ================= CARD 3: PHOTOS (N) (Matches Gambar 3) ================= */}
+        {/* ================= CARD 3: PHOTOS (N) ================= */}
         {session.photos && session.photos.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
@@ -352,10 +406,10 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             transition={{ duration: 0.25, delay: 0.1 }}
             style={{
               background: '#ffffff',
-              border: '2.5px solid #0f172a',
-              borderRadius: '24px',
+              border: '2px solid #e2e8f0',
+              borderRadius: '20px',
               padding: '18px',
-              boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
               display: 'flex',
               flexDirection: 'column',
             }}
@@ -372,11 +426,11 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             >
               <h2
                 style={{
-                  fontSize: '1.3rem',
+                  fontSize: '1.25rem',
                   fontWeight: 900,
-                  color: '#0f172a',
+                  color: '#1e293b',
                   margin: 0,
-                  fontFamily: 'system-ui, -apple-system, sans-serif',
+                  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
                   letterSpacing: '-0.3px',
                 }}
               >
@@ -387,21 +441,21 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 type="button"
                 onClick={handleDownloadAllPhotos}
                 style={{
-                  background: '#ffffff',
-                  color: '#0f172a',
-                  border: '2.5px solid #0f172a',
+                  background: '#1e293b',
+                  color: '#ffffff',
+                  border: 'none',
                   borderRadius: '999px',
-                  fontWeight: 900,
-                  fontSize: '0.84rem',
-                  padding: '6px 14px',
+                  fontWeight: 800,
+                  fontSize: '0.82rem',
+                  padding: '7px 16px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   cursor: 'pointer',
-                  boxShadow: '0 3px 0 #0f172a',
+                  boxShadow: '0 2px 8px rgba(30, 41, 59, 0.25)',
                   transition: 'transform 0.1s ease',
                 }}
-                onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(2px)')}
+                onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
                 onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
               >
                 <Download size={14} />
@@ -421,8 +475,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                 <div
                   key={idx}
                   style={{
-                    background: '#0f172a',
-                    border: '2px solid #0f172a',
+                    background: '#1e293b',
+                    border: '1.5px solid #e2e8f0',
                     borderRadius: '16px',
                     overflow: 'hidden',
                     display: 'flex',
@@ -439,7 +493,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                       aspectRatio: '4 / 3',
                       overflow: 'hidden',
                       cursor: 'zoom-in',
-                      background: '#1e293b',
+                      background: '#0f172a',
                     }}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -468,7 +522,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
                     style={{
                       width: '100%',
                       padding: '8px 0',
-                      background: downloadedStatus[`photo_${idx}`] ? '#22c55e' : '#0f172a',
+                      background: downloadedStatus[`photo_${idx}`] ? '#22c55e' : '#1e293b',
                       color: '#ffffff',
                       border: 'none',
                       borderTop: '1px solid rgba(255, 255, 255, 0.15)',
@@ -491,63 +545,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
             </div>
           </motion.div>
         )}
-
-        {/* Action: Cetak 4R & Sesi Baru */}
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '10px',
-            marginTop: '8px',
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setIsPrint4RModalOpen(true)}
-            style={{
-              width: '100%',
-              padding: '12px 18px',
-              borderRadius: '14px',
-              background: '#ffffff',
-              color: '#0f172a',
-              fontWeight: 800,
-              fontSize: '0.92rem',
-              border: '2px solid #0f172a',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-              boxShadow: '0 3px 0 #0f172a',
-            }}
-          >
-            <Printer size={16} />
-            <span>Cetak Ukuran Kertas 4R</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={onStartNewSession}
-            style={{
-              width: '100%',
-              padding: '12px 18px',
-              borderRadius: '14px',
-              background: '#0f172a',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.92rem',
-              border: '2px solid #0f172a',
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '8px',
-            }}
-          >
-            <RotateCcw size={16} />
-            <span>Foto Sesi Baru</span>
-          </button>
-        </div>
       </div>
 
       {/* Universal Lightbox Zoom Modal */}
@@ -558,7 +555,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
               position: 'fixed',
               inset: 0,
               zIndex: 999999,
-              background: 'rgba(0, 0, 0, 0.92)',
+              background: 'rgba(15, 23, 42, 0.92)',
               backdropFilter: 'blur(8px)',
               display: 'flex',
               flexDirection: 'column',
@@ -620,15 +617,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({
           </div>
         )}
       </AnimatePresence>
-
-      {/* 4R Print Modal */}
-      <Print4RModal
-        isOpen={isPrint4RModalOpen}
-        onClose={() => setIsPrint4RModalOpen(false)}
-        photos={session.photos}
-        config={session.config}
-      />
     </div>
   );
 };
+
 

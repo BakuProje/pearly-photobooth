@@ -1542,26 +1542,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 Jangan sampai hilang! Yuk, foto atau scan barcode ini buat download soft file foto seru kalian!📸
               </p>
 
-              {/* Direct Open Link Button */}
-              {publicScanUrl && (
-                <a
-                  href={publicScanUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    fontSize: '0.80rem',
-                    color: '#0284c7',
-                    fontWeight: 800,
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    marginTop: '-4px',
-                    marginBottom: '4px',
-                  }}
-                >
-                  Buka Halaman Soft File Langsung ↗
-                </a>
-              )}
-
               {/* Action Buttons inside QR Barcode Modal */}
               <div
                 style={{
