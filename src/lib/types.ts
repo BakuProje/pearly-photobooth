@@ -123,6 +123,17 @@ export interface GalleryItem {
   createdAt: number;
 }
 
+export interface SoftFileSession {
+  id: string;
+  templateId: string;
+  templateName: string;
+  photostripUrl: string;
+  gifUrl: string | null;
+  photos: string[];
+  config: PhotoBoothConfig;
+  createdAt: number;
+}
+
 export interface AIEnhanceResult {
   brightness: number;
   contrast: number;

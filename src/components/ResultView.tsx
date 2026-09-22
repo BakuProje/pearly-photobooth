@@ -6,7 +6,9 @@ import {
   PhotoboothTemplate,
   GalleryItem,
   FilterType,
+  SoftFileSession,
 } from '@/lib/types';
+import { saveSoftFileSession } from '@/lib/storageManager';
 import { getTemplateById } from '@/lib/templateManager';
 import { FILTERS } from '@/lib/constants';
 import {
@@ -116,6 +118,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
   const hasAutoSavedRef = useRef(false);
   const onSaveToGalleryRef = useRef(onSaveToGallery);
   onSaveToGalleryRef.current = onSaveToGallery;
+  const sessionIdRef = useRef<string>(`pb_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`);
+  const sessionCreatedAtRef = useRef<number>(Date.now());
 
   const currentTemplate: PhotoboothTemplate = getTemplateById(currentConfig.selectedTemplateId);
 
@@ -169,7 +173,20 @@ export const ResultView: React.FC<ResultViewProps> = ({
         })
         .catch(() => { });
 
-      // Save scan session to localStorage
+      // Save soft file session to IndexedDB & fallback (isolated by unique sessionId, no collision)
+      const sessionData: SoftFileSession = {
+        id: sessionIdRef.current,
+        templateId: cfg.selectedTemplateId,
+        templateName: currentTemplate.name,
+        photostripUrl: url,
+        gifUrl: gifUrl,
+        photos: filtered,
+        config: { ...cfg },
+        createdAt: sessionCreatedAtRef.current,
+      };
+      saveSoftFileSession(sessionData);
+
+      // Also maintain legacy scan session for fallback
       try {
         localStorage.setItem(
           'snapbooth_scan_session',
@@ -181,11 +198,11 @@ export const ResultView: React.FC<ResultViewProps> = ({
       if (!isScanView && !disableAutoSave && !hasAutoSavedRef.current) {
         hasAutoSavedRef.current = true;
         onSaveToGalleryRef.current({
-          id: `snap_${Date.now()}`,
+          id: sessionIdRef.current,
           previewUrl: url,
           photos: [...filtered],
           config: { ...cfg },
-          createdAt: Date.now(),
+          createdAt: sessionCreatedAtRef.current,
         });
       }
 
@@ -200,6 +217,18 @@ export const ResultView: React.FC<ResultViewProps> = ({
             if (thisRenderId === renderIdRef.current) {
               setGifUrl(gif);
               setIsGifGenerating(false);
+
+              // Update soft file session with generated GIF
+              saveSoftFileSession({
+                id: sessionIdRef.current,
+                templateId: cfg.selectedTemplateId,
+                templateName: currentTemplate.name,
+                photostripUrl: url,
+                gifUrl: gif,
+                photos: filtered,
+                config: { ...cfg },
+                createdAt: sessionCreatedAtRef.current,
+              });
             }
           })
           .catch((err) => {
@@ -217,9 +246,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
       }
     }
 
-    // Generate Barcode QR Code
+    // Generate Barcode QR Code pointing to isolated Soft File URL
     if (typeof window !== 'undefined') {
-      const scanUrl = `${window.location.origin}${window.location.pathname}?mode=scan`;
+      const scanUrl = `${window.location.origin}${window.location.pathname}?session=${sessionIdRef.current}`;
       generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
         setQrCodeUrl(qr);
       });

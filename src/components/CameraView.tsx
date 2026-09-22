@@ -299,8 +299,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 justifyContent: 'center',
               }}
             >
-              <div className="countdown-circle">
-                <span>{countdownValue}</span>
+              <div className="countdown-number">
+                {countdownValue}
               </div>
               <div
                 style={{

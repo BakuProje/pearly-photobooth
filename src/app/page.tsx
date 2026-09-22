@@ -5,6 +5,7 @@ import { Navbar } from '@/components/Navbar';
 import { TemplateSelector } from '@/components/TemplateSelector';
 import { CameraView } from '@/components/CameraView';
 import { ResultView } from '@/components/ResultView';
+import { SoftFileView } from '@/components/SoftFileView';
 import { GalleryDrawer } from '@/components/GalleryDrawer';
 import { CameraPermissionModal } from '@/components/CameraPermissionModal';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +13,15 @@ import {
   PhotoBoothConfig,
   FilterType,
   GalleryItem,
+  SoftFileSession,
 } from '@/lib/types';
+import {
+  getAllGalleryItems,
+  saveGalleryItem,
+  deleteGalleryItem,
+  clearAllGalleryItems,
+  getSoftFileSession,
+} from '@/lib/storageManager';
 
 const INITIAL_CONFIG: PhotoBoothConfig = {
   selectedTemplateId: 'template-1',
@@ -41,16 +50,24 @@ export default function Home() {
   const [isScanView, setIsScanView] = useState(false);
   const [isViewingSavedSession, setIsViewingSavedSession] = useState(false);
   const [retakeSlotIndex, setRetakeSlotIndex] = useState<number | null>(null);
+  const [activeSoftFileSession, setActiveSoftFileSession] = useState<SoftFileSession | null>(null);
 
-  // Check URL scan parameters
+  // Check URL scan parameters (?session=<id> or legacy ?mode=scan)
   useEffect(() => {
     try {
       if (typeof window !== 'undefined') {
         const searchParams = new URLSearchParams(window.location.search);
+        const sessionId = searchParams.get('session');
         const isScanMode =
           searchParams.get('mode') === 'scan' || searchParams.get('view') === 'result';
 
-        if (isScanMode) {
+        if (sessionId) {
+          getSoftFileSession(sessionId).then((sessionData) => {
+            if (sessionData) {
+              setActiveSoftFileSession(sessionData);
+            }
+          });
+        } else if (isScanMode) {
           const savedScan = localStorage.getItem('snapbooth_scan_session');
           if (savedScan) {
             const parsed = JSON.parse(savedScan);
@@ -69,42 +86,16 @@ export default function Home() {
     }
   }, []);
 
-  // Load gallery from localStorage
+  // Load gallery from IndexedDB (Persistent across refresh)
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('snapbooth_gallery');
-      if (saved) {
-        const parsed: GalleryItem[] = JSON.parse(saved);
-        const unique: GalleryItem[] = [];
-        for (const item of parsed) {
-          const exists = unique.some(
-            (u) =>
-              u.id === item.id ||
-              (u.config?.selectedTemplateId === item.config?.selectedTemplateId &&
-                u.photos?.length === item.photos?.length &&
-                u.photos?.[0] === item.photos?.[0])
-          );
-          if (!exists) unique.push(item);
-        }
-        setGallery(unique);
-      }
-    } catch (e) {
-      console.warn('Failed to load gallery', e);
-    }
+    getAllGalleryItems()
+      .then((items) => {
+        setGallery(items);
+      })
+      .catch((e) => {
+        console.warn('Failed to load gallery from IndexedDB', e);
+      });
   }, []);
-
-  const saveGalleryToStorage = (items: GalleryItem[]) => {
-    setGallery(items);
-    try {
-      localStorage.setItem('snapbooth_gallery', JSON.stringify(items));
-    } catch (e) {
-      try {
-        const pruned = items.slice(0, 10);
-        setGallery(pruned);
-        localStorage.setItem('snapbooth_gallery', JSON.stringify(pruned));
-      } catch {}
-    }
-  };
 
   const handleSelectTemplate = (templateId: string) => {
     setConfig((prev) => ({ ...prev, selectedTemplateId: templateId }));
@@ -164,21 +155,21 @@ export default function Home() {
   };
 
   const handleSaveToGallery = React.useCallback((item: GalleryItem) => {
+    saveGalleryItem(item);
     setGallery((prev) => {
       if (prev.some((g) => g.id === item.id)) return prev;
-      const updated = [item, ...prev];
-      saveGalleryToStorage(updated);
-      return updated;
+      return [item, ...prev];
     });
   }, []);
 
-  const handleDeleteGalleryItem = (id: string) => {
-    const updated = gallery.filter((g) => g.id !== id);
-    saveGalleryToStorage(updated);
+  const handleDeleteGalleryItem = async (id: string) => {
+    await deleteGalleryItem(id);
+    setGallery((prev) => prev.filter((g) => g.id !== id));
   };
 
-  const handleClearGallery = () => {
-    saveGalleryToStorage([]);
+  const handleClearGallery = async () => {
+    await clearAllGalleryItems();
+    setGallery([]);
   };
 
   const handleLoadSessionFromGallery = (item: GalleryItem) => {
@@ -191,6 +182,25 @@ export default function Home() {
       setCurrentStep('result');
     }
   };
+
+  // If visiting via scanned QR Barcode with dedicated SoftFile session ID (?session=<id>)
+  if (activeSoftFileSession) {
+    return (
+      <main style={{ minHeight: '100vh', background: '#0f172a' }}>
+        <SoftFileView
+          session={activeSoftFileSession}
+          onStartNewSession={() => {
+            setActiveSoftFileSession(null);
+            if (typeof window !== 'undefined') {
+              window.history.replaceState({}, '', window.location.pathname);
+            }
+            handleRetakeNewSession();
+            setCurrentStep('welcome');
+          }}
+        />
+      </main>
+    );
+  }
 
   return (
     <main
