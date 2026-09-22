@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.109.0",
     "@types/qrcode": "^1.5.6",
     "canvas-confetti": "^1.9.4",
     "disable-devtool": "^0.3.9",

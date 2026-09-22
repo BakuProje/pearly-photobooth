@@ -75,6 +75,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   const [processedPhotos, setProcessedPhotos] = useState<string[]>(initialPhotos);
   const [gifUrl, setGifUrl] = useState<string | null>(null);
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
+  const [publicScanUrl, setPublicScanUrl] = useState<string>('');
   const [isQrModalOpen, setIsQrModalOpen] = useState<boolean>(false);
   const [isPrint4RModalOpen, setIsPrint4RModalOpen] = useState<boolean>(false);
   const [isRendering, setIsRendering] = useState<boolean>(false);
@@ -248,10 +249,34 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
     // Generate Barcode QR Code pointing to isolated Soft File URL
     if (typeof window !== 'undefined') {
-      const scanUrl = `${window.location.origin}${window.location.pathname}?session=${sessionIdRef.current}`;
-      generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
-        setQrCodeUrl(qr);
-      });
+      const generateQr = async () => {
+        let baseOrigin = window.location.origin;
+
+        // If running on local machine, attempt to fetch actual LAN IP so smartphones on same network can connect
+        if (
+          window.location.hostname === 'localhost' ||
+          window.location.hostname === '127.0.0.1'
+        ) {
+          try {
+            const hostRes = await fetch('/api/host');
+            if (hostRes.ok) {
+              const hostData = await hostRes.json();
+              if (hostData.localIp && hostData.localIp !== 'localhost') {
+                const port = window.location.port ? `:${window.location.port}` : '';
+                baseOrigin = `${window.location.protocol}//${hostData.localIp}${port}`;
+              }
+            }
+          } catch {}
+        }
+
+        const scanUrl = `${baseOrigin}${window.location.pathname}?session=${sessionIdRef.current}`;
+        setPublicScanUrl(scanUrl);
+        generateQrCodeDataUrl(scanUrl, '/images/logo.png').then((qr) => {
+          setQrCodeUrl(qr);
+        });
+      };
+
+      generateQr();
     }
   };
 
@@ -1471,7 +1496,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
               >
                 {qrCodeUrl ? (
                   <a
-                    href={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?session=${sessionIdRef.current}` : '#'}
+                    href={publicScanUrl || (typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?session=${sessionIdRef.current}` : '#')}
                     target="_blank"
                     rel="noopener noreferrer"
                     title="Klik untuk membuka Soft File"
@@ -1516,6 +1541,26 @@ export const ResultView: React.FC<ResultViewProps> = ({
               >
                 Jangan sampai hilang! Yuk, foto atau scan barcode ini buat download soft file foto seru kalian!📸
               </p>
+
+              {/* Direct Open Link Button */}
+              {publicScanUrl && (
+                <a
+                  href={publicScanUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    fontSize: '0.80rem',
+                    color: '#0284c7',
+                    fontWeight: 800,
+                    textDecoration: 'underline',
+                    cursor: 'pointer',
+                    marginTop: '-4px',
+                    marginBottom: '4px',
+                  }}
+                >
+                  Buka Halaman Soft File Langsung ↗
+                </a>
+              )}
 
               {/* Action Buttons inside QR Barcode Modal */}
               <div

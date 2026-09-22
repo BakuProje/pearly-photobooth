@@ -138,12 +138,17 @@ export async function clearAllGalleryItems(): Promise<void> {
   }
 }
 
+import {
+  saveSessionToSupabase,
+  getSessionFromSupabase,
+} from './supabaseClient';
+
 // =========================================================================
 // SOFT FILE SESSIONS (Isolated by unique SessionId, no collision)
 // =========================================================================
 
 export async function saveSoftFileSession(session: SoftFileSession): Promise<void> {
-  // 1. Save to IndexedDB
+  // 1. Save to IndexedDB (Instant local browser storage)
   try {
     const db = await getDB();
     await new Promise<void>((resolve, reject) => {
@@ -163,7 +168,14 @@ export async function saveSoftFileSession(session: SoftFileSession): Promise<voi
     localStorage.setItem('snapbooth_last_session_id', session.id);
   } catch {}
 
-  // 3. Sync to API route for cross-device QR scanning (e.g. smartphone scanning booth screen)
+  // 3. Sync to Supabase Cloud Database & Storage (Publicly accessible from any mobile cellular network)
+  try {
+    saveSessionToSupabase(session).catch((err) => {
+      console.warn('Supabase sync background notice:', err);
+    });
+  } catch {}
+
+  // 4. Sync to local Server API route
   try {
     if (typeof window !== 'undefined') {
       fetch('/api/session', {
@@ -192,7 +204,23 @@ export async function getSoftFileSession(sessionId: string): Promise<SoftFileSes
     }
   } catch {}
 
-  // 2. Check localStorage
+  // 2. Check Supabase Cloud Database & Storage (Customer phone on cellular network)
+  try {
+    const supabaseData = await getSessionFromSupabase(sessionId);
+    if (supabaseData && supabaseData.photos && supabaseData.photos.length > 0) {
+      // Cache locally in IndexedDB for fast subsequent opens
+      try {
+        const db = await getDB();
+        const tx = db.transaction(STORE_SESSIONS, 'readwrite');
+        tx.objectStore(STORE_SESSIONS).put(supabaseData);
+      } catch {}
+      return supabaseData;
+    }
+  } catch (supabaseErr) {
+    console.warn('Supabase fetch notice:', supabaseErr);
+  }
+
+  // 3. Check localStorage
   try {
     const saved = localStorage.getItem(`snapbooth_session_${sessionId}`);
     if (saved) {
@@ -203,22 +231,20 @@ export async function getSoftFileSession(sessionId: string): Promise<SoftFileSes
     }
   } catch {}
 
-  // 3. Check Server API route (when scanning QR from another device / phone)
+  // 4. Check Server API route
   try {
     if (typeof window !== 'undefined') {
       const res = await fetch(`/api/session?id=${encodeURIComponent(sessionId)}`);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.session) {
-          // Cache locally in IndexedDB
-          saveSoftFileSession(json.session).catch(() => {});
           return json.session;
         }
       }
     }
   } catch {}
 
-  // 4. Fallback to legacy scan session or last session
+  // 5. Fallback to last session
   try {
     const lastSessionId = localStorage.getItem('snapbooth_last_session_id');
     if (lastSessionId && lastSessionId !== sessionId) {

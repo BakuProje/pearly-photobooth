@@ -9,6 +9,7 @@ import { SoftFileView } from '@/components/SoftFileView';
 import { GalleryDrawer } from '@/components/GalleryDrawer';
 import { CameraPermissionModal } from '@/components/CameraPermissionModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import {
   PhotoBoothConfig,
   FilterType,
@@ -51,6 +52,14 @@ export default function Home() {
   const [isViewingSavedSession, setIsViewingSavedSession] = useState(false);
   const [retakeSlotIndex, setRetakeSlotIndex] = useState<number | null>(null);
   const [activeSoftFileSession, setActiveSoftFileSession] = useState<SoftFileSession | null>(null);
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const sp = new URLSearchParams(window.location.search);
+      return sp.has('session') || sp.get('mode') === 'scan' || sp.get('view') === 'result';
+    }
+    return false;
+  });
+  const [sessionNotFound, setSessionNotFound] = useState<boolean>(false);
 
   // Check URL scan parameters (?session=<id> or legacy ?mode=scan)
   useEffect(() => {
@@ -62,12 +71,32 @@ export default function Home() {
           searchParams.get('mode') === 'scan' || searchParams.get('view') === 'result';
 
         if (sessionId) {
-          getSoftFileSession(sessionId).then((sessionData) => {
-            if (sessionData) {
-              setActiveSoftFileSession(sessionData);
-            }
-          });
+          setIsCheckingSession(true);
+          getSoftFileSession(sessionId)
+            .then((sessionData) => {
+              if (sessionData) {
+                setActiveSoftFileSession(sessionData);
+                setIsCheckingSession(false);
+              } else {
+                // Retry once after 600ms in case server is writing to disk
+                setTimeout(() => {
+                  getSoftFileSession(sessionId).then((retryData) => {
+                    if (retryData) {
+                      setActiveSoftFileSession(retryData);
+                    } else {
+                      setSessionNotFound(true);
+                    }
+                    setIsCheckingSession(false);
+                  });
+                }, 600);
+              }
+            })
+            .catch(() => {
+              setSessionNotFound(true);
+              setIsCheckingSession(false);
+            });
         } else if (isScanMode) {
+          setIsCheckingSession(true);
           getSoftFileSession('last').then((sessionData) => {
             if (sessionData) {
               setActiveSoftFileSession(sessionData);
@@ -86,14 +115,20 @@ export default function Home() {
                     config: parsed.config || INITIAL_CONFIG,
                     createdAt: Date.now(),
                   });
+                } else {
+                  setSessionNotFound(true);
                 }
+              } else {
+                setSessionNotFound(true);
               }
             }
+            setIsCheckingSession(false);
           });
         }
       }
     } catch (e) {
       console.warn('Error reading scan params', e);
+      setIsCheckingSession(false);
     }
   }, []);
 
@@ -194,10 +229,133 @@ export default function Home() {
     }
   };
 
-  // If visiting via scanned QR Barcode with dedicated SoftFile session ID (?session=<id>)
+  // 1. If currently checking scanned QR session: Render sleek loader (NEVER show Welcome "MULAI" screen)
+  if (isCheckingSession) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          color: '#0f172a',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            background: '#ffffff',
+            border: '2.5px solid #0f172a',
+            borderRadius: '24px',
+            padding: '36px 28px',
+            maxWidth: '380px',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+          }}
+        >
+          <div
+            style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '50%',
+              background: '#38bdf8',
+              border: '2.5px solid #0f172a',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 4px 0 #0f172a',
+            }}
+          >
+            <Loader2 size={32} className="animate-spin text-slate-900" />
+          </div>
+          <div>
+            <h2 style={{ fontSize: '1.3rem', fontWeight: 900, color: '#0f172a', margin: '0 0 6px 0' }}>
+              Memuat Soft File Anda...
+            </h2>
+            <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, fontWeight: 600 }}>
+              Menyiapkan photostrip HD, animasi GIF & foto satuan per pose 📸
+            </p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  // 2. If session failed to load:
+  if (sessionNotFound) {
+    return (
+      <main
+        style={{
+          minHeight: '100vh',
+          background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          color: '#0f172a',
+          textAlign: 'center',
+        }}
+      >
+        <div
+          style={{
+            background: '#ffffff',
+            border: '2.5px solid #0f172a',
+            borderRadius: '24px',
+            padding: '36px 24px',
+            maxWidth: '400px',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px',
+            boxShadow: '0 12px 32px rgba(15, 23, 42, 0.12)',
+          }}
+        >
+          <div style={{ fontSize: '2.4rem' }}>📷</div>
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#0f172a', margin: 0 }}>
+            Soft File Belum Tersedia
+          </h2>
+          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+            Pastikan proses foto telah selesai pada layar photobooth, atau coba scan ulang barcode Anda.
+          </p>
+          <button
+            type="button"
+            onClick={() => {
+              setSessionNotFound(false);
+              window.location.reload();
+            }}
+            style={{
+              marginTop: '8px',
+              padding: '12px 24px',
+              borderRadius: '12px',
+              background: '#38bdf8',
+              color: '#0f172a',
+              fontWeight: 900,
+              fontSize: '0.95rem',
+              border: '2px solid #0f172a',
+              cursor: 'pointer',
+              boxShadow: '0 4px 0 #0f172a',
+            }}
+          >
+            Coba Muat Ulang ↺
+          </button>
+        </div>
+      </main>
+    );
+  }
+
+  // 3. If visiting via scanned QR Barcode with dedicated SoftFile session ID:
   if (activeSoftFileSession) {
     return (
-      <main style={{ minHeight: '100vh', background: '#0f172a' }}>
+      <main style={{ minHeight: '100vh', background: 'linear-gradient(180deg, #dbeafe 0%, #bfdbfe 50%, #93c5fd 100%)' }}>
         <SoftFileView
           session={activeSoftFileSession}
           onStartNewSession={() => {
