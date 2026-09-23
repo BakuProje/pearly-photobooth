@@ -175,29 +175,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
         >
           <span>SOFT FILE FOTO KAMU</span>
         </div>
-
-        {/* User-friendly Mobile Tip Banner */}
-        <div
-          style={{
-            marginTop: '4px',
-            background: '#f1f5f9',
-            border: '1px dashed #cbd5e1',
-            borderRadius: '12px',
-            padding: '8px 12px',
-            fontSize: '0.78rem',
-            color: '#64748b',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            textAlign: 'left',
-            lineHeight: 1.35,
-          }}
-        >
-          <Info size={16} className="text-slate-500 shrink-0" />
-          <span>
-            Tekan tombol <strong>Download</strong> untuk simpan ke HP, atau tekan & tahan foto untuk <strong>Simpan Gambar</strong>.
-          </span>
-        </div>
       </div>
 
       {/* Centered Content Container */}
@@ -327,8 +304,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                 background: downloadedStatus['strip']
                   ? '#22c55e'
                   : downloadingStatus['strip']
-                  ? '#374151'
-                  : '#4b5563',
+                    ? '#374151'
+                    : '#4b5563',
                 color: '#ffffff',
                 fontWeight: 800,
                 fontSize: '0.96rem',
@@ -504,10 +481,10 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                 background: downloadedStatus['gif']
                   ? '#22c55e'
                   : isGeneratingGif || !effectiveGifUrl
-                  ? '#94a3b8'
-                  : downloadingStatus['gif']
-                  ? '#374151'
-                  : '#4b5563',
+                    ? '#94a3b8'
+                    : downloadingStatus['gif']
+                      ? '#374151'
+                      : '#4b5563',
                 color: '#ffffff',
                 fontWeight: 800,
                 fontSize: '0.96rem',
@@ -595,8 +572,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                   background: downloadedStatus['all_photos']
                     ? '#22c55e'
                     : downloadingStatus['all_photos']
-                    ? '#374151'
-                    : '#1e293b',
+                      ? '#374151'
+                      : '#1e293b',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '999px',
@@ -699,8 +676,8 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                       background: downloadedStatus[`photo_${idx}`]
                         ? '#22c55e'
                         : downloadingStatus[`photo_${idx}`]
-                        ? '#374151'
-                        : '#1e293b',
+                          ? '#374151'
+                          : '#1e293b',
                       color: '#ffffff',
                       border: 'none',
                       borderTop: '1px solid rgba(255, 255, 255, 0.15)',
