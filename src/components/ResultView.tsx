@@ -18,6 +18,7 @@ import {
 } from '@/lib/canvasRenderer';
 import { createAnimatedGif } from '@/lib/gifGenerator';
 import { generateQrCodeDataUrl } from '@/lib/qrCode';
+import { downloadMediaFile } from '@/lib/downloadHelper';
 import { Print4RModal } from './Print4RModal';
 import confetti from 'canvas-confetti';
 import {
@@ -282,7 +283,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
   // Initial and reactive render
   useEffect(() => {
-    renderCurrentSession(currentPhotos, currentConfig, resultStep === 'final-gif');
+    renderCurrentSession(currentPhotos, currentConfig, true);
   }, [currentPhotos, currentConfig.selectedTemplateId]);
 
   // Filter change handler
@@ -290,7 +291,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
     const updated = { ...currentConfig, filter: filterId };
     setCurrentConfig(updated);
     if (onChangeConfig) onChangeConfig(updated);
-    renderCurrentSession(currentPhotos, updated, resultStep === 'final-gif');
+    renderCurrentSession(currentPhotos, updated, true);
   };
 
   // Swap photo positions in slots
@@ -307,30 +308,20 @@ export const ResultView: React.FC<ResultViewProps> = ({
       updated[index] = temp;
       setCurrentPhotos(updated);
       setSelectedSlotForSwap(null);
-      renderCurrentSession(updated, currentConfig, resultStep === 'final-gif');
+      renderCurrentSession(updated, currentConfig, true);
     }
   };
 
   // Download photostrip PNG
   const handleDownloadPhotostrip = async () => {
     if (!photostripUrl) return;
-    const link = document.createElement('a');
-    link.download = `Pearly-Photobooth-${Date.now()}.png`;
-    link.href = photostripUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await downloadMediaFile(photostripUrl, `Pearly-Photobooth-${Date.now()}.png`);
   };
 
   // Download animated GIF
-  const handleDownloadGif = () => {
+  const handleDownloadGif = async () => {
     if (!gifUrl) return;
-    const link = document.createElement('a');
-    link.download = `Pearly-Photobooth-${Date.now()}.gif`;
-    link.href = gifUrl;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    await downloadMediaFile(gifUrl, `Pearly-Photobooth-${Date.now()}.gif`);
   };
 
   // Print photostrip directly without page navigation or blank tabs
