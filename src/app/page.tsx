@@ -23,6 +23,7 @@ import {
   clearAllGalleryItems,
   getSoftFileSession,
 } from '@/lib/storageManager';
+import { getTemplateById } from '@/lib/templateManager';
 
 const INITIAL_CONFIG: PhotoBoothConfig = {
   selectedTemplateId: 'template-1',
@@ -214,12 +215,19 @@ export default function Home() {
 
   const handleLoadSessionFromGallery = (item: GalleryItem) => {
     if (item.photos && item.photos.length > 0) {
-      setPhotos(item.photos);
-      if (item.config) setConfig(item.config);
-      setIsScanView(false);
-      setIsViewingSavedSession(true);
+      const template = getTemplateById(item.config?.selectedTemplateId);
+      const softSession: SoftFileSession = {
+        id: item.id,
+        createdAt: item.createdAt || Date.now(),
+        templateId: item.config?.selectedTemplateId || 'template-1',
+        templateName: template.name,
+        photos: item.photos,
+        photostripUrl: item.previewUrl,
+        gifUrl: null,
+        config: item.config,
+      };
+      setActiveSoftFileSession(softSession);
       setIsGalleryOpen(false);
-      setCurrentStep('result');
     }
   };
 

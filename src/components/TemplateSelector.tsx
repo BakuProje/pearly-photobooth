@@ -217,7 +217,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             All Frame
           </div>
 
-          {/* 3-Column Scrollable Grid */}
+          {/* 3-Column Scrollable Grid (Neat & Clean Cards) */}
           <div
             style={{
               flex: 1,
@@ -238,11 +238,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   onClick={() => onSelectTemplate(tmpl.id)}
                   style={{
                     position: 'relative',
-                    aspectRatio: '1 / 1.35',
-                    background: isSelected ? '#a2b4c2' : '#c5d1dc',
-                    border: isSelected ? '3px solid #1a0f07' : '2px solid rgba(45, 27, 14, 0.3)',
-                    borderRadius: '4px',
-                    padding: '6px',
+                    aspectRatio: '1 / 1.45',
+                    background: 'transparent',
+                    border: isSelected ? '3px solid #1a0f07' : '2px solid transparent',
+                    borderRadius: '6px',
+                    padding: '2px',
                     cursor: 'pointer',
                     display: 'flex',
                     flexDirection: 'column',
@@ -251,8 +251,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     transition: 'all 0.18s ease-out',
                     transform: isSelected ? 'scale(1.02)' : 'scale(1)',
                     boxShadow: isSelected
-                      ? '0 6px 16px rgba(26, 15, 7, 0.35)'
-                      : '0 2px 6px rgba(0, 0, 0, 0.08)',
+                      ? '0 6px 16px rgba(26, 15, 7, 0.4)'
+                      : 'none',
                   }}
                 >
                   {/* Delete button if custom template */}
@@ -291,8 +291,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                         position: 'absolute',
                         top: '6px',
                         left: '6px',
-                        width: '20px',
-                        height: '20px',
+                        width: '22px',
+                        height: '22px',
                         borderRadius: '50%',
                         background: '#1a0f07',
                         color: '#ffffff',
@@ -300,14 +300,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         zIndex: 10,
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
+                        border: '1.5px solid #ffd79a',
                       }}
                     >
-                      <Check size={12} strokeWidth={3} />
+                      <Check size={13} strokeWidth={3} />
                     </div>
                   )}
 
-                  {/* Frame Thumbnail */}
+                  {/* Frame Thumbnail (Transparent seamless on parchment) */}
                   <div
                     style={{
                       width: '100%',
@@ -328,6 +329,9 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                         maxHeight: '100%',
                         objectFit: 'contain',
                         pointerEvents: 'none',
+                        filter: isSelected
+                          ? 'drop-shadow(0 4px 12px rgba(26, 15, 7, 0.35))'
+                          : 'drop-shadow(0 2px 6px rgba(45, 25, 12, 0.2))',
                       }}
                     />
                   </div>

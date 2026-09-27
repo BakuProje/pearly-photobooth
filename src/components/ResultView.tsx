@@ -236,8 +236,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
         const scanUrl = `${baseOrigin}${window.location.pathname}?session=${sessionIdRef.current}`;
         setPublicScanUrl(scanUrl);
-        // withLogo = true, logoSrc = '/images/logo.png' (logo pearly booth di tengah qrcode)
-        generateQrCodeDataUrl(scanUrl, true, '/images/logo.png').then((qr) => {
+        // withLogo = false (clean barcode without logo)
+        generateQrCodeDataUrl(scanUrl, false).then((qr) => {
           setQrCodeUrl(qr);
         });
       };
@@ -802,172 +802,169 @@ export const ResultView: React.FC<ResultViewProps> = ({
             </div>
           </div>
 
-          {/* ================= RIGHT PANEL: FILTER SELECTION (3 Columns Grid, Scrollable Area) ================= */}
+          {/* ================= RIGHT PANEL: FILTER SELECTION (Horizontal Swipeable Row) ================= */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'flex-start',
+              justifyContent: 'center',
               alignItems: 'center',
               height: '100%',
               minHeight: 0,
               boxSizing: 'border-box',
               overflow: 'hidden',
-              padding: '0 6px',
+              padding: '4px 8px',
             }}
           >
-            {/* Title "Filter" */}
+            {/* Title "Filter" as in Canva Slide 10 */}
             <h2
               className="font-vintage-serif"
               style={{
-                fontSize: 'clamp(1.8rem, 3.8vw, 2.4rem)',
+                fontSize: 'clamp(2rem, 4.5vw, 2.8rem)',
                 fontWeight: 700,
                 color: '#1a0f07',
-                margin: '0 0 10px 0',
+                margin: '0 0 16px 0',
                 textAlign: 'center',
                 letterSpacing: '1px',
                 fontStyle: 'italic',
                 textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
-                flexShrink: 0,
               }}
             >
               Filter
             </h2>
 
-            {/* Vertically Scrollable 3-Column Filter Grid (Only this area scrolls) */}
+            {/* Horizontal Scrollable Filter Cards Row (Swipeable without buttons) */}
             <div
+              ref={filterScrollRef}
+              onWheel={(e) => {
+                if (filterScrollRef.current) {
+                  filterScrollRef.current.scrollLeft += e.deltaY;
+                }
+              }}
               style={{
+                display: 'flex',
+                gap: '16px',
+                overflowX: 'auto',
+                overflowY: 'hidden',
+                padding: '12px 14px 18px 14px',
+                scrollBehavior: 'smooth',
+                scrollbarWidth: 'none',
                 width: '100%',
-                maxWidth: '680px',
-                flex: 1,
-                minHeight: 0,
-                maxHeight: 'calc(100vh - 185px)',
-                overflowY: 'auto',
-                overflowX: 'hidden',
-                padding: '4px 6px 14px 4px',
+                maxWidth: '740px',
+                alignItems: 'center',
                 boxSizing: 'border-box',
-                scrollbarWidth: 'thin',
               }}
             >
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '10px 12px',
-                  width: '100%',
-                  boxSizing: 'border-box',
-                }}
-              >
-                {FILTERS.map((flt) => {
-                  const isSelected = currentConfig.filter === flt.id;
-                  const samplePrototype = basePhotostripUrl || photostripUrl || currentPhotos[0] || currentTemplate.imageSrc;
+              {FILTERS.map((flt) => {
+                const isSelected = currentConfig.filter === flt.id;
+                const samplePrototype = basePhotostripUrl || photostripUrl || currentPhotos[0] || currentTemplate.imageSrc;
 
-                  return (
-                    <motion.div
-                      key={flt.id}
-                      whileHover={{ scale: 1.03 }}
-                      whileTap={{ scale: 0.97 }}
-                      onClick={() => handleSelectFilter(flt.id)}
+                return (
+                  <motion.div
+                    key={flt.id}
+                    whileHover={{ scale: 1.04, y: -4 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={() => handleSelectFilter(flt.id)}
+                    style={{
+                      flex: '0 0 auto',
+                      width: 'clamp(160px, 18vw, 200px)',
+                      aspectRatio: '1 / 1.25',
+                      borderRadius: '6px',
+                      background: isSelected ? '#ebd7bc' : '#3d2616',
+                      border: isSelected ? '3.5px solid #1a0f07' : '2px solid #3d2616',
+                      overflow: 'hidden',
+                      position: 'relative',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      boxShadow: isSelected
+                        ? '0 8px 24px rgba(26, 15, 7, 0.5), 0 0 10px rgba(61, 38, 22, 0.3)'
+                        : '0 4px 14px rgba(0, 0, 0, 0.25)',
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    {/* Live Filter Preview Image */}
+                    <div
                       style={{
-                        aspectRatio: '1 / 1.25',
-                        borderRadius: '6px',
-                        background: isSelected ? '#ebd7bc' : '#3d2616',
-                        border: isSelected ? '3px solid #1a0f07' : '2px solid #3d2616',
-                        overflow: 'hidden',
+                        flex: 1,
+                        minHeight: 0,
+                        background: '#1a0f07',
                         position: 'relative',
-                        cursor: 'pointer',
                         display: 'flex',
-                        flexDirection: 'column',
-                        boxShadow: isSelected
-                          ? '0 6px 18px rgba(26, 15, 7, 0.5), 0 0 8px rgba(61, 38, 22, 0.3)'
-                          : '0 3px 10px rgba(0, 0, 0, 0.2)',
-                        transition: 'all 0.15s ease',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
+                        padding: '4px',
                       }}
                     >
-                      {/* Live Filter Preview Image */}
-                      <div
-                        style={{
-                          flex: 1,
-                          minHeight: 0,
-                          background: '#1a0f07',
-                          position: 'relative',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          overflow: 'hidden',
-                          padding: '4px',
-                        }}
-                      >
-                        {samplePrototype && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={samplePrototype}
-                            alt={flt.name}
-                            style={{
-                              maxWidth: '100%',
-                              maxHeight: '100%',
-                              objectFit: 'contain',
-                              filter: flt.cssFilter,
-                              pointerEvents: 'none',
-                              borderRadius: '2px',
-                            }}
-                          />
-                        )}
-
-                        {isSelected && (
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '4px',
-                              right: '4px',
-                              background: '#1a0f07',
-                              color: '#fdf7ee',
-                              borderRadius: '50%',
-                              width: '20px',
-                              height: '20px',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
-                              border: '1.5px solid #ffd79a',
-                              zIndex: 5,
-                            }}
-                          >
-                            <Check size={12} strokeWidth={3} />
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Filter Name Label Banner */}
-                      <div
-                        style={{
-                          padding: '6px 6px',
-                          background: isSelected ? '#3d2616' : '#2b180d',
-                          color: isSelected ? '#ffd79a' : '#fdf7ee',
-                          textAlign: 'center',
-                          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
-                          flexShrink: 0,
-                        }}
-                      >
-                        <span
-                          className="font-vintage-serif"
+                      {samplePrototype && (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={samplePrototype}
+                          alt={flt.name}
                           style={{
-                            fontSize: '0.86rem',
-                            fontWeight: isSelected ? 800 : 700,
-                            letterSpacing: '0.3px',
-                            whiteSpace: 'nowrap',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis',
-                            display: 'block',
+                            maxWidth: '100%',
+                            maxHeight: '100%',
+                            objectFit: 'contain',
+                            filter: flt.cssFilter,
+                            pointerEvents: 'none',
+                            borderRadius: '2px',
+                          }}
+                        />
+                      )}
+
+                      {isSelected && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            top: '6px',
+                            right: '6px',
+                            background: '#1a0f07',
+                            color: '#fdf7ee',
+                            borderRadius: '50%',
+                            width: '22px',
+                            height: '22px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
+                            border: '1.5px solid #ffd79a',
                           }}
                         >
-                          {flt.name}
-                        </span>
-                      </div>
-                    </motion.div>
-                  );
-                })}
-              </div>
+                          <Check size={14} strokeWidth={3} />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Filter Name Label Banner */}
+                    <div
+                      style={{
+                        padding: '8px 10px',
+                        background: isSelected ? '#3d2616' : '#2b180d',
+                        color: isSelected ? '#ffd79a' : '#fdf7ee',
+                        textAlign: 'center',
+                        borderTop: '1.5px solid rgba(255, 255, 255, 0.1)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <span
+                        className="font-vintage-serif"
+                        style={{
+                          fontSize: '0.95rem',
+                          fontWeight: isSelected ? 800 : 700,
+                          letterSpacing: '0.4px',
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          display: 'block',
+                        }}
+                      >
+                        {flt.name}
+                      </span>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </div>
@@ -1166,19 +1163,17 @@ export const ResultView: React.FC<ResultViewProps> = ({
           >
             <div
               style={{
-                width: '100%',
-                maxWidth: '560px',
-                maxHeight: '100%',
-                aspectRatio: '16 / 10',
-                borderRadius: '6px',
-                background: '#3d2616',
-                border: '3px solid #3d2616',
-                overflow: 'hidden',
                 position: 'relative',
-                display: 'flex',
+                borderRadius: '6px',
+                border: '3px solid #3d2616',
+                padding: '3px',
+                maxHeight: '100%',
+                display: 'inline-flex',
+                flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 8px 24px rgba(45, 25, 12, 0.35)',
+                boxSizing: 'border-box',
               }}
             >
               {gifUrl ? (
@@ -1187,9 +1182,12 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   src={gifUrl}
                   alt="GIF Animation"
                   style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
+                    maxHeight: 'calc(100vh - 175px)',
+                    maxWidth: 'min(520px, 45vw)',
+                    width: 'auto',
+                    height: 'auto',
                     objectFit: 'contain',
+                    display: 'block',
                   }}
                 />
               ) : processedPhotos.length > 0 ? (
@@ -1198,9 +1196,12 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   src={processedPhotos[activeFrameIndex]}
                   alt="GIF Frame Preview"
                   style={{
-                    maxWidth: '100%',
-                    maxHeight: '100%',
+                    maxHeight: 'calc(100vh - 175px)',
+                    maxWidth: 'min(520px, 45vw)',
+                    width: 'auto',
+                    height: 'auto',
                     objectFit: 'contain',
+                    display: 'block',
                   }}
                 />
               ) : (
@@ -1210,41 +1211,16 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     flexDirection: 'column',
                     alignItems: 'center',
                     gap: '8px',
-                    color: '#fdf7ee',
+                    padding: '30px',
+                    color: '#3d2616',
                   }}
                 >
-                  <Loader2 size={32} className="animate-spin text-amber-200" />
+                  <Loader2 size={32} className="animate-spin text-amber-900" />
                   <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>
                     Menyiapkan Animasi GIF...
                   </span>
                 </div>
               )}
-
-              {/* Eye-catching GIF Badge Tag */}
-              <div
-                style={{
-                  position: 'absolute',
-                  top: '12px',
-                  left: '12px',
-                  background: 'linear-gradient(135deg, #2b180d 0%, #4a2812 100%)',
-                  color: '#ffd79a',
-                  padding: '5px 16px',
-                  borderRadius: '999px',
-                  fontSize: '1rem',
-                  fontWeight: 900,
-                  letterSpacing: '1.5px',
-                  border: '2px solid #e2a048',
-                  boxShadow: '0 4px 16px rgba(0,0,0,0.6), 0 0 10px rgba(226, 160, 72, 0.4)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  zIndex: 10,
-                  fontFamily: "'MedievalSharp', 'Cinzel', serif",
-                  textShadow: '0 1px 2px rgba(0,0,0,0.8)',
-                }}
-              >
-                <span>GIF ANIMATION</span>
-              </div>
             </div>
           </div>
         </div>
@@ -1402,24 +1378,42 @@ export const ResultView: React.FC<ResultViewProps> = ({
           Thank You!
         </div>
 
-        {/* Bottom Actions Row: Print Button (Right) */}
+        {/* Bottom Actions Row: Print & Print 4R Buttons (Right) */}
         <div
           style={{
             width: '100%',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
+            gap: '14px',
           }}
         >
+          {/* Gothic "Print 4R" Tag Button */}
+          <button
+            type="button"
+            onClick={() => setIsPrint4RModalOpen(true)}
+            className="btn-vintage-tag"
+            style={{
+              minWidth: '150px',
+              fontSize: '1.65rem',
+              padding: '10px 42px 10px 28px',
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            Print 4R
+          </button>
+
           {/* Gothic "Print" Tag Button (Text only, no arrow) */}
           <button
             type="button"
             onClick={handlePrint}
             className="btn-vintage-tag"
             style={{
-              minWidth: '160px',
-              fontSize: '1.75rem',
-              padding: '10px 48px 10px 32px',
+              minWidth: '150px',
+              fontSize: '1.65rem',
+              padding: '10px 42px 10px 28px',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',

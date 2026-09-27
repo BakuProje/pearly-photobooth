@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   PhotoBoothConfig,
   PhotoboothTemplate,
@@ -17,11 +17,11 @@ import {
   Download,
   Scissors,
   Layers,
-  Sparkles,
   Loader2,
   Check,
   Maximize2,
   FileImage,
+  ZoomIn,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -40,17 +40,14 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
 }) => {
   const currentTemplate: PhotoboothTemplate = getTemplateById(config.selectedTemplateId);
 
-  // Accurate detection: twin-2in1 only for true twin strip templates (6 slots dual strip)
-  const isTwinStrip = (currentTemplate.category === 'Twin Strip' && currentTemplate.slots.length >= 6) || currentTemplate.isTwin === true;
-
-  const [layoutMode, setLayoutMode] = useState<'fit-center' | 'twin-2in1' | 'full-bleed'>(
-    isTwinStrip ? 'twin-2in1' : 'fit-center'
-  );
+  // Default to full-bleed so the template fills the 4R sheet edge-to-edge with no blank white background
+  const [layoutMode, setLayoutMode] = useState<'fit-center' | 'twin-2in1' | 'full-bleed'>('full-bleed');
   const [bgColor, setBgColor] = useState<string>('#ffffff');
-  const [showCutGuides, setShowCutGuides] = useState<boolean>(true);
+  const [showCutGuides, setShowCutGuides] = useState<boolean>(false);
   const [preview4RUrl, setPreview4RUrl] = useState<string | null>(null);
   const [isRendering, setIsRendering] = useState<boolean>(false);
   const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [isZoomed, setIsZoomed] = useState<boolean>(false);
 
   // Render 4R Preview whenever options change
   useEffect(() => {
@@ -62,14 +59,14 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
     const printOptions: Print4ROptions = {
       layoutMode,
       bgColor,
-      showCutGuides,
+      showCutGuides: layoutMode === 'twin-2in1' ? showCutGuides : false,
       orientation: 'portrait',
     };
 
     render4RPrintCanvas(photos, config, printOptions)
       .then((canvas) => {
         if (isMounted) {
-          setPreview4RUrl(canvas.toDataURL('image/jpeg', 0.92));
+          setPreview4RUrl(canvas.toDataURL('image/jpeg', 0.95));
           setIsRendering(false);
         }
       })
@@ -189,7 +186,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
       const printOptions: Print4ROptions = {
         layoutMode,
         bgColor,
-        showCutGuides,
+        showCutGuides: layoutMode === 'twin-2in1' ? showCutGuides : false,
         orientation: 'portrait',
       };
       const blob = await generate4RDownloadBlob(photos, config, printOptions, format);
@@ -223,8 +220,8 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           justifyContent: 'center',
           padding: '16px',
           overflowY: 'auto',
+          fontFamily: 'Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
         }}
-        onClick={onClose}
       >
         <motion.div
           initial={{ scale: 0.9, opacity: 0, y: 15 }}
@@ -233,7 +230,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           transition={{ duration: 0.22, ease: 'easeOut' }}
           className="vintage-parchment-bg"
           style={{
-            maxWidth: '820px',
+            maxWidth: '840px',
             width: '100%',
             borderRadius: '16px',
             border: '3px solid #3d2616',
@@ -246,46 +243,48 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          {/* Header */}
+          {/* Header (Clean readable font) */}
           <div
             style={{
-              padding: '18px 24px',
+              padding: '16px 22px',
               borderBottom: '2px solid #3d2616',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'rgba(235, 218, 195, 0.85)',
+              background: 'rgba(235, 218, 195, 0.9)',
             }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
                 style={{
-                  width: '40px',
-                  height: '40px',
+                  width: '38px',
+                  height: '38px',
                   borderRadius: '8px',
                   background: '#3d2616',
                   color: '#fdf7ee',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(45, 25, 12, 0.3)',
+                  boxShadow: '0 4px 12px rgba(45, 25, 12, 0.25)',
                 }}
               >
-                <Printer size={22} />
+                <Printer size={20} />
               </div>
               <div>
                 <h3
-                  className="font-gothic"
                   style={{
-                    fontSize: '1.65rem',
-                    fontWeight: 700,
+                    fontSize: '1.35rem',
+                    fontWeight: 800,
                     color: '#1a0f07',
                     margin: 0,
-                    letterSpacing: '0.5px',
+                    letterSpacing: '-0.2px',
                   }}
                 >
                   Cetak Ukuran 4R
                 </h3>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#543720', fontWeight: 500 }}>
+                  Format Standar 4 × 6 Inch (102 × 152 mm)
+                </p>
               </div>
             </div>
 
@@ -295,8 +294,8 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 background: '#3d2616',
                 border: 'none',
                 borderRadius: '50%',
-                width: '36px',
-                height: '36px',
+                width: '34px',
+                height: '34px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -304,6 +303,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 color: '#fdf7ee',
                 transition: 'all 0.15s ease',
               }}
+              title="Tutup"
             >
               <X size={18} />
             </button>
@@ -313,13 +313,13 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '24px',
-              padding: '24px',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+              gap: '22px',
+              padding: '22px',
               overflowY: 'auto',
             }}
           >
-            {/* Left: Interactive 4R Paper Preview */}
+            {/* Left: Interactive 4R Paper Preview with Zoom Click */}
             <div
               style={{
                 display: 'flex',
@@ -328,13 +328,15 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 justifyContent: 'center',
                 background: 'rgba(235, 218, 195, 0.65)',
                 borderRadius: '12px',
-                padding: '20px',
+                padding: '16px',
                 border: '2px solid #3d2616',
                 position: 'relative',
               }}
             >
               {/* 4R Paper Canvas Frame (Ratio 2:3) */}
               <div
+                onClick={() => preview4RUrl && setIsZoomed(true)}
+                title="Klik untuk memperbesar preview 4R"
                 style={{
                   width: '240px',
                   aspectRatio: '2 / 3',
@@ -347,84 +349,116 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  cursor: preview4RUrl ? 'zoom-in' : 'default',
+                  transition: 'transform 0.15s ease',
                 }}
               >
                 {isRendering ? (
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#3d2616' }}>
                     <Loader2 size={28} className="animate-spin text-amber-900" />
-                    <span className="font-vintage-serif" style={{ fontSize: '0.85rem', fontWeight: 700 }}>Menyiapkan 4R...</span>
+                    <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>Menyiapkan 4R...</span>
                   </div>
                 ) : preview4RUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={preview4RUrl}
-                    alt="4R Print Sheet Preview"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      display: 'block',
-                    }}
-                  />
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={preview4RUrl}
+                      alt="4R Print Sheet Preview"
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        display: 'block',
+                      }}
+                    />
+                    {/* Floating Zoom Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsZoomed(true);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '8px',
+                        right: '8px',
+                        background: 'rgba(26, 15, 7, 0.8)',
+                        backdropFilter: 'blur(4px)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        borderRadius: '50%',
+                        width: '28px',
+                        height: '28px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
+                      }}
+                      title="Perbesar Preview"
+                    >
+                      <Maximize2 size={13} />
+                    </button>
+                  </>
                 ) : null}
               </div>
 
-              {/* 4R Dimension Label */}
+              {/* 4R Dimension & Zoom Hint Label */}
               <div
-                className="font-vintage-serif"
+                onClick={() => preview4RUrl && setIsZoomed(true)}
                 style={{
-                  marginTop: '12px',
+                  marginTop: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
                   background: '#3d2616',
-                  padding: '4px 14px',
+                  padding: '5px 14px',
                   borderRadius: '999px',
                   border: '1px solid #543720',
                   fontSize: '0.78rem',
                   fontWeight: 700,
                   color: '#fdf7ee',
+                  cursor: preview4RUrl ? 'pointer' : 'default',
+                  userSelect: 'none',
                 }}
               >
-                <FileImage size={13} color="#f59e0b" />
-                <span>4R (102 × 152 mm / 1200 × 1800 px)</span>
+                <ZoomIn size={13} color="#ffd79a" />
+                <span>Klik untuk Perbesar (1200 × 1800 px)</span>
               </div>
             </div>
 
-            {/* Right: Controls & Options */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+            {/* Right: Controls & Options (Clean, readable text) */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {/* Option 1: Layout Mode */}
               <div>
                 <label
-                  className="font-gothic"
                   style={{
-                    fontSize: '1.25rem',
-                    fontWeight: 700,
+                    fontSize: '0.95rem',
+                    fontWeight: 800,
                     color: '#1a0f07',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                     marginBottom: '8px',
-                    letterSpacing: '0.5px',
                   }}
                 >
                   <Layers size={16} color="#543720" />
-                  <span>Tata Letak Cetak 4R</span>
+                  <span>Pilihan Tata Letak Cetak</span>
                 </label>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {/* Mode 1: Twin 2-in-1 */}
+                  {/* Mode 1: Full Bleed (Default & Recommended) */}
                   <button
                     type="button"
-                    onClick={() => setLayoutMode('twin-2in1')}
+                    onClick={() => setLayoutMode('full-bleed')}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
                       borderRadius: '8px',
-                      border: layoutMode === 'twin-2in1' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
-                      background: layoutMode === 'twin-2in1' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
+                      border: layoutMode === 'full-bleed' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.35)',
+                      background: layoutMode === 'full-bleed' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.7)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -436,25 +470,25 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                           width: '32px',
                           height: '32px',
                           borderRadius: '6px',
-                          background: layoutMode === 'twin-2in1' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
-                          color: layoutMode === 'twin-2in1' ? '#fdf7ee' : '#3d2616',
+                          background: layoutMode === 'full-bleed' ? '#3d2616' : 'rgba(61, 38, 22, 0.12)',
+                          color: layoutMode === 'full-bleed' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Scissors size={16} />
+                        <Maximize2 size={16} />
                       </div>
                       <div>
-                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
-                          Twin 2-in-1 (Gunting Tengah)
+                        <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
+                          Penuh 1 Lembar 4R
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
-                          2 strip sejajar di 1 lembar 4R (Hemat kertas foto!)
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720', fontWeight: 500 }}>
+                          Hasil foto mengisi penuh seluruh kertas 4R tanpa border putih
                         </p>
                       </div>
                     </div>
-                    {layoutMode === 'twin-2in1' && <Check size={18} color="#3d2616" strokeWidth={3} />}
+                    {layoutMode === 'full-bleed' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
 
                   {/* Mode 2: Fit Center */}
@@ -467,8 +501,8 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       justifyContent: 'space-between',
                       padding: '10px 14px',
                       borderRadius: '8px',
-                      border: layoutMode === 'fit-center' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
-                      background: layoutMode === 'fit-center' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
+                      border: layoutMode === 'fit-center' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.35)',
+                      background: layoutMode === 'fit-center' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.7)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -480,7 +514,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                           width: '32px',
                           height: '32px',
                           borderRadius: '6px',
-                          background: layoutMode === 'fit-center' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
+                          background: layoutMode === 'fit-center' ? '#3d2616' : 'rgba(61, 38, 22, 0.12)',
                           color: layoutMode === 'fit-center' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
@@ -490,29 +524,29 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         <FileImage size={16} />
                       </div>
                       <div>
-                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
-                          1 Desain di Tengah (Fit Studio)
+                        <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
+                          1 Desain di Tengah
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
-                          Pas di tengah kertas 4R dengan margin studio rapi
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720', fontWeight: 500 }}>
+                          Pas di tengah kertas 4R dengan bingkai margin rapi
                         </p>
                       </div>
                     </div>
                     {layoutMode === 'fit-center' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
 
-                  {/* Mode 3: Full Bleed */}
+                  {/* Mode 3: Twin 2-in-1 */}
                   <button
                     type="button"
-                    onClick={() => setLayoutMode('full-bleed')}
+                    onClick={() => setLayoutMode('twin-2in1')}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
                       borderRadius: '8px',
-                      border: layoutMode === 'full-bleed' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
-                      background: layoutMode === 'full-bleed' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
+                      border: layoutMode === 'twin-2in1' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.35)',
+                      background: layoutMode === 'twin-2in1' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.7)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -524,128 +558,140 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                           width: '32px',
                           height: '32px',
                           borderRadius: '6px',
-                          background: layoutMode === 'full-bleed' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
-                          color: layoutMode === 'full-bleed' ? '#fdf7ee' : '#3d2616',
+                          background: layoutMode === 'twin-2in1' ? '#3d2616' : 'rgba(61, 38, 22, 0.12)',
+                          color: layoutMode === 'twin-2in1' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Maximize2 size={16} />
+                        <Scissors size={16} />
                       </div>
                       <div>
-                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
-                          Penuh 1 Lembar (Full Bleed)
+                        <p style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
+                          Twin 2-in-1 (Gunting Tengah)
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
-                          Mengisi seluruh kertas 4R tanpa border putih
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720', fontWeight: 500 }}>
+                          2 strip sejajar untuk dipotong tengah (Ukuran strip 2×6 inch)
                         </p>
                       </div>
                     </div>
-                    {layoutMode === 'full-bleed' && <Check size={18} color="#3d2616" strokeWidth={3} />}
+                    {layoutMode === 'twin-2in1' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
                 </div>
               </div>
 
-              {/* Option 2: Background Color & Cut Guides */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(2, 1fr)',
-                  gap: '12px',
-                  background: 'rgba(235, 218, 195, 0.6)',
-                  padding: '12px 14px',
-                  borderRadius: '10px',
-                  border: '1.5px solid #3d2616',
-                }}
-              >
-                {/* Background Theme Selector (Putih & Hitam) */}
-                <div>
-                  <label className="font-vintage-serif" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
-                    Warna Kertas
-                  </label>
-                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
-                    {[
-                      { id: '#ffffff', label: 'Putih', bg: '#ffffff', text: '#0f172a', border: '#cbd5e1' },
-                      { id: '#111827', label: 'Hitam', bg: '#111827', text: '#ffffff', border: '#374151' },
-                    ].map((theme) => {
-                      const isActive = bgColor === theme.id || (theme.id === '#111827' && (bgColor === '#000000' || bgColor === '#111827'));
-                      return (
-                        <button
-                          key={theme.id}
-                          type="button"
-                          onClick={() => setBgColor(theme.id)}
-                          style={{
-                            padding: '7px 12px',
-                            borderRadius: '6px',
-                            border: isActive ? '2.5px solid #3d2616' : `1.5px solid ${theme.border}`,
-                            background: theme.bg,
-                            fontSize: '0.82rem',
-                            fontWeight: 800,
-                            color: theme.text,
-                            cursor: 'pointer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: isActive ? '0 0 10px rgba(61, 38, 22, 0.4)' : 'none',
-                            transition: 'all 0.15s ease',
-                          }}
-                        >
-                          {theme.label}
-                        </button>
-                      );
-                    })}
+              {/* Option 2: Background Color & Cut Guides (Only shown when not full-bleed) */}
+              {layoutMode !== 'full-bleed' && (
+                <div
+                  style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(2, 1fr)',
+                    gap: '12px',
+                    background: 'rgba(235, 218, 195, 0.6)',
+                    padding: '12px 14px',
+                    borderRadius: '10px',
+                    border: '1.5px solid #3d2616',
+                  }}
+                >
+                  {/* Background Color */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
+                      Warna Kertas
+                    </label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
+                      {[
+                        { id: '#ffffff', label: 'Putih', bg: '#ffffff', text: '#0f172a', border: '#cbd5e1' },
+                        { id: '#111827', label: 'Hitam', bg: '#111827', text: '#ffffff', border: '#374151' },
+                      ].map((theme) => {
+                        const isActive = bgColor === theme.id || (theme.id === '#111827' && (bgColor === '#000000' || bgColor === '#111827'));
+                        return (
+                          <button
+                            key={theme.id}
+                            type="button"
+                            onClick={() => setBgColor(theme.id)}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              border: isActive ? '2.5px solid #3d2616' : `1.5px solid ${theme.border}`,
+                              background: theme.bg,
+                              fontSize: '0.8rem',
+                              fontWeight: 800,
+                              color: theme.text,
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: isActive ? '0 0 8px rgba(61, 38, 22, 0.3)' : 'none',
+                              transition: 'all 0.15s ease',
+                            }}
+                          >
+                            {theme.label}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Cut Guide Toggle */}
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
+                      Garis Potong
+                    </label>
+                    <button
+                      type="button"
+                      onClick={() => setShowCutGuides(!showCutGuides)}
+                      style={{
+                        width: '100%',
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        border: showCutGuides ? '2px solid #3d2616' : '1px solid rgba(61, 38, 22, 0.4)',
+                        background: showCutGuides ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
+                        fontSize: '0.78rem',
+                        fontWeight: 700,
+                        color: '#1a0f07',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '4px',
+                      }}
+                    >
+                      <Scissors size={13} />
+                      <span>{showCutGuides ? 'Aktif (Garis)' : 'Mati (Polos)'}</span>
+                    </button>
                   </div>
                 </div>
+              )}
 
-                {/* Cut Guide Toggle */}
-                <div>
-                  <label className="font-vintage-serif" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
-                    Garis Potong (Cut Guide)
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setShowCutGuides(!showCutGuides)}
-                    style={{
-                      width: '100%',
-                      padding: '7px 10px',
-                      borderRadius: '6px',
-                      border: showCutGuides ? '2px solid #3d2616' : '1px solid rgba(61, 38, 22, 0.4)',
-                      background: showCutGuides ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
-                      fontSize: '0.78rem',
-                      fontWeight: 700,
-                      color: '#1a0f07',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: '4px',
-                    }}
-                  >
-                    <Scissors size={13} />
-                    <span>{showCutGuides ? 'Aktif (Ada Garis)' : 'Mati (Polos)'}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Action Buttons: Print & Download */}
+              {/* Action Buttons: Print & Download (Clean, Normal, Highly Readable) */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: 'auto' }}>
                 {/* Primary Button: Direct 4R Print */}
                 <button
                   type="button"
                   onClick={handlePrint4R}
                   disabled={isRendering || !preview4RUrl}
-                  className="btn-vintage-tag"
                   style={{
                     width: '100%',
-                    padding: '12px 24px',
-                    fontSize: '1.45rem',
+                    padding: '13px 24px',
+                    fontSize: '1.08rem',
+                    fontWeight: 800,
+                    borderRadius: '8px',
+                    border: '2px solid #2b180d',
+                    background: 'linear-gradient(180deg, #3d2616 0%, #201107 100%)',
+                    color: '#fdf7ee',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '10px',
                     cursor: preview4RUrl ? 'pointer' : 'not-allowed',
                     opacity: preview4RUrl ? 1 : 0.6,
+                    boxShadow: '0 6px 18px rgba(32, 17, 7, 0.35)',
+                    transition: 'all 0.15s ease',
                   }}
                 >
-                  <Printer size={18} />
-                  <span>Cetak Langsung Ukuran 4R</span>
+                  <Printer size={19} />
+                  <span>Cetak Ukuran 4R</span>
                 </button>
 
                 {/* Secondary: Download Ready-to-Print 4R Image */}
@@ -657,7 +703,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                     style={{
                       padding: '8px 12px',
                       borderRadius: '6px',
-                      background: 'rgba(255, 255, 255, 0.7)',
+                      background: 'rgba(255, 255, 255, 0.85)',
                       border: '1.5px solid #3d2616',
                       color: '#1a0f07',
                       fontSize: '0.82rem',
@@ -669,7 +715,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       gap: '6px',
                     }}
                   >
-                    <Download size={15} />
+                    <Download size={14} />
                     <span>Unduh 4R (PNG)</span>
                   </button>
 
@@ -680,7 +726,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                     style={{
                       padding: '8px 12px',
                       borderRadius: '6px',
-                      background: 'rgba(255, 255, 255, 0.7)',
+                      background: 'rgba(255, 255, 255, 0.85)',
                       border: '1.5px solid #3d2616',
                       color: '#1a0f07',
                       fontSize: '0.82rem',
@@ -692,7 +738,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       gap: '6px',
                     }}
                   >
-                    <Download size={15} />
+                    <Download size={14} />
                     <span>Unduh 4R (JPG)</span>
                   </button>
                 </div>
@@ -700,6 +746,92 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
             </div>
           </div>
         </motion.div>
+
+        {/* =========================================================================
+            LIGHTBOX MODAL: FULL RESOLUTION ZOOMED 4R PREVIEW
+            ========================================================================= */}
+        {isZoomed && preview4RUrl && (
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 100000,
+              background: 'rgba(0, 0, 0, 0.9)',
+              backdropFilter: 'blur(10px)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '20px',
+            }}
+            onClick={() => setIsZoomed(false)}
+          >
+            {/* Top Bar with Title & Close Button */}
+            <div
+              style={{
+                width: '100%',
+                maxWidth: '900px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '12px',
+                color: '#ffffff',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '1.1rem', fontWeight: 800 }}>Preview Cetak 4R HD (1200 × 1800 px)</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setIsZoomed(false)}
+                style={{
+                  background: 'rgba(255, 255, 255, 0.2)',
+                  border: '1px solid rgba(255, 255, 255, 0.4)',
+                  borderRadius: '50%',
+                  width: '36px',
+                  height: '36px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                  cursor: 'pointer',
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            {/* Large Image Frame */}
+            <div
+              style={{
+                maxWidth: '92vw',
+                maxHeight: '84vh',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: '8px',
+                overflow: 'hidden',
+                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.8)',
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={preview4RUrl}
+                alt="4R Enlarged High Resolution Preview"
+                style={{
+                  maxWidth: '100%',
+                  maxHeight: '84vh',
+                  objectFit: 'contain',
+                  borderRadius: '6px',
+                  display: 'block',
+                }}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </AnimatePresence>
   );
