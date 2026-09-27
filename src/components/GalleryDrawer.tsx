@@ -60,27 +60,24 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
   const handlePwaClick = async () => {
     if (isStandalone || isInstalled) {
-      setPwaToast('Aplikasi Pearly Photobooth sudah terpasang di perangkat Anda!');
-      setTimeout(() => setPwaToast(null), 3500);
+      setPwaToast('Aplikasi Pearly Photobooth sudah terpasang!');
+      setTimeout(() => setPwaToast(null), 3000);
       return;
     }
 
     const res = await installPwa();
-    if (res.outcome === 'ios') {
-      setShowIosGuide(true);
-    } else if (res.outcome === 'accepted') {
+    if (res.outcome === 'accepted') {
       setPwaToast('Aplikasi berhasil dipasang!');
       setTimeout(() => setPwaToast(null), 3500);
     } else if (res.outcome === 'already_installed') {
-      setPwaToast('Aplikasi sudah terpasang di perangkat Anda!');
-      setTimeout(() => setPwaToast(null), 3500);
+      setPwaToast('Aplikasi sudah terpasang!');
+      setTimeout(() => setPwaToast(null), 3000);
+    } else if (res.outcome === 'ios') {
+      setPwaToast('Untuk memasang di iOS: Ketuk Bagikan lalu Tambah ke Layar Utama.');
+      setTimeout(() => setPwaToast(null), 4000);
     } else if (res.outcome === 'unavailable') {
-      if (isIOS) {
-        setShowIosGuide(true);
-      } else {
-        setPwaToast('Buka menu browser Anda (titik 3) lalu pilih "Instal Aplikasi" / "Install App".');
-        setTimeout(() => setPwaToast(null), 4500);
-      }
+      setPwaToast('Gunakan menu browser lalu pilih "Instal Aplikasi" / "Install App".');
+      setTimeout(() => setPwaToast(null), 4000);
     }
   };
 
@@ -169,26 +166,26 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               exit={{ x: '100%' }}
               transition={{ type: 'spring', damping: 28, stiffness: 320 }}
               onClick={(e) => e.stopPropagation()}
+              className="vintage-parchment-bg"
               style={{
                 width: '100%',
                 maxWidth: 'min(440px, 100vw)',
                 height: '100%',
-                background: '#ffffff',
-                borderLeft: '3px solid var(--neo-black)',
+                borderLeft: '3px solid #3d2616',
                 display: 'flex',
                 flexDirection: 'column',
-                boxShadow: '-8px 0px 0px var(--neo-black)',
+                boxShadow: '-8px 0px 24px rgba(45, 25, 12, 0.45)',
               }}
             >
-              {/* Header (Dark Slate Aesthetic) */}
+              {/* Header (Vintage Dark Brown Aesthetic) */}
               <div
                 style={{
-                  padding: '18px 20px',
-                  borderBottom: '1px solid #e2e8f0',
+                  padding: '16px 20px',
+                  borderBottom: '2px solid #543720',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: '#1e293b',
+                  background: '#3d2616',
                   color: '#ffffff',
                 }}
               >
@@ -197,20 +194,28 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     style={{
                       width: '38px',
                       height: '38px',
-                      borderRadius: '10px',
-                      background: 'rgba(255, 255, 255, 0.15)',
-                      border: '1px solid rgba(255, 255, 255, 0.25)',
+                      borderRadius: '8px',
+                      background: 'rgba(235, 218, 195, 0.15)',
+                      border: '1px solid rgba(235, 218, 195, 0.3)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#ffffff',
+                      color: '#fdf7ee',
                     }}
                   >
                     <ImageIcon size={20} />
                   </div>
                   <div>
-                    <h3 style={{ fontSize: '1.15rem', fontWeight: 900, color: '#ffffff', margin: 0 }}>Galeri Sesi</h3>
-                    <p style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600, margin: 0 }}>
+                    <h3
+                      className="font-gothic"
+                      style={{ fontSize: '1.4rem', fontWeight: 700, color: '#fdf7ee', margin: 0, letterSpacing: '0.5px' }}
+                    >
+                      Galeri Sesi
+                    </h3>
+                    <p
+                      className="font-vintage-serif"
+                      style={{ fontSize: '0.78rem', color: 'rgba(253, 247, 238, 0.75)', fontWeight: 600, margin: 0 }}
+                    >
                       {items.length} hasil foto tersimpan
                     </p>
                   </div>
@@ -220,31 +225,32 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   <button
                     onClick={handlePwaClick}
                     style={{
-                      background: isStandalone || isInstalled ? '#f0fdf4' : '#ffffff',
-                      border: isStandalone || isInstalled ? '1px solid #bbf7d0' : '1.5px solid rgba(255, 255, 255, 0.9)',
-                      color: isStandalone || isInstalled ? '#15803d' : '#0f172a',
-                      padding: '7px 14px',
+                      background: isStandalone || isInstalled ? '#f0fdf4' : '#ebd7bc',
+                      border: isStandalone || isInstalled ? '1px solid #bbf7d0' : '1.5px solid #543720',
+                      color: isStandalone || isInstalled ? '#15803d' : '#2a170a',
+                      padding: '6px 12px',
                       borderRadius: '999px',
                       display: 'flex',
                       alignItems: 'center',
-                      gap: '6px',
+                      gap: '5px',
                       cursor: 'pointer',
-                      fontSize: '0.78rem',
-                      fontWeight: 800,
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.18)',
+                      fontSize: '0.76rem',
+                      fontWeight: 700,
+                      boxShadow: '0 2px 6px rgba(0, 0, 0, 0.15)',
                       transition: 'all 0.15s ease',
+                      fontFamily: 'serif',
                     }}
                     title="Download & Pasang Aplikasi Pearly Photobooth (PWA)"
                   >
                     {isStandalone || isInstalled ? (
                       <>
-                        <CheckCircle2 size={14} color="#15803d" />
+                        <CheckCircle2 size={13} color="#15803d" />
                         <span>Terpasang</span>
                       </>
                     ) : (
                       <>
-                        <DownloadCloud size={14} color="#0f172a" />
-                        <span>Download PWA</span>
+                        <DownloadCloud size={13} color="#2a170a" />
+                        <span>PWA</span>
                       </>
                     )}
                   </button>
@@ -253,10 +259,10 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     onClick={onClose}
                     style={{
                       background: 'rgba(255, 255, 255, 0.12)',
-                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                      border: '1px solid rgba(255, 255, 255, 0.25)',
                       color: '#ffffff',
-                      width: '36px',
-                      height: '36px',
+                      width: '32px',
+                      height: '32px',
                       borderRadius: '50%',
                       display: 'flex',
                       alignItems: 'center',
@@ -265,7 +271,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       transition: 'all 0.15s ease',
                     }}
                   >
-                    <X size={18} />
+                    <X size={16} />
                   </button>
                 </div>
               </div>
@@ -280,26 +286,36 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     style={{
                       margin: '10px 16px 0',
                       padding: '10px 14px',
-                      borderRadius: '12px',
-                      background: '#1e293b',
-                      border: '1px solid #3b82f6',
-                      color: '#ffffff',
+                      borderRadius: '10px',
+                      background: '#3d2616',
+                      border: '1px solid #c4a97f',
+                      color: '#fdf7ee',
                       fontSize: '0.8rem',
                       fontWeight: 700,
                       display: 'flex',
                       alignItems: 'center',
                       gap: '8px',
-                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.15)',
+                      boxShadow: '0 4px 14px rgba(0, 0, 0, 0.25)',
+                      fontFamily: 'serif',
                     }}
                   >
-                    <Info size={16} color="#60a5fa" style={{ flexShrink: 0 }} />
+                    <Info size={16} color="#e3ccaa" style={{ flexShrink: 0 }} />
                     <span>{pwaToast}</span>
                   </motion.div>
                 )}
               </AnimatePresence>
 
               {/* List of items */}
-              <div style={{ flex: 1, overflowY: 'auto', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', background: '#f8fafc' }}>
+              <div
+                style={{
+                  flex: 1,
+                  overflowY: 'auto',
+                  padding: '14px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                }}
+              >
                 {items.length === 0 ? (
                   <div
                     style={{
@@ -308,7 +324,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       alignItems: 'center',
                       justifyContent: 'center',
                       height: '100%',
-                      color: '#64748b',
+                      color: '#543720',
                       gap: '12px',
                       textAlign: 'center',
                       padding: '40px 20px',
@@ -319,54 +335,79 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                         width: '64px',
                         height: '64px',
                         borderRadius: '16px',
-                        background: '#ffffff',
-                        border: '1.5px dashed #cbd5e1',
+                        background: 'rgba(245, 238, 225, 0.8)',
+                        border: '2px dashed #543720',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: '#94a3b8',
+                        color: '#543720',
                       }}
                     >
                       <ImageIcon size={28} />
                     </div>
-                    <p style={{ fontSize: '1rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>Belum Ada Foto Tersimpan</p>
-                    <p style={{ fontSize: '0.82rem', maxWidth: '240px', fontWeight: 600, color: '#64748b', margin: 0 }}>
-                      Selesaikan sesi foto dan tekan <strong>"Lihat Hasil"</strong> untuk menyimpan otomatis ke galeri.
+                    <p
+                      className="font-gothic"
+                      style={{ fontSize: '1.35rem', fontWeight: 700, color: '#1a0f07', margin: 0 }}
+                    >
+                      Belum Ada Foto Tersimpan
+                    </p>
+                    <p
+                      className="font-vintage-serif"
+                      style={{ fontSize: '0.84rem', maxWidth: '240px', fontWeight: 600, color: '#543720', margin: 0 }}
+                    >
+                      Selesaikan sesi foto dan tekan <strong>"Select"</strong> untuk menyimpan otomatis ke galeri.
                     </p>
                   </div>
                 ) : (
                   items.map((item) => {
-                    const tmpl = getTemplateById(item.config.selectedTemplateId);
+                    const tmpl = getTemplateById(item.config?.selectedTemplateId || 'template-1');
                     return (
                       <div
                         key={item.id}
+                        onClick={() => {
+                          if (onSelectSession) {
+                            onSelectSession(item);
+                            onClose();
+                          } else {
+                            openDetailModal(item);
+                          }
+                        }}
                         style={{
-                          padding: '12px',
+                          padding: '10px 12px',
                           display: 'flex',
                           gap: '12px',
                           alignItems: 'center',
-                          background: '#ffffff',
-                          borderRadius: '14px',
-                          border: '1px solid #e2e8f0',
-                          boxShadow: '0 4px 14px rgba(0, 0, 0, 0.05)',
+                          background: 'rgba(245, 238, 225, 0.92)',
+                          borderRadius: '10px',
+                          border: '2px solid #3d2616',
+                          boxShadow: '0 4px 12px rgba(45, 25, 12, 0.18)',
+                          cursor: 'pointer',
                           transition: 'all 0.15s ease',
                         }}
                       >
-                        {/* Thumbnail Photostrip (Clickable to open details) */}
+                        {/* Thumbnail Photostrip */}
                         <div
-                          onClick={() => openDetailModal(item)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (onSelectSession) {
+                              onSelectSession(item);
+                              onClose();
+                            } else {
+                              openDetailModal(item);
+                            }
+                          }}
                           style={{
-                            width: '68px',
-                            height: '104px',
+                            width: '60px',
+                            height: '92px',
                             cursor: 'pointer',
-                            borderRadius: '8px',
+                            borderRadius: '6px',
                             overflow: 'hidden',
-                            border: '1px solid #cbd5e1',
-                            background: '#f1f5f9',
+                            border: '1.5px solid #3d2616',
+                            background: '#d5dee6',
                             flexShrink: 0,
                             position: 'relative',
                           }}
-                          title="Klik untuk lihat detail lengkap"
+                          title="Klik untuk buka sesi ini di Photobooth"
                         >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
@@ -376,30 +417,32 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                               width: '100%',
                               height: '100%',
                               objectFit: 'contain',
-                              background: '#ffffff',
                               display: 'block',
                             }}
                           />
                         </div>
 
                         {/* Details & Actions */}
-                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
+                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
                           <span
-                            onClick={() => openDetailModal(item)}
+                            className="font-vintage-serif"
                             style={{
-                              fontSize: '0.92rem',
-                              fontWeight: 900,
-                              color: '#1e293b',
+                              fontSize: '0.96rem',
+                              fontWeight: 800,
+                              color: '#1a0f07',
                               cursor: 'pointer',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
                               whiteSpace: 'nowrap',
                             }}
                           >
-                            {tmpl ? tmpl.name : 'Snapbooth Photo'}
+                            {tmpl ? tmpl.name : 'Pearly Booth Photo'}
                           </span>
 
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.72rem', color: '#64748b', fontWeight: 700 }}>
+                          <div
+                            className="font-vintage-serif"
+                            style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.74rem', color: '#543720', fontWeight: 600 }}
+                          >
                             <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}>
                               <Calendar size={11} />
                               {new Date(item.createdAt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
@@ -409,58 +452,100 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           </div>
 
                           {/* Action Buttons Row */}
-                          <div style={{ display: 'flex', gap: '6px', marginTop: '4px', flexWrap: 'wrap' }}>
+                          <div style={{ display: 'flex', gap: '5px', marginTop: '3px', flexWrap: 'wrap' }}>
                             <button
-                              onClick={() => openDetailModal(item)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                if (onSelectSession) {
+                                  onSelectSession(item);
+                                  onClose();
+                                } else {
+                                  openDetailModal(item);
+                                }
+                              }}
                               style={{
-                                padding: '6px 12px',
-                                fontSize: '0.78rem',
+                                padding: '4px 10px',
+                                fontSize: '0.74rem',
                                 fontWeight: 700,
-                                background: '#1e293b',
-                                color: '#ffffff',
+                                background: '#3d2616',
+                                color: '#fdf7ee',
                                 border: 'none',
-                                borderRadius: '999px',
+                                borderRadius: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 gap: '4px',
                                 cursor: 'pointer',
+                                fontFamily: 'serif',
                               }}
-                              title="Lihat Hasil (Photostrip, GIF & Pose)"
+                              title="Buka sesi ini di photobooth"
                             >
-                              <Eye size={12} />
-                              <span>Lihat</span>
+                              <Eye size={11} />
+                              <span>Buka Sesi</span>
                             </button>
 
                             <button
-                              onClick={() => handleDownloadStrip(item)}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openDetailModal(item);
+                              }}
                               style={{
-                                padding: '6px 12px',
-                                fontSize: '0.78rem',
+                                padding: '4px 9px',
+                                fontSize: '0.74rem',
                                 fontWeight: 700,
-                                background: '#f1f5f9',
-                                color: '#1e293b',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: '999px',
+                                background: 'rgba(235, 218, 195, 0.8)',
+                                color: '#2a170a',
+                                border: '1px solid #543720',
+                                borderRadius: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
-                                gap: '4px',
+                                gap: '3px',
+                                cursor: 'pointer',
+                                fontFamily: 'serif',
+                              }}
+                              title="Lihat detail lengkap (Photostrip, GIF, Pose)"
+                            >
+                              <span>Detail</span>
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadStrip(item);
+                              }}
+                              style={{
+                                padding: '4px 8px',
+                                fontSize: '0.74rem',
+                                fontWeight: 700,
+                                background: 'rgba(235, 218, 195, 0.8)',
+                                color: '#2a170a',
+                                border: '1px solid #543720',
+                                borderRadius: '6px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '3px',
                                 cursor: 'pointer',
                               }}
                               title="Unduh Photostrip PNG"
                             >
-                              <Download size={12} />
-                              <span>Unduh</span>
+                              <Download size={11} />
                             </button>
 
                             <button
-                              onClick={() => setDeleteConfirmTarget({ id: item.id, name: tmpl ? tmpl.name : 'Sesi Foto' })}
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDeleteConfirmTarget({ id: item.id, name: tmpl ? tmpl.name : 'Sesi Foto' });
+                              }}
                               style={{
-                                padding: '6px 9px',
-                                fontSize: '0.78rem',
+                                padding: '4px 7px',
+                                fontSize: '0.74rem',
                                 background: '#fee2e2',
-                                color: '#ef4444',
+                                color: '#dc2626',
                                 border: '1px solid #fca5a5',
-                                borderRadius: '999px',
+                                borderRadius: '6px',
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
@@ -468,7 +553,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                               }}
                               title="Hapus dari Galeri"
                             >
-                              <Trash2 size={12} />
+                              <Trash2 size={11} />
                             </button>
                           </div>
                         </div>
@@ -480,23 +565,24 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
 
               {/* Footer */}
               {items.length > 0 && (
-                <div style={{ padding: '14px 18px', borderTop: '1px solid #e2e8f0', background: '#ffffff' }}>
+                <div style={{ padding: '12px 16px', borderTop: '2px solid #543720', background: 'rgba(245, 238, 225, 0.95)' }}>
                   <button
                     onClick={() => setDeleteConfirmTarget('all')}
                     style={{
                       width: '100%',
-                      padding: '10px',
-                      fontSize: '0.84rem',
+                      padding: '8px',
+                      fontSize: '0.82rem',
                       fontWeight: 700,
-                      color: '#ef4444',
+                      color: '#dc2626',
                       background: '#fff1f2',
                       border: '1px solid #fecdd3',
-                      borderRadius: '999px',
+                      borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       gap: '6px',
                       cursor: 'pointer',
+                      fontFamily: 'serif',
                     }}
                   >
                     <Trash2 size={14} /> Bersihkan Semua Galeri
@@ -516,7 +602,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               position: 'fixed',
               inset: 0,
               zIndex: 300,
-              background: 'rgba(15, 23, 42, 0.75)',
+              background: 'rgba(26, 15, 7, 0.75)',
               backdropFilter: 'blur(4px)',
               display: 'flex',
               alignItems: 'center',
@@ -530,18 +616,19 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
               transition={{ duration: 0.18 }}
+              className="vintage-parchment-bg"
               style={{
-                maxWidth: '380px',
+                maxWidth: '400px',
                 width: '100%',
                 padding: '24px',
-                background: '#ffffff',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 textAlign: 'center',
                 gap: '14px',
-                borderRadius: '20px',
-                boxShadow: '0 20px 50px rgba(0, 0, 0, 0.25)',
+                borderRadius: '16px',
+                border: '3px solid #3d2616',
+                boxShadow: '0 20px 50px rgba(45, 25, 12, 0.45)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
@@ -551,6 +638,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   height: '54px',
                   borderRadius: '50%',
                   background: '#fee2e2',
+                  border: '1.5px solid #fca5a5',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -561,10 +649,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               </div>
 
               <div>
-                <h3 style={{ fontSize: '1.1rem', fontWeight: 900, color: '#1e293b', marginBottom: '6px' }}>
+                <h3
+                  className="font-gothic"
+                  style={{ fontSize: '1.4rem', fontWeight: 700, color: '#1a0f07', marginBottom: '6px' }}
+                >
                   {deleteConfirmTarget === 'all' ? 'Hapus Semua Galeri?' : 'Hapus Foto Sesi Ini?'}
                 </h3>
-                <p style={{ fontSize: '0.84rem', color: '#64748b', fontWeight: 600, lineHeight: 1.4, margin: 0 }}>
+                <p
+                  className="font-vintage-serif"
+                  style={{ fontSize: '0.86rem', color: '#543720', fontWeight: 600, lineHeight: 1.4, margin: 0 }}
+                >
                   {deleteConfirmTarget === 'all'
                     ? 'Apakah Anda yakin ingin menghapus semua hasil foto dari Galeri Sesi? Data yang dihapus tidak dapat dipulihkan.'
                     : `Apakah Anda yakin ingin menghapus ${deleteConfirmTarget.name} dari galeri sesi?`}
@@ -575,14 +669,15 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                 <button
                   onClick={() => setDeleteConfirmTarget(null)}
                   style={{
-                    padding: '10px',
+                    padding: '9px',
                     fontSize: '0.86rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    background: '#f1f5f9',
-                    border: '1px solid #cbd5e1',
-                    color: '#334155',
+                    borderRadius: '8px',
+                    background: 'rgba(235, 218, 195, 0.8)',
+                    border: '1.5px solid #543720',
+                    color: '#2a170a',
                     cursor: 'pointer',
+                    fontFamily: 'serif',
                   }}
                 >
                   Batal
@@ -597,14 +692,15 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     setDeleteConfirmTarget(null);
                   }}
                   style={{
-                    padding: '10px',
+                    padding: '9px',
                     fontSize: '0.86rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    background: '#ef4444',
-                    border: 'none',
+                    borderRadius: '8px',
+                    background: '#dc2626',
+                    border: '1.5px solid #991b1b',
                     color: '#ffffff',
                     cursor: 'pointer',
+                    fontFamily: 'serif',
                   }}
                 >
                   Ya, Hapus
@@ -623,7 +719,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               position: 'fixed',
               inset: 0,
               zIndex: 150,
-              background: 'rgba(15, 23, 42, 0.85)',
+              background: 'rgba(26, 15, 7, 0.8)',
               backdropFilter: 'blur(6px)',
               display: 'flex',
               alignItems: 'center',
@@ -638,36 +734,43 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               exit={{ scale: 0.95, opacity: 0, y: 10 }}
               transition={{ duration: 0.2 }}
               onClick={(e) => e.stopPropagation()}
-              className="neo-card"
+              className="vintage-parchment-bg"
               style={{
                 width: '100%',
                 maxWidth: '620px',
                 maxHeight: '92vh',
-                background: '#ffffff',
                 display: 'flex',
                 flexDirection: 'column',
                 borderRadius: '16px',
+                border: '3px solid #3d2616',
                 padding: '0',
                 overflow: 'hidden',
+                boxShadow: '0 25px 60px rgba(45, 25, 12, 0.5)',
               }}
             >
               {/* Modal Header */}
               <div
                 style={{
                   padding: '16px 20px',
-                  background: '#1e293b',
-                  color: '#ffffff',
-                  borderBottom: '1px solid #e2e8f0',
+                  background: '#3d2616',
+                  color: '#fdf7ee',
+                  borderBottom: '2px solid #543720',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
                 }}
               >
                 <div>
-                  <h3 style={{ fontSize: '1.05rem', fontWeight: 900, color: '#ffffff', margin: 0 }}>
-                    {getTemplateById(selectedItem.config.selectedTemplateId)?.name || 'Hasil Sesi'}
+                  <h3
+                    className="font-gothic"
+                    style={{ fontSize: '1.35rem', fontWeight: 700, color: '#fdf7ee', margin: 0, letterSpacing: '0.5px' }}
+                  >
+                    {getTemplateById(selectedItem.config?.selectedTemplateId)?.name || 'Hasil Sesi'}
                   </h3>
-                  <p style={{ fontSize: '0.74rem', color: '#94a3b8', fontWeight: 600, margin: '2px 0 0 0' }}>
+                  <p
+                    className="font-vintage-serif"
+                    style={{ fontSize: '0.78rem', color: 'rgba(253, 247, 238, 0.75)', fontWeight: 600, margin: '2px 0 0 0' }}
+                  >
                     {new Date(selectedItem.createdAt).toLocaleString('id-ID', { dateStyle: 'medium', timeStyle: 'short' })}
                   </p>
                 </div>
@@ -676,7 +779,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   onClick={() => setSelectedItem(null)}
                   style={{
                     background: 'rgba(255, 255, 255, 0.12)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    border: '1px solid rgba(255, 255, 255, 0.25)',
                     color: '#ffffff',
                     width: '32px',
                     height: '32px',
@@ -695,9 +798,9 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               <div
                 style={{
                   display: 'flex',
-                  background: '#f8fafc',
+                  background: 'rgba(235, 218, 195, 0.7)',
                   padding: '8px 12px',
-                  borderBottom: '1px solid #e2e8f0',
+                  borderBottom: '1.5px solid #543720',
                   gap: '8px',
                 }}
               >
@@ -708,17 +811,17 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     padding: '8px',
                     fontSize: '0.82rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: activeTab === 'strip' ? '#1e293b' : '#ffffff',
-                    color: activeTab === 'strip' ? '#ffffff' : '#475569',
-                    boxShadow: activeTab === 'strip' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    borderRadius: '6px',
+                    border: '1px solid #543720',
+                    background: activeTab === 'strip' ? '#3d2616' : 'rgba(245, 238, 225, 0.85)',
+                    color: activeTab === 'strip' ? '#fdf7ee' : '#3d2616',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '5px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    fontFamily: 'serif',
                   }}
                 >
                   <Layers size={13} />
@@ -732,17 +835,17 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     padding: '8px',
                     fontSize: '0.82rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: activeTab === 'gif' ? '#1e293b' : '#ffffff',
-                    color: activeTab === 'gif' ? '#ffffff' : '#475569',
-                    boxShadow: activeTab === 'gif' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    borderRadius: '6px',
+                    border: '1px solid #543720',
+                    background: activeTab === 'gif' ? '#3d2616' : 'rgba(245, 238, 225, 0.85)',
+                    color: activeTab === 'gif' ? '#fdf7ee' : '#3d2616',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '5px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    fontFamily: 'serif',
                   }}
                 >
                   <Film size={13} />
@@ -756,17 +859,17 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     padding: '8px',
                     fontSize: '0.82rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    border: 'none',
-                    background: activeTab === 'photos' ? '#1e293b' : '#ffffff',
-                    color: activeTab === 'photos' ? '#ffffff' : '#475569',
-                    boxShadow: activeTab === 'photos' ? '0 2px 8px rgba(0,0,0,0.15)' : '0 1px 3px rgba(0,0,0,0.05)',
+                    borderRadius: '6px',
+                    border: '1px solid #543720',
+                    background: activeTab === 'photos' ? '#3d2616' : 'rgba(245, 238, 225, 0.85)',
+                    color: activeTab === 'photos' ? '#fdf7ee' : '#3d2616',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: '5px',
                     cursor: 'pointer',
                     transition: 'all 0.15s ease',
+                    fontFamily: 'serif',
                   }}
                 >
                   <ImageIcon size={13} />
@@ -785,7 +888,6 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   alignItems: 'center',
                   justifyContent: 'center',
                   minHeight: '340px',
-                  background: '#f8fafc',
                 }}
               >
                 {/* TAB 1: PHOTOSTRIP PREVIEW */}
@@ -796,11 +898,11 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                       style={{
                         position: 'relative',
                         maxHeight: '380px',
-                        borderRadius: '12px',
+                        borderRadius: '6px',
                         overflow: 'hidden',
-                        border: '1px solid #cbd5e1',
-                        boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                        background: '#ffffff',
+                        border: '2px solid #3d2616',
+                        boxShadow: '0 8px 24px rgba(45, 25, 12, 0.25)',
+                        background: '#d5dee6',
                         cursor: 'pointer',
                       }}
                       title="Klik untuk memperbesar"
@@ -821,15 +923,16 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           position: 'absolute',
                           bottom: '8px',
                           right: '8px',
-                          background: 'rgba(15, 23, 42, 0.85)',
-                          color: '#ffffff',
-                          padding: '4px 10px',
-                          borderRadius: '999px',
+                          background: 'rgba(45, 25, 12, 0.88)',
+                          color: '#fdf7ee',
+                          padding: '3px 9px',
+                          borderRadius: '4px',
                           fontSize: '0.72rem',
                           fontWeight: 700,
                           display: 'flex',
                           alignItems: 'center',
                           gap: '4px',
+                          fontFamily: 'serif',
                         }}
                       >
                         <Maximize2 size={11} /> Zoom
@@ -839,23 +942,18 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '360px' }}>
                       <button
                         onClick={() => handleDownloadStrip(selectedItem)}
+                        className="btn-vintage-tag"
                         style={{
                           flex: 1,
-                          padding: '11px',
-                          fontSize: '0.88rem',
-                          fontWeight: 700,
-                          borderRadius: '999px',
-                          background: '#1e293b',
-                          color: '#ffffff',
-                          border: 'none',
+                          padding: '8px 36px 8px 22px',
+                          fontSize: '1.15rem',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
                           gap: '6px',
-                          cursor: 'pointer',
                         }}
                       >
-                        <Download size={15} />
+                        <Download size={14} />
                         <span>Unduh Photostrip</span>
                       </button>
                     </div>
@@ -867,8 +965,8 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px', width: '100%' }}>
                     {isGeneratingGif ? (
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px', minHeight: '260px' }}>
-                        <Loader2 className="animate-spin" size={36} color="#1e293b" />
-                        <span style={{ fontSize: '0.85rem', fontWeight: 700, color: '#1e293b' }}>
+                        <Loader2 className="animate-spin text-amber-950" size={36} />
+                        <span className="font-vintage-serif" style={{ fontSize: '0.88rem', fontWeight: 700, color: '#3d2616' }}>
                           Membuat Animasi GIF...
                         </span>
                       </div>
@@ -880,11 +978,11 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                             position: 'relative',
                             maxHeight: '340px',
                             maxWidth: '420px',
-                            borderRadius: '12px',
+                            borderRadius: '6px',
                             overflow: 'hidden',
-                            border: '1px solid #cbd5e1',
-                            boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
-                            background: '#000000',
+                            border: '2px solid #3d2616',
+                            boxShadow: '0 8px 24px rgba(45, 25, 12, 0.25)',
+                            background: '#2a170a',
                             cursor: 'pointer',
                           }}
                           title="Klik untuk memperbesar"
@@ -905,29 +1003,24 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                         <div style={{ display: 'flex', gap: '8px', width: '100%', maxWidth: '360px' }}>
                           <button
                             onClick={handleDownloadGif}
+                            className="btn-vintage-tag"
                             style={{
                               flex: 1,
-                              padding: '11px',
-                              fontSize: '0.88rem',
-                              fontWeight: 700,
-                              borderRadius: '999px',
-                              background: '#1e293b',
-                              color: '#ffffff',
-                              border: 'none',
+                              padding: '8px 36px 8px 22px',
+                              fontSize: '1.15rem',
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
                               gap: '6px',
-                              cursor: 'pointer',
                             }}
                           >
-                            <Download size={15} />
-                            <span>Unduh Animasi GIF</span>
+                            <Download size={14} />
+                            <span>Unduh GIF</span>
                           </button>
                         </div>
                       </div>
                     ) : (
-                      <p style={{ fontSize: '0.85rem', color: '#64748b', fontWeight: 700 }}>
+                      <p className="font-vintage-serif" style={{ fontSize: '0.85rem', color: '#543720', fontWeight: 700 }}>
                         Gagal memuat animasi GIF untuk sesi ini.
                       </p>
                     )}
@@ -938,24 +1031,25 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                 {activeTab === 'photos' && (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', width: '100%' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontSize: '0.8rem', fontWeight: 800, color: '#64748b' }}>
+                      <span className="font-vintage-serif" style={{ fontSize: '0.82rem', fontWeight: 700, color: '#543720' }}>
                         Total {selectedItem.photos?.length || 0} Foto Pose
                       </span>
                       {selectedItem.photos && selectedItem.photos.length > 1 && (
                         <button
                           onClick={() => handleDownloadAllPhotos(selectedItem.photos)}
                           style={{
-                            padding: '6px 14px',
-                            fontSize: '0.78rem',
+                            padding: '5px 12px',
+                            fontSize: '0.76rem',
                             fontWeight: 700,
-                            borderRadius: '999px',
-                            background: '#1e293b',
-                            color: '#ffffff',
+                            borderRadius: '6px',
+                            background: '#3d2616',
+                            color: '#fdf7ee',
                             border: 'none',
                             display: 'flex',
                             alignItems: 'center',
                             gap: '4px',
                             cursor: 'pointer',
+                            fontFamily: 'serif',
                           }}
                         >
                           <Download size={12} /> Unduh Semua
@@ -978,11 +1072,11 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           style={{
                             display: 'flex',
                             flexDirection: 'column',
-                            borderRadius: '12px',
+                            borderRadius: '8px',
                             overflow: 'hidden',
-                            border: '1px solid #e2e8f0',
-                            background: '#ffffff',
-                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)',
+                            border: '1.5px solid #3d2616',
+                            background: 'rgba(245, 238, 225, 0.95)',
+                            boxShadow: '0 4px 12px rgba(45, 25, 12, 0.15)',
                             width: selectedItem.photos.length === 1 ? '180px' : '100%',
                             maxWidth: '220px',
                           }}
@@ -993,7 +1087,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                               width: '100%',
                               aspectRatio: '1 / 1',
                               overflow: 'hidden',
-                              background: '#000000',
+                              background: '#2a170a',
                               cursor: 'pointer',
                             }}
                             title={`Klik untuk lihat jelas Foto #${pIdx + 1}`}
@@ -1009,13 +1103,13 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                           <button
                             onClick={() => handleDownloadSinglePhoto(photoSrc, pIdx)}
                             style={{
-                              padding: '7px 0',
-                              borderTop: '1px solid #e2e8f0',
+                              padding: '6px 0',
+                              borderTop: '1px solid #543720',
                               borderLeft: 'none',
                               borderRight: 'none',
                               borderBottom: 'none',
-                              background: '#f8fafc',
-                              color: '#1e293b',
+                              background: '#ebd7bc',
+                              color: '#2a170a',
                               fontSize: '0.74rem',
                               fontWeight: 700,
                               display: 'flex',
@@ -1023,6 +1117,7 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                               justifyContent: 'center',
                               gap: '4px',
                               cursor: 'pointer',
+                              fontFamily: 'serif',
                             }}
                           >
                             <Download size={11} />
@@ -1038,9 +1133,9 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
               {/* Modal Footer (Buka di Studio Hasil / Tutup) */}
               <div
                 style={{
-                  padding: '14px 20px',
-                  background: '#ffffff',
-                  borderTop: '1px solid #e2e8f0',
+                  padding: '12px 20px',
+                  background: 'rgba(245, 238, 225, 0.95)',
+                  borderTop: '2px solid #543720',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -1052,37 +1147,34 @@ export const GalleryDrawer: React.FC<GalleryDrawerProps> = ({
                     onClick={() => {
                       onSelectSession(selectedItem);
                       setSelectedItem(null);
+                      onClose();
                     }}
+                    className="btn-vintage-tag"
                     style={{
-                      padding: '9px 18px',
-                      fontSize: '0.84rem',
-                      fontWeight: 700,
-                      borderRadius: '999px',
-                      background: '#1e293b',
-                      color: '#ffffff',
-                      border: 'none',
+                      padding: '7px 32px 7px 20px',
+                      fontSize: '1.05rem',
                       display: 'flex',
                       alignItems: 'center',
                       gap: '6px',
-                      cursor: 'pointer',
                     }}
                   >
                     <ArrowUpRight size={14} />
-                    <span>Buka di Layar Hasil</span>
+                    <span>Buka di Photobooth</span>
                   </button>
                 ) : <div />}
 
                 <button
                   onClick={() => setSelectedItem(null)}
                   style={{
-                    padding: '9px 18px',
+                    padding: '7px 18px',
                     fontSize: '0.84rem',
                     fontWeight: 700,
-                    borderRadius: '999px',
-                    background: '#f1f5f9',
-                    color: '#334155',
-                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    background: 'rgba(235, 218, 195, 0.8)',
+                    color: '#3d2616',
+                    border: '1.5px solid #543720',
                     cursor: 'pointer',
+                    fontFamily: 'serif',
                   }}
                 >
                   Tutup

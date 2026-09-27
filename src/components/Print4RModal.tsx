@@ -216,7 +216,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           position: 'fixed',
           inset: 0,
           zIndex: 99999,
-          background: 'rgba(15, 23, 42, 0.82)',
+          background: 'rgba(26, 15, 7, 0.82)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
@@ -231,16 +231,18 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           animate={{ scale: 1, opacity: 1, y: 0 }}
           exit={{ scale: 0.9, opacity: 0, y: 15 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="vintage-parchment-bg"
           style={{
             maxWidth: '820px',
             width: '100%',
-            background: '#ffffff',
-            borderRadius: '24px',
-            boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.45)',
+            borderRadius: '16px',
+            border: '3px solid #3d2616',
+            boxShadow: '0 25px 60px -15px rgba(26, 15, 7, 0.6)',
             display: 'flex',
             flexDirection: 'column',
             maxHeight: '94vh',
             overflow: 'hidden',
+            color: '#1a0f07',
           }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -248,36 +250,38 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
           <div
             style={{
               padding: '18px 24px',
-              borderBottom: '1.5px solid #f1f5f9',
+              borderBottom: '2px solid #3d2616',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
-              background: 'linear-gradient(to right, #f8fafc, #ffffff)',
+              background: 'rgba(235, 218, 195, 0.85)',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div
                 style={{
                   width: '40px',
                   height: '40px',
-                  borderRadius: '12px',
-                  background: '#0284c7',
-                  color: '#ffffff',
+                  borderRadius: '8px',
+                  background: '#3d2616',
+                  color: '#fdf7ee',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
+                  boxShadow: '0 4px 12px rgba(45, 25, 12, 0.3)',
                 }}
               >
                 <Printer size={22} />
               </div>
               <div>
                 <h3
+                  className="font-gothic"
                   style={{
-                    fontSize: '1.15rem',
-                    fontWeight: 800,
-                    color: '#0f172a',
+                    fontSize: '1.65rem',
+                    fontWeight: 700,
+                    color: '#1a0f07',
                     margin: 0,
+                    letterSpacing: '0.5px',
                   }}
                 >
                   Cetak Ukuran 4R
@@ -288,7 +292,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
             <button
               onClick={onClose}
               style={{
-                background: '#f1f5f9',
+                background: '#3d2616',
                 border: 'none',
                 borderRadius: '50%',
                 width: '36px',
@@ -297,7 +301,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                color: '#64748b',
+                color: '#fdf7ee',
                 transition: 'all 0.15s ease',
               }}
             >
@@ -322,10 +326,10 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#f8fafc',
-                borderRadius: '18px',
+                background: 'rgba(235, 218, 195, 0.65)',
+                borderRadius: '12px',
                 padding: '20px',
-                border: '1.5px solid #e2e8f0',
+                border: '2px solid #3d2616',
                 position: 'relative',
               }}
             >
@@ -335,9 +339,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                   width: '240px',
                   aspectRatio: '2 / 3',
                   background: bgColor,
-                  borderRadius: '6px',
-                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18), 0 2px 8px rgba(0,0,0,0.06)',
-                  border: '1px solid #cbd5e1',
+                  borderRadius: '4px',
+                  boxShadow: '0 12px 30px rgba(0, 0, 0, 0.25), 0 2px 8px rgba(0,0,0,0.1)',
+                  border: '2px solid #3d2616',
                   overflow: 'hidden',
                   position: 'relative',
                   display: 'flex',
@@ -346,9 +350,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                 }}
               >
                 {isRendering ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#64748b' }}>
-                    <Loader2 size={28} className="animate-spin text-sky-500" />
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700 }}>Menyiapkan 4R...</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#3d2616' }}>
+                    <Loader2 size={28} className="animate-spin text-amber-900" />
+                    <span className="font-vintage-serif" style={{ fontSize: '0.85rem', fontWeight: 700 }}>Menyiapkan 4R...</span>
                   </div>
                 ) : preview4RUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -367,21 +371,22 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
 
               {/* 4R Dimension Label */}
               <div
+                className="font-vintage-serif"
                 style={{
                   marginTop: '12px',
                   display: 'flex',
                   alignItems: 'center',
                   gap: '6px',
-                  background: '#ffffff',
-                  padding: '4px 12px',
+                  background: '#3d2616',
+                  padding: '4px 14px',
                   borderRadius: '999px',
-                  border: '1px solid #e2e8f0',
-                  fontSize: '0.75rem',
+                  border: '1px solid #543720',
+                  fontSize: '0.78rem',
                   fontWeight: 700,
-                  color: '#475569',
+                  color: '#fdf7ee',
                 }}
               >
-                <FileImage size={13} color="#0284c7" />
+                <FileImage size={13} color="#f59e0b" />
                 <span>4R (102 × 152 mm / 1200 × 1800 px)</span>
               </div>
             </div>
@@ -391,19 +396,19 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
               {/* Option 1: Layout Mode */}
               <div>
                 <label
+                  className="font-gothic"
                   style={{
-                    fontSize: '0.82rem',
-                    fontWeight: 800,
-                    color: '#1e293b',
+                    fontSize: '1.25rem',
+                    fontWeight: 700,
+                    color: '#1a0f07',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
                     marginBottom: '8px',
-                    textTransform: 'uppercase',
                     letterSpacing: '0.5px',
                   }}
                 >
-                  <Layers size={14} color="#0284c7" />
+                  <Layers size={16} color="#543720" />
                   <span>Tata Letak Cetak 4R</span>
                 </label>
 
@@ -417,9 +422,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      borderRadius: '12px',
-                      border: layoutMode === 'twin-2in1' ? '2px solid #0284c7' : '1.5px solid #e2e8f0',
-                      background: layoutMode === 'twin-2in1' ? '#f0f9ff' : '#ffffff',
+                      borderRadius: '8px',
+                      border: layoutMode === 'twin-2in1' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
+                      background: layoutMode === 'twin-2in1' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -430,9 +435,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         style={{
                           width: '32px',
                           height: '32px',
-                          borderRadius: '8px',
-                          background: layoutMode === 'twin-2in1' ? '#0284c7' : '#f1f5f9',
-                          color: layoutMode === 'twin-2in1' ? '#ffffff' : '#64748b',
+                          borderRadius: '6px',
+                          background: layoutMode === 'twin-2in1' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
+                          color: layoutMode === 'twin-2in1' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -441,15 +446,15 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         <Scissors size={16} />
                       </div>
                       <div>
-                        <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
                           Twin 2-in-1 (Gunting Tengah)
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
                           2 strip sejajar di 1 lembar 4R (Hemat kertas foto!)
                         </p>
                       </div>
                     </div>
-                    {layoutMode === 'twin-2in1' && <Check size={18} color="#0284c7" strokeWidth={3} />}
+                    {layoutMode === 'twin-2in1' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
 
                   {/* Mode 2: Fit Center */}
@@ -461,9 +466,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      borderRadius: '12px',
-                      border: layoutMode === 'fit-center' ? '2px solid #0284c7' : '1.5px solid #e2e8f0',
-                      background: layoutMode === 'fit-center' ? '#f0f9ff' : '#ffffff',
+                      borderRadius: '8px',
+                      border: layoutMode === 'fit-center' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
+                      background: layoutMode === 'fit-center' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -474,9 +479,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         style={{
                           width: '32px',
                           height: '32px',
-                          borderRadius: '8px',
-                          background: layoutMode === 'fit-center' ? '#0284c7' : '#f1f5f9',
-                          color: layoutMode === 'fit-center' ? '#ffffff' : '#64748b',
+                          borderRadius: '6px',
+                          background: layoutMode === 'fit-center' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
+                          color: layoutMode === 'fit-center' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -485,15 +490,15 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         <FileImage size={16} />
                       </div>
                       <div>
-                        <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
                           1 Desain di Tengah (Fit Studio)
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
                           Pas di tengah kertas 4R dengan margin studio rapi
                         </p>
                       </div>
                     </div>
-                    {layoutMode === 'fit-center' && <Check size={18} color="#0284c7" strokeWidth={3} />}
+                    {layoutMode === 'fit-center' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
 
                   {/* Mode 3: Full Bleed */}
@@ -505,9 +510,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       padding: '10px 14px',
-                      borderRadius: '12px',
-                      border: layoutMode === 'full-bleed' ? '2px solid #0284c7' : '1.5px solid #e2e8f0',
-                      background: layoutMode === 'full-bleed' ? '#f0f9ff' : '#ffffff',
+                      borderRadius: '8px',
+                      border: layoutMode === 'full-bleed' ? '2.5px solid #3d2616' : '1.5px solid rgba(61, 38, 22, 0.4)',
+                      background: layoutMode === 'full-bleed' ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
                       cursor: 'pointer',
                       textAlign: 'left',
                       transition: 'all 0.15s ease',
@@ -518,9 +523,9 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         style={{
                           width: '32px',
                           height: '32px',
-                          borderRadius: '8px',
-                          background: layoutMode === 'full-bleed' ? '#0284c7' : '#f1f5f9',
-                          color: layoutMode === 'full-bleed' ? '#ffffff' : '#64748b',
+                          borderRadius: '6px',
+                          background: layoutMode === 'full-bleed' ? '#3d2616' : 'rgba(61, 38, 22, 0.15)',
+                          color: layoutMode === 'full-bleed' ? '#fdf7ee' : '#3d2616',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -529,15 +534,15 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                         <Maximize2 size={16} />
                       </div>
                       <div>
-                        <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 800, color: '#0f172a' }}>
+                        <p className="font-vintage-serif" style={{ margin: 0, fontSize: '0.92rem', fontWeight: 800, color: '#1a0f07' }}>
                           Penuh 1 Lembar (Full Bleed)
                         </p>
-                        <p style={{ margin: 0, fontSize: '0.72rem', color: '#64748b' }}>
+                        <p style={{ margin: 0, fontSize: '0.75rem', color: '#543720' }}>
                           Mengisi seluruh kertas 4R tanpa border putih
                         </p>
                       </div>
                     </div>
-                    {layoutMode === 'full-bleed' && <Check size={18} color="#0284c7" strokeWidth={3} />}
+                    {layoutMode === 'full-bleed' && <Check size={18} color="#3d2616" strokeWidth={3} />}
                   </button>
                 </div>
               </div>
@@ -548,15 +553,15 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                   display: 'grid',
                   gridTemplateColumns: 'repeat(2, 1fr)',
                   gap: '12px',
-                  background: '#f8fafc',
+                  background: 'rgba(235, 218, 195, 0.6)',
                   padding: '12px 14px',
-                  borderRadius: '14px',
-                  border: '1px solid #e2e8f0',
+                  borderRadius: '10px',
+                  border: '1.5px solid #3d2616',
                 }}
               >
                 {/* Background Theme Selector (Putih & Hitam) */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <label className="font-vintage-serif" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
                     Warna Kertas
                   </label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px' }}>
@@ -572,17 +577,17 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                           onClick={() => setBgColor(theme.id)}
                           style={{
                             padding: '7px 12px',
-                            borderRadius: '8px',
-                            border: isActive ? '2.5px solid #0284c7' : `1.5px solid ${theme.border}`,
+                            borderRadius: '6px',
+                            border: isActive ? '2.5px solid #3d2616' : `1.5px solid ${theme.border}`,
                             background: theme.bg,
-                            fontSize: '0.78rem',
+                            fontSize: '0.82rem',
                             fontWeight: 800,
                             color: theme.text,
                             cursor: 'pointer',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            boxShadow: isActive ? '0 0 10px rgba(2, 132, 199, 0.4)' : 'none',
+                            boxShadow: isActive ? '0 0 10px rgba(61, 38, 22, 0.4)' : 'none',
                             transition: 'all 0.15s ease',
                           }}
                         >
@@ -595,7 +600,7 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
 
                 {/* Cut Guide Toggle */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: '#475569', marginBottom: '6px' }}>
+                  <label className="font-vintage-serif" style={{ display: 'block', fontSize: '0.8rem', fontWeight: 700, color: '#3d2616', marginBottom: '6px' }}>
                     Garis Potong (Cut Guide)
                   </label>
                   <button
@@ -603,13 +608,13 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                     onClick={() => setShowCutGuides(!showCutGuides)}
                     style={{
                       width: '100%',
-                      padding: '6px 10px',
-                      borderRadius: '8px',
-                      border: showCutGuides ? '2px solid #0284c7' : '1px solid #cbd5e1',
-                      background: showCutGuides ? '#e0f2fe' : '#ffffff',
-                      fontSize: '0.75rem',
+                      padding: '7px 10px',
+                      borderRadius: '6px',
+                      border: showCutGuides ? '2px solid #3d2616' : '1px solid rgba(61, 38, 22, 0.4)',
+                      background: showCutGuides ? '#ebd7bc' : 'rgba(255, 255, 255, 0.6)',
+                      fontSize: '0.78rem',
                       fontWeight: 700,
-                      color: showCutGuides ? '#0369a1' : '#64748b',
+                      color: '#1a0f07',
                       cursor: 'pointer',
                       display: 'flex',
                       alignItems: 'center',
@@ -630,20 +635,11 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                   type="button"
                   onClick={handlePrint4R}
                   disabled={isRendering || !preview4RUrl}
-                  className="btn-pill-dark"
+                  className="btn-vintage-tag"
                   style={{
                     width: '100%',
-                    padding: '13px 20px',
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    background: '#0284c7',
-                    border: 'none',
-                    borderRadius: '14px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+                    padding: '12px 24px',
+                    fontSize: '1.45rem',
                     cursor: preview4RUrl ? 'pointer' : 'not-allowed',
                     opacity: preview4RUrl ? 1 : 0.6,
                   }}
@@ -659,11 +655,11 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                     onClick={() => handleDownload4R('image/png')}
                     disabled={isDownloading || !preview4RUrl}
                     style={{
-                      padding: '10px 14px',
-                      borderRadius: '12px',
-                      background: '#f8fafc',
-                      border: '1.5px solid #cbd5e1',
-                      color: '#1e293b',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: 'rgba(255, 255, 255, 0.7)',
+                      border: '1.5px solid #3d2616',
+                      color: '#1a0f07',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: preview4RUrl ? 'pointer' : 'not-allowed',
@@ -682,11 +678,11 @@ export const Print4RModal: React.FC<Print4RModalProps> = ({
                     onClick={() => handleDownload4R('image/jpeg')}
                     disabled={isDownloading || !preview4RUrl}
                     style={{
-                      padding: '10px 14px',
-                      borderRadius: '12px',
-                      background: '#f8fafc',
-                      border: '1.5px solid #cbd5e1',
-                      color: '#1e293b',
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      background: 'rgba(255, 255, 255, 0.7)',
+                      border: '1.5px solid #3d2616',
+                      color: '#1a0f07',
                       fontSize: '0.82rem',
                       fontWeight: 700,
                       cursor: preview4RUrl ? 'pointer' : 'not-allowed',

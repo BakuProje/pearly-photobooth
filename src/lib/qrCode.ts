@@ -1,22 +1,29 @@
 import QRCode from 'qrcode';
 
-export async function generateQrCodeDataUrl(url: string, logoSrc: string = '/images/logo.png'): Promise<string> {
+export async function generateQrCodeDataUrl(
+  url: string,
+  withLogo: boolean = false,
+  logoSrc: string = '/images/logo.png'
+): Promise<string> {
   try {
     const canvas = document.createElement('canvas');
     await QRCode.toCanvas(canvas, url, {
-      width: 400,
+      width: 440,
       margin: 2,
-      errorCorrectionLevel: 'H',
+      errorCorrectionLevel: 'M',
       color: {
         dark: '#000000',
         light: '#ffffff',
       },
     });
 
+    if (!withLogo) {
+      return canvas.toDataURL('image/png');
+    }
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return canvas.toDataURL('image/png');
 
-    // Load and draw center logo directly (NO black border, NO white box background)
     try {
       const logoImg = await new Promise<HTMLImageElement>((resolve, reject) => {
         const img = new Image();
@@ -27,19 +34,17 @@ export async function generateQrCodeDataUrl(url: string, logoSrc: string = '/ima
       });
 
       const qrSize = canvas.width;
-      const logoSize = Math.round(qrSize * 0.26); // 26% for prominent, clear logo
+      const logoSize = Math.round(qrSize * 0.24);
       const center = qrSize / 2;
       const x = center - logoSize / 2;
       const y = center - logoSize / 2;
 
       ctx.save();
-      // Clean subtle white backdrop to make logo stand out clearly against QR pixels
       ctx.fillStyle = '#ffffff';
       ctx.beginPath();
       ctx.roundRect(x - 3, y - 3, logoSize + 6, logoSize + 6, 8);
       ctx.fill();
 
-      // Draw the logo with high quality smoothing
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(logoImg, x, y, logoSize, logoSize);

@@ -17,13 +17,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       className="no-print"
       style={{
         width: '100%',
-        padding: '14px 20px',
+        padding: '10px 20px 0px 20px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
         background: 'transparent',
         borderBottom: 'none',
         boxShadow: 'none',
+        position: 'relative',
+        zIndex: 20,
       }}
     >
       {/* Brand Logo & Name */}
@@ -33,7 +35,7 @@ export const Navbar: React.FC<NavbarProps> = ({
           src="/images/logo.png"
           alt="Pearly Photobooth Logo"
           style={{
-            height: '36px',
+            height: '34px',
             width: 'auto',
             objectFit: 'contain',
           }}
@@ -42,8 +44,9 @@ export const Navbar: React.FC<NavbarProps> = ({
           className="font-script"
           style={{
             fontSize: '1.9rem',
-            color: '#1e293b',
+            color: '#1a0f07',
             lineHeight: 1,
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
           }}
         >
           Pearly Booth
@@ -53,21 +56,24 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Right Controls: Gallery Button */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
         <button
+          type="button"
           onClick={onOpenGallery}
-          className="clean-card-interactive"
           style={{
-            padding: '7px 16px',
+            padding: '6px 16px',
             fontSize: '0.86rem',
+            fontFamily: 'serif',
             fontWeight: 700,
             display: 'flex',
             alignItems: 'center',
             gap: '6px',
-            borderRadius: '999px',
-            color: '#1e293b',
-            background: '#f8fafc',
-            border: '1.5px solid #e2e8f0',
+            borderRadius: '6px',
+            color: '#2a170a',
+            background: 'rgba(235, 218, 195, 0.85)',
+            border: '2px solid #543720',
             position: 'relative',
             cursor: 'pointer',
+            boxShadow: '0 2px 6px rgba(45, 25, 12, 0.15)',
+            transition: 'all 0.15s ease',
           }}
         >
           <ImageIcon size={15} />
@@ -76,12 +82,12 @@ export const Navbar: React.FC<NavbarProps> = ({
             <span
               style={{
                 position: 'absolute',
-                top: '-5px',
-                right: '-5px',
+                top: '-6px',
+                right: '-6px',
                 width: '18px',
                 height: '18px',
                 borderRadius: '50%',
-                background: '#1e293b',
+                background: '#1a0f07',
                 color: '#ffffff',
                 fontSize: '0.7rem',
                 fontWeight: 800,

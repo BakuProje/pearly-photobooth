@@ -44,9 +44,21 @@ body {
   background-color: #ffffff;
 }
 
-/* Script & Display Fonts */
+/* Script, Gothic & Display Fonts */
 .font-script {
   font-family: 'Great Vibes', 'Alex Brush', 'Pinyon Script', cursive !important;
+}
+
+.font-gothic {
+  font-family: 'UnifrakturCook', 'UnifrakturMaguntia', 'Pirata One', 'MedievalSharp', serif !important;
+}
+
+.font-vintage-title {
+  font-family: 'UnifrakturCook', 'UnifrakturMaguntia', 'Pirata One', 'Grenze Gotisch', serif !important;
+}
+
+.font-vintage-serif {
+  font-family: 'MedievalSharp', 'Cinzel', 'Playfair Display', Georgia, serif !important;
 }
 
 .font-display {
@@ -55,6 +67,63 @@ body {
 
 .font-sans {
   font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif !important;
+}
+
+/* Vintage Parchment Theme */
+.vintage-parchment-bg {
+  background-color: #ebd7bc;
+  background-image: url('/images/parchment_bg.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+}
+
+.vintage-box-border {
+  border: 3px solid #3d2616;
+  background: rgba(237, 222, 199, 0.45);
+  box-shadow: inset 0 0 16px rgba(61, 38, 22, 0.12), 0 6px 20px rgba(0, 0, 0, 0.08);
+}
+
+.vintage-left-preview {
+  border: 2px solid #543720;
+  background: rgba(232, 215, 191, 0.6);
+  box-shadow: inset 0 0 20px rgba(60, 36, 18, 0.15);
+}
+
+/* Vintage Tag Arrow Button (Start, Select) */
+.btn-vintage-tag {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #cfb58f;
+  background-image: linear-gradient(180deg, #e3ccaa 0%, #c4a97f 100%);
+  color: #2b180d;
+  font-family: 'UnifrakturCook', 'UnifrakturMaguntia', 'Pirata One', 'MedievalSharp', serif;
+  font-size: 1.45rem;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  padding: 10px 42px 10px 28px;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  clip-path: polygon(0% 0%, calc(100% - 22px) 0%, 100% 50%, calc(100% - 22px) 100%, 0% 100%);
+  box-shadow: 0 4px 14px rgba(43, 24, 13, 0.3);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  user-select: none;
+  text-decoration: none;
+  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.4);
+}
+
+.btn-vintage-tag:hover {
+  background-image: linear-gradient(180deg, #f0dcbd 0%, #d4b98f 100%);
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 6px 20px rgba(43, 24, 13, 0.4);
+}
+
+.btn-vintage-tag:active {
+  transform: translateY(1px) scale(0.98);
 }
 
 /* Card Styles */

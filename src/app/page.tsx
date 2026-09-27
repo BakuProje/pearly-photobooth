@@ -52,13 +52,7 @@ export default function Home() {
   const [isViewingSavedSession, setIsViewingSavedSession] = useState(false);
   const [retakeSlotIndex, setRetakeSlotIndex] = useState<number | null>(null);
   const [activeSoftFileSession, setActiveSoftFileSession] = useState<SoftFileSession | null>(null);
-  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      const sp = new URLSearchParams(window.location.search);
-      return sp.has('session') || sp.get('mode') === 'scan' || sp.get('view') === 'result';
-    }
-    return false;
-  });
+  const [isCheckingSession, setIsCheckingSession] = useState<boolean>(false);
   const [sessionNotFound, setSessionNotFound] = useState<boolean>(false);
 
   // Check URL scan parameters (?session=<id> or legacy ?mode=scan)
@@ -229,35 +223,35 @@ export default function Home() {
     }
   };
 
-  // 1. If currently checking scanned QR session: Render sleek loader (NEVER show Welcome "MULAI" screen)
+  // 1. If currently checking scanned QR session: Render vintage parchment loader
   if (isCheckingSession) {
     return (
       <main
+        className="vintage-parchment-bg"
         style={{
           minHeight: '100vh',
-          background: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '24px',
-          color: '#1e293b',
+          color: '#1a0f07',
           textAlign: 'center',
         }}
       >
         <div
           style={{
-            background: '#ffffff',
-            border: '2px solid #e2e8f0',
-            borderRadius: '24px',
+            background: 'rgba(245, 238, 225, 0.94)',
+            border: '3px solid #3d2616',
+            borderRadius: '16px',
             padding: '36px 28px',
-            maxWidth: '380px',
+            maxWidth: '400px',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '16px',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+            boxShadow: '0 12px 36px rgba(45, 25, 12, 0.35)',
           }}
         >
           <div
@@ -265,21 +259,27 @@ export default function Home() {
               width: '64px',
               height: '64px',
               borderRadius: '50%',
-              background: '#f0f9ff',
-              border: '2px solid #bae6fd',
+              background: '#ebd7bc',
+              border: '2px solid #3d2616',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Loader2 size={32} className="animate-spin text-sky-600" />
+            <Loader2 size={32} className="animate-spin text-amber-950" />
           </div>
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', margin: '0 0 6px 0' }}>
+            <h2
+              className="font-gothic"
+              style={{ fontSize: '1.65rem', fontWeight: 700, color: '#1a0f07', margin: '0 0 6px 0' }}
+            >
               Memuat Soft File Anda...
             </h2>
-            <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0, fontWeight: 600 }}>
-              Menyiapkan photostrip HD, animasi GIF & foto satuan per pose 📸
+            <p
+              className="font-vintage-serif"
+              style={{ fontSize: '0.88rem', color: '#4a331f', margin: 0, fontWeight: 600 }}
+            >
+              Menyiapkan photostrip HD, animasi GIF & foto satuan per pose
             </p>
           </div>
         </div>
@@ -291,38 +291,44 @@ export default function Home() {
   if (sessionNotFound) {
     return (
       <main
+        className="vintage-parchment-bg"
         style={{
           minHeight: '100vh',
-          background: '#ffffff',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           padding: '24px',
-          color: '#1e293b',
+          color: '#1a0f07',
           textAlign: 'center',
         }}
       >
         <div
           style={{
-            background: '#ffffff',
-            border: '2px solid #e2e8f0',
-            borderRadius: '24px',
+            background: 'rgba(245, 238, 225, 0.94)',
+            border: '3px solid #3d2616',
+            borderRadius: '16px',
             padding: '36px 24px',
-            maxWidth: '400px',
+            maxWidth: '420px',
             width: '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '16px',
-            boxShadow: '0 8px 30px rgba(0, 0, 0, 0.06)',
+            boxShadow: '0 12px 36px rgba(45, 25, 12, 0.35)',
           }}
         >
-          <div style={{ fontSize: '2.4rem' }}>📷</div>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#1e293b', margin: 0 }}>
+          <div style={{ fontSize: '2.6rem' }}>📷</div>
+          <h2
+            className="font-gothic"
+            style={{ fontSize: '1.65rem', fontWeight: 700, color: '#1a0f07', margin: 0 }}
+          >
             Soft File Belum Tersedia
           </h2>
-          <p style={{ fontSize: '0.85rem', color: '#64748b', margin: 0 }}>
+          <p
+            className="font-vintage-serif"
+            style={{ fontSize: '0.88rem', color: '#4a331f', margin: 0 }}
+          >
             Pastikan proses foto telah selesai pada layar photobooth, atau coba scan ulang barcode Anda.
           </p>
           <button
@@ -331,17 +337,11 @@ export default function Home() {
               setSessionNotFound(false);
               window.location.reload();
             }}
+            className="btn-vintage-tag"
             style={{
               marginTop: '8px',
-              padding: '12px 24px',
-              borderRadius: '999px',
-              background: '#0284c7',
-              color: '#ffffff',
-              fontWeight: 800,
-              fontSize: '0.92rem',
-              border: 'none',
-              cursor: 'pointer',
-              boxShadow: '0 4px 14px rgba(2, 132, 199, 0.35)',
+              padding: '10px 48px 10px 32px',
+              fontSize: '1.35rem',
             }}
           >
             Coba Muat Ulang ↺
@@ -354,7 +354,7 @@ export default function Home() {
   // 3. If visiting via scanned QR Barcode with dedicated SoftFile session ID:
   if (activeSoftFileSession) {
     return (
-      <main style={{ minHeight: '100vh', background: '#ffffff' }}>
+      <main style={{ minHeight: '100vh', background: '#ebd7bc' }}>
         <SoftFileView
           session={activeSoftFileSession}
           onStartNewSession={() => {
@@ -377,21 +377,13 @@ export default function Home() {
         display: 'flex',
         flexDirection: 'column',
         position: 'relative',
-        background: '#ffffff',
+        backgroundColor: '#ebd7bc',
       }}
     >
-      {/* Navbar only shown when in template selector */}
-      {currentStep === 'select-template' && (
-        <Navbar
-          galleryCount={gallery.length}
-          onOpenGallery={() => setIsGalleryOpen(true)}
-        />
-      )}
-
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', position: 'relative' }}>
         <AnimatePresence mode="wait">
           {/* =========================================================================
-              SCREEN 1: Gambar 1 - Welcome Screen with Script Title & Curved MULAI
+              SCREEN 1: Gambar 1 - Welcome Screen with bgstart.png & Gothic Start Tag Button
               ========================================================================= */}
           {currentStep === 'welcome' && (
             <motion.div
@@ -401,49 +393,43 @@ export default function Home() {
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
               style={{
+                width: '100vw',
+                height: '100vh',
                 minHeight: '100vh',
-                width: '100%',
+                maxHeight: '100vh',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
+                justifyContent: 'flex-end',
                 position: 'relative',
-                background: '#ffffff',
+                backgroundImage: "url('/images/bgstart.png')",
+                backgroundSize: '100% 100%',
+                backgroundPosition: 'center',
+                backgroundRepeat: 'no-repeat',
+                backgroundColor: '#f5eee1',
                 padding: '24px 16px',
+                overflow: 'hidden',
+                boxSizing: 'border-box',
               }}
             >
-              {/* Script Title as in Gambar 1 */}
-              <div
-                style={{
-                  textAlign: 'center',
-                  marginBottom: '100px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: '12px',
-                }}
-              >
-                <h1
-                  className="font-script"
-                  style={{
-                    fontSize: 'clamp(3.8rem, 11vw, 6.8rem)',
-                    color: '#1a1a1a',
-                    lineHeight: 1.05,
-                    margin: 0,
-                    letterSpacing: '0.5px',
-                  }}
-                >
-                  Pearly Booth
-                </h1>
-              </div>
-
-              {/* Curved Semi-Circle Button "MULAI" as in Gambar 1 */}
+              {/* Vintage Parchment Arrow Banner "start" Button (Large) */}
               <button
                 type="button"
                 onClick={() => setCurrentStep('select-template')}
-                className="btn-mulai-curved"
+                className="btn-vintage-tag"
+                style={{
+                  position: 'absolute',
+                  bottom: '12vh',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  minWidth: '260px',
+                  fontSize: 'clamp(2.4rem, 5.5vw, 3.4rem)',
+                  padding: '16px 74px 16px 54px',
+                  boxShadow: '0 10px 28px rgba(45, 25, 12, 0.45)',
+                  letterSpacing: '2px',
+                }}
               >
-                MULAI
+                start
               </button>
             </motion.div>
           )}
@@ -464,6 +450,8 @@ export default function Home() {
                 selectedTemplateId={config.selectedTemplateId}
                 onSelectTemplate={handleSelectTemplate}
                 onStartSession={handleStartSession}
+                galleryCount={gallery.length}
+                onOpenGallery={() => setIsGalleryOpen(true)}
               />
             </motion.div>
           )}

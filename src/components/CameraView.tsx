@@ -1,14 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import {
-  RefreshCw,
-  ArrowLeft,
-  Clock,
-  Sparkles,
-  Camera,
-  Check,
-} from 'lucide-react';
+import { Clock } from 'lucide-react';
 import { FilterType, PhotoboothTemplate, PhotoBoothConfig } from '@/lib/types';
 import { FILTERS } from '@/lib/constants';
 import { getTemplateById } from '@/lib/templateManager';
@@ -46,7 +39,6 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const [hasCameraAccess, setHasCameraAccess] = useState<boolean | null>(null);
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [facingMode, setFacingMode] = useState<'user' | 'environment'>('user');
-  // Camera is set to Mirror ON (standard front-facing selfie camera behavior)
   const isMirror = true;
   const [timerDuration, setTimerDuration] = useState<number>(5); // 3, 5, 7, 10
 
@@ -117,11 +109,6 @@ export const CameraView: React.FC<CameraViewProps> = ({
     };
   }, [facingMode, startCamera]);
 
-  const handleToggleCamera = () => {
-    const nextMode = facingMode === 'user' ? 'environment' : 'user';
-    setFacingMode(nextMode);
-  };
-
   // Capture single high-res frame from video
   const captureFrame = useCallback((): string | null => {
     if (!videoRef.current) return null;
@@ -149,7 +136,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
   const triggerShutterFlash = useCallback(() => {
     setIsFlashing(true);
     soundEffects.playShutter();
-    setTimeout(() => setIsFlashing(false), 200);
+    setTimeout(() => setIsFlashing(false), 220);
   }, []);
 
   // Run countdown and capture sequence
@@ -185,7 +172,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
 
       // Small delay between shots if multiple
       if (slot < endIndex - 1) {
-        await new Promise((r) => setTimeout(r, 900));
+        await new Promise((r) => setTimeout(r, 1000));
       }
     }
 
@@ -211,12 +198,12 @@ export const CameraView: React.FC<CameraViewProps> = ({
         minHeight: '100vh',
         height: '100vh',
         position: 'relative',
-        background: '#525252',
+        background: '#1a1a1a',
         overflow: 'hidden',
         boxSizing: 'border-box',
       }}
     >
-      {/* Live Video Feed - Truly Fullscreen Edge-to-Edge */}
+      {/* Live Video Feed - Fullscreen Edge-to-Edge */}
       <video
         ref={videoRef}
         autoPlay
@@ -239,39 +226,30 @@ export const CameraView: React.FC<CameraViewProps> = ({
       {/* Flash Effect */}
       <div className={`flash-overlay ${isFlashing ? 'flash-active' : ''}`} />
 
-      {/* Floating Top Header Overlay: "! Take Your Picture !" */}
-      <div
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          padding: '20px 16px 36px 16px',
-          background: 'linear-gradient(to bottom, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0) 100%)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          zIndex: 20,
-          pointerEvents: 'none',
-        }}
-      >
-        <h1
-          className="font-script"
+      {/* Camera permission error banner */}
+      {cameraError && (
+        <div
           style={{
-            fontSize: 'clamp(2.6rem, 7vw, 4.2rem)',
+            position: 'absolute',
+            top: '20px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'rgba(239, 68, 68, 0.92)',
             color: '#ffffff',
-            textShadow: '0 2px 14px rgba(0, 0, 0, 0.8), 0 4px 28px rgba(0, 0, 0, 0.5)',
-            margin: 0,
+            padding: '12px 24px',
+            borderRadius: '12px',
+            zIndex: 40,
+            maxWidth: '90%',
             textAlign: 'center',
-            lineHeight: 1,
-            letterSpacing: '0.5px',
+            fontSize: '0.9rem',
+            fontWeight: 700,
           }}
         >
-          ! Take Your Picture !
-        </h1>
-      </div>
+          {cameraError}
+        </div>
+      )}
 
-      {/* Countdown Display Exactly Centered on Camera Screen */}
+      {/* Countdown Display Centered */}
       <AnimatePresence>
         {countdownValue !== null && (
           <div
@@ -288,9 +266,9 @@ export const CameraView: React.FC<CameraViewProps> = ({
           >
             <motion.div
               key={countdownValue}
-              initial={{ scale: 0.5, opacity: 0 }}
+              initial={{ scale: 0.4, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.75, opacity: 0 }}
+              exit={{ scale: 0.7, opacity: 0 }}
               transition={{ duration: 0.22, ease: 'easeOut' }}
               style={{
                 display: 'flex',
@@ -299,121 +277,113 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 justifyContent: 'center',
               }}
             >
-              <div className="countdown-number">
-                {countdownValue}
-              </div>
               <div
+                className="font-gothic"
                 style={{
-                  marginTop: '12px',
-                  background: 'rgba(0, 0, 0, 0.75)',
-                  backdropFilter: 'blur(8px)',
+                  fontSize: 'clamp(6.5rem, 20vw, 11rem)',
                   color: '#ffffff',
-                  padding: '6px 20px',
-                  borderRadius: '999px',
-                  fontSize: '0.9rem',
-                  fontWeight: 800,
-                  letterSpacing: '0.5px',
-                  border: '1.5px solid rgba(255, 255, 255, 0.3)',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.4)',
+                  lineHeight: 1,
+                  textShadow:
+                    '0 4px 24px rgba(0, 0, 0, 0.85), 0 0 40px rgba(0, 0, 0, 0.6)',
                 }}
               >
-                Pose {currentShotIndex + 1} dari {totalRequired}
+                {countdownValue}
               </div>
             </motion.div>
           </div>
         )}
       </AnimatePresence>
 
-      {/* Paw Trigger Button at Bottom Center (Gambar 3 & 5) */}
+      {/* Gambar 4: Center Overlay with Gothic "start" and Timer Selection Pill Widget */}
       {!isShooting && (
         <div
           style={{
             position: 'absolute',
-            bottom: '24px',
+            top: '50%',
             left: '50%',
-            transform: 'translateX(-50%)',
+            transform: 'translate(-50%, -50%)',
             zIndex: 25,
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
-            gap: '12px',
+            gap: '14px',
+            userSelect: 'none',
           }}
         >
-          {/* Instruction Prompt as in Gambar 5 */}
-          <div
+          {/* Gothic "start" Button as in Gambar 4 */}
+          <button
+            type="button"
+            onClick={startCaptureSequence}
+            className="font-gothic"
             style={{
-              background: 'rgba(30, 41, 59, 0.85)',
-              backdropFilter: 'blur(8px)',
+              background: 'transparent',
+              border: 'none',
+              outline: 'none',
               color: '#ffffff',
-              padding: '7px 20px',
-              borderRadius: '999px',
-              fontSize: '0.9rem',
-              fontWeight: 800,
-              letterSpacing: '0.4px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.3)',
-              border: '1px solid rgba(255, 255, 255, 0.25)',
+              fontSize: 'clamp(3.8rem, 11vw, 5.8rem)',
+              lineHeight: 1,
+              cursor: 'pointer',
+              textShadow:
+                '0 4px 18px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.95)',
+              padding: '8px 24px',
+              transition: 'transform 0.18s ease, text-shadow 0.18s ease',
+              letterSpacing: '1.5px',
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.08)';
+              e.currentTarget.style.textShadow =
+                '0 6px 24px rgba(255, 255, 255, 0.4), 0 2px 10px rgba(0, 0, 0, 1)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)';
+              e.currentTarget.style.textShadow =
+                '0 4px 18px rgba(0, 0, 0, 0.9), 0 2px 6px rgba(0, 0, 0, 0.95)';
             }}
           >
-            Tekan paw untuk memulai foto !
-          </div>
+            start
+          </button>
 
-          {/* Duration Picker Pills before Paw click */}
+          {/* Timer Duration Selection Pill Widget as in Gambar 4 */}
           <div
             style={{
               display: 'flex',
               alignItems: 'center',
-              gap: '6px',
-              background: 'rgba(255, 255, 255, 0.92)',
-              backdropFilter: 'blur(8px)',
-              padding: '4px 8px',
+              gap: '4px',
+              background: '#ffffff',
+              padding: '5px 8px',
               borderRadius: '999px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.25)',
-              border: '1.5px solid #333333',
+              boxShadow: '0 8px 24px rgba(0, 0, 0, 0.45)',
+              border: '1.5px solid rgba(255, 255, 255, 0.8)',
             }}
           >
-            <Clock size={13} style={{ color: '#333333', marginLeft: '4px' }} />
-            {[3, 5, 7, 10].map((sec) => (
-              <button
-                key={sec}
-                type="button"
-                onClick={() => setTimerDuration(sec)}
-                style={{
-                  background: timerDuration === sec ? '#333333' : 'transparent',
-                  color: timerDuration === sec ? '#ffffff' : '#333333',
-                  border: 'none',
-                  padding: '3px 9px',
-                  borderRadius: '999px',
-                  fontSize: '0.78rem',
-                  fontWeight: 800,
-                  cursor: 'pointer',
-                  transition: 'all 0.15s ease',
-                }}
-              >
-                {sec}s
-              </button>
-            ))}
-          </div>
+            <div style={{ display: 'flex', alignItems: 'center', padding: '0 6px', color: '#1e293b' }}>
+              <Clock size={16} strokeWidth={2.2} />
+            </div>
 
-          {/* Paw Trigger Button with /images/paww.png */}
-          <button
-            type="button"
-            onClick={startCaptureSequence}
-            className="paw-trigger-btn"
-            title="Tekan untuk mulai foto!"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/images/paww.png"
-              alt="Ambil Foto"
-              style={{
-                width: '64px',
-                height: '64px',
-                objectFit: 'contain',
-                pointerEvents: 'none',
-              }}
-            />
-          </button>
+            {[3, 5, 7, 10].map((sec) => {
+              const isActive = timerDuration === sec;
+              return (
+                <button
+                  key={sec}
+                  type="button"
+                  onClick={() => setTimerDuration(sec)}
+                  style={{
+                    background: isActive ? '#1e293b' : 'transparent',
+                    color: isActive ? '#ffffff' : '#1e293b',
+                    border: 'none',
+                    padding: '5px 12px',
+                    borderRadius: '999px',
+                    fontSize: '0.85rem',
+                    fontWeight: 800,
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                  }}
+                >
+                  {sec}s
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

@@ -1,33 +1,32 @@
 'use client';
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PhotoboothTemplate } from '@/lib/types';
 import { TEMPLATES } from '@/lib/constants';
 import { getAllTemplates, deleteCustomTemplate } from '@/lib/templateManager';
 import { UploadTemplateModal } from './UploadTemplateModal';
-import { Camera, ImagePlus, Plus, Trash2, Check } from 'lucide-react';
+import { Navbar } from './Navbar';
+import { Trash2, Check, Upload } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface TemplateSelectorProps {
   selectedTemplateId: string;
   onSelectTemplate: (id: string) => void;
   onStartSession: (mode: 'camera' | 'upload') => void;
+  galleryCount?: number;
+  onOpenGallery?: () => void;
 }
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplateId,
   onSelectTemplate,
   onStartSession,
+  galleryCount = 0,
+  onOpenGallery = () => {},
 }) => {
-  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-  const [isMouseDown, setIsMouseDown] = useState(false);
-  const [startX, setStartX] = useState(0);
-  const [scrollLeftState, setScrollLeftState] = useState(0);
-  const [hasDragged, setHasDragged] = useState(false);
+  const [templatesList, setTemplatesList] = useState<PhotoboothTemplate[]>(TEMPLATES);
   const [templateToDelete, setTemplateToDelete] = useState<PhotoboothTemplate | null>(null);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
-  const [templatesList, setTemplatesList] = useState<PhotoboothTemplate[]>(TEMPLATES);
 
   const refreshTemplates = () => {
     const all = getAllTemplates();
@@ -48,42 +47,6 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     onSelectTemplate(newTmpl.id);
   };
 
-  const handleWheel = (e: React.WheelEvent<HTMLDivElement>) => {
-    if (scrollContainerRef.current) {
-      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
-        scrollContainerRef.current.scrollLeft += e.deltaY;
-      }
-    }
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!scrollContainerRef.current) return;
-    setIsMouseDown(true);
-    setHasDragged(false);
-    setStartX(e.pageX - scrollContainerRef.current.offsetLeft);
-    setScrollLeftState(scrollContainerRef.current.scrollLeft);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!isMouseDown || !scrollContainerRef.current) return;
-    e.preventDefault();
-    const x = e.pageX - scrollContainerRef.current.offsetLeft;
-    const walk = (x - startX) * 1.5;
-    if (Math.abs(walk) > 5) {
-      setHasDragged(true);
-    }
-    scrollContainerRef.current.scrollLeft = scrollLeftState - walk;
-  };
-
-  const handleMouseUpOrLeave = () => {
-    setIsMouseDown(false);
-  };
-
-  const handleCardClick = (tmpl: PhotoboothTemplate) => {
-    if (hasDragged) return;
-    onSelectTemplate(tmpl.id);
-  };
-
   const handleConfirmDelete = async () => {
     if (!templateToDelete) return;
     await deleteCustomTemplate(templateToDelete.id);
@@ -94,231 +57,335 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     setTemplateToDelete(null);
   };
 
-  const selectedTemplate = templatesList.find((t) => t.id === selectedTemplateId) || templatesList[0];
+  const selectedTemplate =
+    templatesList.find((t) => t.id === selectedTemplateId) || templatesList[0] || null;
 
   return (
     <div
+      className="vintage-parchment-bg"
       style={{
         width: '100%',
-        minHeight: 'calc(100vh - 75px)',
+        height: '100vh',
+        maxHeight: '100vh',
+        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
         alignItems: 'center',
-        padding: '24px 16px 40px 16px',
+        padding: '8px 20px 14px 20px',
+        boxSizing: 'border-box',
+        overflow: 'hidden',
         position: 'relative',
       }}
     >
-      {/* Title as in Gambar 2 */}
-      <div style={{ textAlign: 'center', marginTop: '8px', marginBottom: '16px' }}>
+      {/* Top Embedded Navbar */}
+      <div style={{ width: '100%', maxWidth: '1240px', flexShrink: 0 }}>
+        <Navbar galleryCount={galleryCount} onOpenGallery={onOpenGallery} />
+      </div>
+
+      {/* Header Title: "Select Your Template" */}
+      <div style={{ textAlign: 'center', margin: '2px 0 8px 0', flexShrink: 0 }}>
         <h1
-          className="font-display"
+          className="font-gothic"
           style={{
-            fontSize: 'clamp(2.2rem, 6.5vw, 3.4rem)',
-            fontWeight: 900,
-            color: '#262626',
-            letterSpacing: '0.5px',
-            lineHeight: 1.1,
+            fontSize: 'clamp(2rem, 5.2vw, 3.2rem)',
+            fontWeight: 700,
+            color: '#1a0f07',
+            letterSpacing: '1px',
+            lineHeight: 1.05,
+            margin: 0,
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
           }}
         >
-          Pilih Frame Foto
+          Select Your Template
         </h1>
       </div>
 
-      {/* Horizontal Carousel of Frame Cards as in Gambar 2 */}
+      {/* Main Split Content: Left (Preview) & Right (All Frame Box) */}
       <div
         style={{
           width: '100%',
-          maxWidth: '1280px',
-          position: 'relative',
+          maxWidth: '1240px',
+          flex: 1,
+          minHeight: 0,
+          display: 'grid',
+          gridTemplateColumns: 'minmax(260px, 340px) minmax(320px, 1fr)',
+          gap: '18px',
+          alignItems: 'stretch',
+          marginBottom: '8px',
           overflow: 'hidden',
-          display: 'flex',
-          alignItems: 'center',
         }}
+        className="template-split-container"
       >
+        {/* ================= LEFT PANEL: FULL FRAME PREVIEW ================= */}
         <div
-          ref={scrollContainerRef}
-          onWheel={handleWheel}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUpOrLeave}
-          onMouseLeave={handleMouseUpOrLeave}
+          className="vintage-left-preview"
           style={{
+            borderRadius: '6px',
+            border: '3px solid #3d2616',
+            padding: '12px',
             display: 'flex',
-            gap: '20px',
-            overflowX: 'auto',
-            scrollSnapType: isMouseDown ? 'none' : 'x mandatory',
-            padding: '20px 24px 30px 24px',
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-            WebkitOverflowScrolling: 'touch',
-            cursor: isMouseDown ? 'grabbing' : 'grab',
-            width: '100%',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            overflow: 'hidden',
+            position: 'relative',
+            boxSizing: 'border-box',
           }}
         >
-          {templatesList.map((tmpl) => {
-            const isSelected = selectedTemplateId === tmpl.id;
-            return (
+          {selectedTemplate ? (
+            <div
+              style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                position: 'relative',
+                overflow: 'hidden',
+              }}
+            >
               <div
-                key={tmpl.id}
-                onClick={() => handleCardClick(tmpl)}
                 style={{
-                  width: '210px',
-                  minWidth: '190px',
-                  maxWidth: '230px',
-                  flexShrink: 0,
-                  scrollSnapAlign: 'center',
-                  background: isSelected ? '#ffffff' : '#f8fafc',
-                  borderRadius: '16px',
-                  border: isSelected ? '4px solid #1e293b' : '2px solid #e2e8f0',
-                  boxShadow: isSelected
-                    ? '0 12px 32px rgba(0, 0, 0, 0.18)'
-                    : '0 4px 12px rgba(0, 0, 0, 0.04)',
-                  padding: '10px',
+                  width: '100%',
+                  flex: 1,
+                  minHeight: 0,
                   display: 'flex',
-                  flexDirection: 'column',
-                  gap: '8px',
-                  cursor: isMouseDown ? 'grabbing' : 'pointer',
-                  transform: isSelected ? 'scale(1.03) translateY(-4px)' : 'scale(1)',
-                  transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
-                  userSelect: 'none',
-                  position: 'relative',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  overflow: 'hidden',
                 }}
               >
-                {/* Delete button if custom template */}
-                {tmpl.isCustom && (
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setTemplateToDelete(tmpl);
-                    }}
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      right: '8px',
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '50%',
-                      background: '#fee2e2',
-                      border: '1.5px solid #ef4444',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      zIndex: 10,
-                      color: '#dc2626',
-                    }}
-                  >
-                    <Trash2 size={13} />
-                  </button>
-                )}
-
-                {/* Selected Checkmark Badge */}
-                {isSelected && (
-                  <div
-                    style={{
-                      position: 'absolute',
-                      top: '8px',
-                      left: '8px',
-                      width: '26px',
-                      height: '26px',
-                      borderRadius: '50%',
-                      background: '#1e293b',
-                      color: '#ffffff',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      zIndex: 10,
-                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2)',
-                    }}
-                  >
-                    <Check size={14} strokeWidth={3} />
-                  </div>
-                )}
-
-                {/* Frame Image Preview */}
-                <div
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={selectedTemplate.imageSrc}
+                  alt={selectedTemplate.name}
                   style={{
-                    width: '100%',
-                    height: '280px',
-                    borderRadius: '10px',
-                    background: '#e2e8f0',
-                    overflow: 'hidden',
+                    maxWidth: '100%',
+                    maxHeight: '100%',
+                    objectFit: 'contain',
+                    filter: 'drop-shadow(0 4px 14px rgba(45, 25, 12, 0.35))',
+                  }}
+                />
+              </div>
+            </div>
+          ) : (
+            <div
+              style={{
+                textAlign: 'center',
+                padding: '24px',
+                color: '#4a331f',
+                fontFamily: 'serif',
+                fontStyle: 'italic',
+                fontSize: '1.25rem',
+                fontWeight: 600,
+              }}
+            >
+              *No Frame Selected Yet
+            </div>
+          )}
+        </div>
+
+        {/* ================= RIGHT PANEL: ALL FRAME 3-COLUMN SCROLLABLE GRID ================= */}
+        <div
+          className="vintage-box-border"
+          style={{
+            borderRadius: '6px',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            height: '100%',
+            boxSizing: 'border-box',
+          }}
+        >
+          {/* Header "All Frame" */}
+          <div
+            className="font-vintage-serif"
+            style={{
+              textAlign: 'center',
+              fontSize: '1.35rem',
+              fontWeight: 700,
+              color: '#2a170a',
+              padding: '8px 16px 6px 16px',
+              borderBottom: '2px solid rgba(61, 38, 22, 0.25)',
+              letterSpacing: '0.8px',
+              flexShrink: 0,
+            }}
+          >
+            All Frame
+          </div>
+
+          {/* 3-Column Scrollable Grid */}
+          <div
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: 'auto',
+              padding: '12px 14px',
+              display: 'grid',
+              gridTemplateColumns: 'repeat(3, 1fr)',
+              gap: '12px',
+              alignContent: 'start',
+            }}
+          >
+            {templatesList.map((tmpl) => {
+              const isSelected = selectedTemplate?.id === tmpl.id;
+              return (
+                <div
+                  key={tmpl.id}
+                  onClick={() => onSelectTemplate(tmpl.id)}
+                  style={{
+                    position: 'relative',
+                    aspectRatio: '1 / 1.35',
+                    background: isSelected ? '#a2b4c2' : '#c5d1dc',
+                    border: isSelected ? '3px solid #1a0f07' : '2px solid rgba(45, 27, 14, 0.3)',
+                    borderRadius: '4px',
+                    padding: '6px',
+                    cursor: 'pointer',
                     display: 'flex',
+                    flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    position: 'relative',
+                    transition: 'all 0.18s ease-out',
+                    transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                    boxShadow: isSelected
+                      ? '0 6px 16px rgba(26, 15, 7, 0.35)'
+                      : '0 2px 6px rgba(0, 0, 0, 0.08)',
                   }}
                 >
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={tmpl.imageSrc}
-                    alt={tmpl.name}
-                    loading="lazy"
+                  {/* Delete button if custom template */}
+                  {tmpl.isCustom && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setTemplateToDelete(tmpl);
+                      }}
+                      style={{
+                        position: 'absolute',
+                        top: '4px',
+                        right: '4px',
+                        width: '24px',
+                        height: '24px',
+                        borderRadius: '50%',
+                        background: '#fee2e2',
+                        border: '1.5px solid #ef4444',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        zIndex: 10,
+                        color: '#dc2626',
+                      }}
+                    >
+                      <Trash2 size={12} />
+                    </button>
+                  )}
+
+                  {/* Selected check indicator */}
+                  {isSelected && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        top: '6px',
+                        left: '6px',
+                        width: '20px',
+                        height: '20px',
+                        borderRadius: '50%',
+                        background: '#1a0f07',
+                        color: '#ffffff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10,
+                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.3)',
+                      }}
+                    >
+                      <Check size={12} strokeWidth={3} />
+                    </div>
+                  )}
+
+                  {/* Frame Thumbnail */}
+                  <div
                     style={{
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain',
-                      pointerEvents: 'none',
-                    }}
-                  />
-                </div>
-
-                {/* Frame Details: Pose Count Only */}
-                <div style={{ textAlign: 'center', padding: '4px 4px 2px 4px' }}>
-                  <p
-                    style={{
-                      fontSize: '0.88rem',
-                      fontWeight: 800,
-                      color: '#1e293b',
-                      margin: 0,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      overflow: 'hidden',
                     }}
                   >
-                    {tmpl.requiredPhotos} Pose
-                  </p>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={tmpl.imageSrc}
+                      alt={tmpl.name}
+                      loading="lazy"
+                      style={{
+                        maxWidth: '100%',
+                        maxHeight: '100%',
+                        objectFit: 'contain',
+                        pointerEvents: 'none',
+                      }}
+                    />
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      {/* Bottom Button "LANJUT" as in Gambar 2 */}
-      <div style={{ marginTop: '20px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+      {/* Bottom Action Area: Upload Link (Left) & "Select" Tag Button (Right - Always Visible!) */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1240px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+          paddingTop: '2px',
+        }}
+      >
         <button
-          onClick={() => onStartSession('camera')}
-          className="btn-pill-dark"
+          type="button"
+          onClick={() => setIsUploadModalOpen(true)}
           style={{
-            minWidth: '220px',
-            fontSize: '1.25rem',
-            padding: '14px 48px',
+            background: 'rgba(235, 218, 195, 0.75)',
+            border: '1.5px dashed #6b4423',
+            color: '#3d2616',
+            borderRadius: '6px',
+            padding: '6px 14px',
+            fontSize: '0.84rem',
+            fontFamily: 'serif',
+            fontWeight: 700,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
           }}
         >
-          LANJUT
+          <Upload size={14} />
+          <span>Upload Frame Kustom</span>
         </button>
 
-        {/* Small Upload / Custom Template Trigger */}
-        <div style={{ display: 'flex', gap: '16px', marginTop: '4px' }}>
-          <button
-            onClick={() => setIsUploadModalOpen(true)}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: '#64748b',
-              fontSize: '0.82rem',
-              fontWeight: 600,
-              display: 'flex',
-              alignItems: 'center',
-              gap: '5px',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-            }}
-          >
-
-            <span>Upload Template Kustom</span>
-          </button>
-        </div>
+        {/* Vintage Banner "Select" Button */}
+        <button
+          type="button"
+          onClick={() => onStartSession('camera')}
+          className="btn-vintage-tag"
+          style={{
+            minWidth: '150px',
+            fontSize: '1.65rem',
+            padding: '9px 46px 9px 30px',
+          }}
+        >
+          Select
+        </button>
       </div>
 
       {/* Upload Custom Template Modal */}
@@ -336,7 +403,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               position: 'fixed',
               inset: 0,
               zIndex: 9999,
-              background: 'rgba(15, 23, 42, 0.65)',
+              background: 'rgba(26, 15, 7, 0.7)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -348,21 +415,28 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="clean-card"
+              className="vintage-parchment-bg"
               style={{
                 maxWidth: '380px',
                 width: '100%',
                 padding: '24px',
                 textAlign: 'center',
-                background: '#ffffff',
+                border: '3px solid #3d2616',
+                borderRadius: '8px',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '16px',
+                boxShadow: '0 12px 36px rgba(0,0,0,0.4)',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              <h3 style={{ fontSize: '1.1rem', fontWeight: 800 }}>Hapus Template Kustom?</h3>
-              <p style={{ fontSize: '0.86rem', color: '#64748b' }}>
+              <h3
+                className="font-vintage-serif"
+                style={{ fontSize: '1.25rem', fontWeight: 800, color: '#2a170a', margin: 0 }}
+              >
+                Hapus Template Kustom?
+              </h3>
+              <p style={{ fontSize: '0.9rem', color: '#4a331f', margin: 0 }}>
                 Apakah Anda yakin ingin menghapus template <strong>{templateToDelete.name}</strong>?
               </p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -370,9 +444,10 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   onClick={() => setTemplateToDelete(null)}
                   style={{
                     padding: '10px',
-                    borderRadius: '8px',
-                    background: '#f1f5f9',
-                    border: '1px solid #cbd5e1',
+                    borderRadius: '6px',
+                    background: '#e6d4bc',
+                    border: '1.5px solid #8b6038',
+                    color: '#2a170a',
                     fontWeight: 700,
                     cursor: 'pointer',
                   }}
@@ -383,8 +458,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   onClick={handleConfirmDelete}
                   style={{
                     padding: '10px',
-                    borderRadius: '8px',
-                    background: '#dc2626',
+                    borderRadius: '6px',
+                    background: '#991b1b',
                     color: '#ffffff',
                     border: 'none',
                     fontWeight: 700,

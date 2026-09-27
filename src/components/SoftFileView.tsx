@@ -11,7 +11,6 @@ import {
   X,
   Check,
   Loader2,
-  Info,
   Sparkles,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -31,7 +30,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
   const [downloadingStatus, setDownloadingStatus] = useState<{ [key: string]: boolean }>({});
   const [downloadedStatus, setDownloadedStatus] = useState<{ [key: string]: boolean }>({});
 
-  // GIF state: initialized from session.gifUrl, or automatically generated if missing
   const [effectiveGifUrl, setEffectiveGifUrl] = useState<string | null>(session.gifUrl || null);
   const [isGeneratingGif, setIsGeneratingGif] = useState<boolean>(
     !session.gifUrl && !!(session.photos && session.photos.length > 0)
@@ -39,7 +37,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
 
   const template = getTemplateById(session.templateId || session.config?.selectedTemplateId);
 
-  // Auto-generate GIF on the fly if session.gifUrl was missing or not yet uploaded
   useEffect(() => {
     if (session.gifUrl) {
       setEffectiveGifUrl(session.gifUrl);
@@ -71,7 +68,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
     }
   }, [session.gifUrl, session.photos]);
 
-  // Robust download single file handler
   const handleDownloadFile = async (url: string, filename: string, keyId: string) => {
     if (!url || downloadingStatus[keyId]) return;
 
@@ -90,7 +86,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
     }
   };
 
-  // Robust download all photos handler
   const handleDownloadAllPhotos = async () => {
     if (!session.photos || session.photos.length === 0 || downloadingStatus['all_photos']) return;
 
@@ -101,7 +96,6 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
         const src = session.photos[idx];
         const filename = `PearlyBooth-Photo-${idx + 1}-${Date.now()}.jpg`;
         await downloadMediaFile(src, filename);
-        // Small delay between downloads so mobile browsers don't block concurrent file triggers
         if (idx < session.photos.length - 1) {
           await new Promise((r) => setTimeout(r, 350));
         }
@@ -120,11 +114,11 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
 
   return (
     <div
+      className="vintage-parchment-bg"
       style={{
         width: '100%',
         minHeight: '100vh',
-        background: '#f8fafc',
-        color: '#1e293b',
+        color: '#1a0f07',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -137,43 +131,47 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
       <div
         style={{
           width: '100%',
-          maxWidth: '480px',
+          maxWidth: '520px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           textAlign: 'center',
-          gap: '8px',
-          marginBottom: '16px',
+          gap: '6px',
+          marginBottom: '20px',
         }}
       >
         <h1
           className="font-script"
           style={{
-            fontSize: 'clamp(2.4rem, 7vw, 3.2rem)',
-            color: '#1e293b',
+            fontSize: 'clamp(2.8rem, 8vw, 3.8rem)',
+            color: '#1a0f07',
             margin: 0,
             lineHeight: 1,
+            textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
           }}
         >
           Pearly Booth
         </h1>
 
         <div
+          className="font-vintage-serif"
           style={{
-            background: '#ffffff',
-            border: '1.5px solid #e2e8f0',
+            background: 'linear-gradient(135deg, #f2e2cb 0%, #deb887 100%)',
+            border: '2px solid #3d2616',
             borderRadius: '999px',
-            padding: '5px 16px',
+            padding: '6px 22px',
             display: 'inline-flex',
             alignItems: 'center',
-            gap: '6px',
-            fontSize: '0.82rem',
+            justifyContent: 'center',
+            gap: '8px',
+            fontSize: '1rem',
             fontWeight: 800,
-            color: '#475569',
-            boxShadow: '0 2px 6px rgba(0,0,0,0.03)',
+            color: '#1a0f07',
+            boxShadow: '0 3px 8px rgba(45, 25, 12, 0.22)',
+            letterSpacing: '0.5px',
           }}
         >
-          <span>SOFT FILE FOTO KAMU</span>
+          <span>Soft File Foto Kamu</span>
         </div>
       </div>
 
@@ -181,7 +179,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
       <div
         style={{
           width: '100%',
-          maxWidth: '480px',
+          maxWidth: '520px',
           display: 'flex',
           flexDirection: 'column',
           gap: '20px',
@@ -194,35 +192,35 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25 }}
             style={{
-              background: '#ffffff',
-              border: '2px solid #e2e8f0',
-              borderRadius: '20px',
+              background: 'rgba(245, 238, 225, 0.92)',
+              border: '3px solid #3d2616',
+              borderRadius: '10px',
               padding: '18px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+              boxShadow: '0 8px 24px rgba(45, 25, 12, 0.28)',
               display: 'flex',
               flexDirection: 'column',
             }}
           >
             <h2
               style={{
+                fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                 fontSize: '1.25rem',
-                fontWeight: 900,
-                color: '#1e293b',
-                margin: '0 0 14px 0',
-                fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-                letterSpacing: '-0.3px',
+                color: '#1a0f07',
+                margin: '0 0 12px 0',
+                fontWeight: 800,
+                letterSpacing: '0.2px',
               }}
             >
-              Photostrip
+              Photostrip HD
             </h2>
 
-            {/* Inner Image Container with Clean Frame */}
+            {/* Inner Image Container */}
             <div
               style={{
                 width: '100%',
-                background: '#1e293b',
-                border: '2px solid #1e293b',
-                borderRadius: '16px',
+                background: '#c5d1dc',
+                border: '2px solid #3d2616',
+                borderRadius: '4px',
                 overflow: 'hidden',
                 position: 'relative',
                 display: 'flex',
@@ -239,7 +237,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                   maxWidth: '100%',
                   maxHeight: '480px',
                   objectFit: 'contain',
-                  borderRadius: '8px',
+                  borderRadius: '4px',
                   cursor: 'zoom-in',
                 }}
                 onClick={() =>
@@ -251,9 +249,7 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                 }
               />
 
-              {/* Perbesar Button in bottom right */}
               <button
-                type="button"
                 onClick={() =>
                   setZoomedItem({
                     url: session.photostripUrl,
@@ -261,81 +257,56 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
                     filename: `Pearly-Photostrip-${Date.now()}.png`,
                   })
                 }
+                title="Perbesar"
                 style={{
                   position: 'absolute',
-                  bottom: '12px',
+                  top: '12px',
                   right: '12px',
-                  background: 'rgba(30, 41, 59, 0.9)',
-                  backdropFilter: 'blur(6px)',
+                  background: 'rgba(26, 15, 7, 0.8)',
+                  backdropFilter: 'blur(4px)',
                   color: '#ffffff',
-                  padding: '5px 14px',
-                  borderRadius: '999px',
-                  fontSize: '0.80rem',
-                  fontWeight: 800,
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
+                  borderRadius: '50%',
+                  width: '32px',
+                  height: '32px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '5px',
-                  border: '1.5px solid rgba(255, 255, 255, 0.3)',
+                  justifyContent: 'center',
                   cursor: 'pointer',
-                  boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                  zIndex: 5,
                 }}
               >
-                <Maximize2 size={13} />
-                <span>Perbesar</span>
+                <Maximize2 size={14} />
               </button>
             </div>
 
-            {/* Download Photostrip Button (Gray color #4b5563, not blue) */}
+            {/* Action Download Photostrip Button (Icon Only) */}
             <button
-              type="button"
               onClick={() =>
                 handleDownloadFile(
                   session.photostripUrl,
                   `Pearly-Photostrip-${Date.now()}.png`,
-                  'strip'
+                  'photostrip'
                 )
               }
-              disabled={downloadingStatus['strip']}
+              disabled={downloadingStatus['photostrip']}
+              className="btn-vintage-tag"
+              title="Download Photostrip"
               style={{
                 width: '100%',
                 marginTop: '14px',
-                padding: '13px 20px',
-                borderRadius: '14px',
-                background: downloadedStatus['strip']
-                  ? '#22c55e'
-                  : downloadingStatus['strip']
-                    ? '#374151'
-                    : '#4b5563',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.96rem',
-                border: 'none',
+                padding: '12px 24px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '8px',
-                cursor: downloadingStatus['strip'] ? 'wait' : 'pointer',
-                boxShadow: '0 4px 14px rgba(75, 85, 99, 0.35)',
-                transition: 'transform 0.1s ease, background-color 0.15s ease',
               }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
             >
-              {downloadingStatus['strip'] ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>Menyiapkan Unduhan...</span>
-                </>
-              ) : downloadedStatus['strip'] ? (
-                <>
-                  <Check size={18} />
-                  <span>Tersimpan di Perangkat!</span>
-                </>
+              {downloadingStatus['photostrip'] ? (
+                <Loader2 size={24} className="animate-spin" />
+              ) : downloadedStatus['photostrip'] ? (
+                <Check size={24} />
               ) : (
-                <>
-                  <Download size={18} />
-                  <span>Download Photostrip</span>
-                </>
+                <Download size={24} />
               )}
             </button>
           </motion.div>
@@ -348,354 +319,235 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.05 }}
             style={{
-              background: '#ffffff',
-              border: '2px solid #e2e8f0',
-              borderRadius: '20px',
+              background: 'rgba(245, 238, 225, 0.92)',
+              border: '3px solid #3d2616',
+              borderRadius: '10px',
               padding: '18px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+              boxShadow: '0 8px 24px rgba(45, 25, 12, 0.28)',
               display: 'flex',
               flexDirection: 'column',
             }}
           >
-            <h2
-              style={{
-                fontSize: '1.25rem',
-                fontWeight: 900,
-                color: '#1e293b',
-                margin: '0 0 14px 0',
-                fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-                letterSpacing: '-0.3px',
-              }}
-            >
-              Animated GIF
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+              <h2
+                style={{
+                  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                  fontSize: '1.25rem',
+                  color: '#1a0f07',
+                  margin: 0,
+                  fontWeight: 800,
+                  letterSpacing: '0.2px',
+                }}
+              >
+                Animated GIF
+              </h2>
+              <span
+                style={{
+                  fontSize: '0.75rem',
+                  fontWeight: 800,
+                  background: '#543720',
+                  color: '#fdf7ee',
+                  padding: '2px 8px',
+                  borderRadius: '4px',
+                  letterSpacing: '0.5px',
+                }}
+              >
+                LOOP
+              </span>
+            </div>
 
-            {/* Inner GIF Container */}
             <div
               style={{
                 width: '100%',
-                background: '#1e293b',
-                border: '2px solid #1e293b',
-                borderRadius: '16px',
+                background: '#e8dbca',
+                border: '2px solid #3d2616',
+                borderRadius: '4px',
                 overflow: 'hidden',
                 position: 'relative',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '260px',
+                minHeight: '220px',
+                padding: '10px',
               }}
             >
-              {isGeneratingGif && !effectiveGifUrl ? (
-                <div
+              {effectiveGifUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={effectiveGifUrl}
+                  alt="Animated GIF"
                   style={{
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    padding: '30px 16px',
-                    color: '#94a3b8',
-                    gap: '10px',
+                    maxWidth: '100%',
+                    maxHeight: '380px',
+                    objectFit: 'contain',
+                    borderRadius: '4px',
+                    cursor: 'zoom-in',
                   }}
-                >
-                  <Loader2 size={32} className="animate-spin text-white" />
-                  <span style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-                    Menyiapkan Animasi GIF...
-                  </span>
-                </div>
+                  onClick={() =>
+                    setZoomedItem({
+                      url: effectiveGifUrl,
+                      title: 'Animasi GIF',
+                      filename: `Pearly-GIF-${Date.now()}.gif`,
+                    })
+                  }
+                />
               ) : (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={effectiveGifUrl!}
-                    alt="Animated GIF"
-                    style={{
-                      width: '100%',
-                      height: '300px',
-                      objectFit: 'cover',
-                      display: 'block',
-                      cursor: 'zoom-in',
-                    }}
-                    onClick={() =>
-                      setZoomedItem({
-                        url: effectiveGifUrl!,
-                        title: 'Animated GIF',
-                        filename: `Pearly-Moment-${Date.now()}.gif`,
-                      })
-                    }
-                  />
-
-                  {/* Perbesar Button in bottom right */}
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setZoomedItem({
-                        url: effectiveGifUrl!,
-                        title: 'Animated GIF',
-                        filename: `Pearly-Moment-${Date.now()}.gif`,
-                      })
-                    }
-                    style={{
-                      position: 'absolute',
-                      bottom: '12px',
-                      right: '12px',
-                      background: 'rgba(30, 41, 59, 0.9)',
-                      backdropFilter: 'blur(6px)',
-                      color: '#ffffff',
-                      padding: '5px 14px',
-                      borderRadius: '999px',
-                      fontSize: '0.80rem',
-                      fontWeight: 800,
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '5px',
-                      border: '1.5px solid rgba(255, 255, 255, 0.3)',
-                      cursor: 'pointer',
-                      boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
-                    }}
-                  >
-                    <Maximize2 size={13} />
-                    <span>Perbesar</span>
-                  </button>
-                </>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#3d2616' }}>
+                  <Loader2 size={28} className="animate-spin text-amber-900" />
+                  <span className="font-vintage-serif" style={{ fontSize: '0.92rem', fontWeight: 700 }}>Menyiapkan Animasi GIF...</span>
+                </div>
               )}
             </div>
 
-            {/* Download GIF Button (Gray color #4b5563, not blue) */}
-            <button
-              type="button"
-              onClick={() => {
-                if (effectiveGifUrl) {
+            {effectiveGifUrl && (
+              <button
+                onClick={() =>
                   handleDownloadFile(
                     effectiveGifUrl,
-                    `Pearly-Moment-${Date.now()}.gif`,
+                    `Pearly-GIF-${Date.now()}.gif`,
                     'gif'
-                  );
+                  )
                 }
-              }}
-              disabled={isGeneratingGif || !effectiveGifUrl || downloadingStatus['gif']}
-              style={{
-                width: '100%',
-                marginTop: '14px',
-                padding: '13px 20px',
-                borderRadius: '14px',
-                background: downloadedStatus['gif']
-                  ? '#22c55e'
-                  : isGeneratingGif || !effectiveGifUrl
-                    ? '#94a3b8'
-                    : downloadingStatus['gif']
-                      ? '#374151'
-                      : '#4b5563',
-                color: '#ffffff',
-                fontWeight: 800,
-                fontSize: '0.96rem',
-                border: 'none',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                cursor: isGeneratingGif || !effectiveGifUrl || downloadingStatus['gif'] ? 'wait' : 'pointer',
-                boxShadow: '0 4px 14px rgba(75, 85, 99, 0.35)',
-                transition: 'transform 0.1s ease, background-color 0.15s ease',
-              }}
-              onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
-              onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
-            >
-              {isGeneratingGif || !effectiveGifUrl ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>Memproses GIF...</span>
-                </>
-              ) : downloadingStatus['gif'] ? (
-                <>
-                  <Loader2 size={18} className="animate-spin" />
-                  <span>Menyiapkan Unduhan...</span>
-                </>
-              ) : downloadedStatus['gif'] ? (
-                <>
-                  <Check size={18} />
-                  <span>GIF Tersimpan!</span>
-                </>
-              ) : (
-                <>
-                  <Download size={18} />
-                  <span>Download GIF</span>
-                </>
-              )}
-            </button>
+                disabled={downloadingStatus['gif']}
+                className="btn-vintage-tag"
+                title="Download Animasi GIF"
+                style={{
+                  width: '100%',
+                  marginTop: '14px',
+                  padding: '12px 24px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {downloadingStatus['gif'] ? (
+                  <Loader2 size={24} className="animate-spin" />
+                ) : downloadedStatus['gif'] ? (
+                  <Check size={24} />
+                ) : (
+                  <Download size={24} />
+                )}
+              </button>
+            )}
           </motion.div>
         )}
 
-        {/* ================= CARD 3: PHOTOS (N) ================= */}
+        {/* ================= CARD 3: SINGLE PHOTOS PER POSE ================= */}
         {session.photos && session.photos.length > 0 && (
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.25, delay: 0.1 }}
             style={{
-              background: '#ffffff',
-              border: '2px solid #e2e8f0',
-              borderRadius: '20px',
+              background: 'rgba(245, 238, 225, 0.92)',
+              border: '3px solid #3d2616',
+              borderRadius: '10px',
               padding: '18px',
-              boxShadow: '0 4px 20px rgba(0, 0, 0, 0.05)',
+              boxShadow: '0 8px 24px rgba(45, 25, 12, 0.28)',
               display: 'flex',
               flexDirection: 'column',
+              gap: '14px',
             }}
           >
-            {/* Header: Photos (N) & Download Semua */}
-            <div
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                marginBottom: '14px',
-              }}
-            >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <h2
                 style={{
+                  fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
                   fontSize: '1.25rem',
-                  fontWeight: 900,
-                  color: '#1e293b',
+                  color: '#1a0f07',
                   margin: 0,
-                  fontFamily: "'Outfit', 'Plus Jakarta Sans', sans-serif",
-                  letterSpacing: '-0.3px',
+                  fontWeight: 800,
+                  letterSpacing: '0.2px',
                 }}
               >
-                Photos ({session.photos.length})
+                Foto Satuan ({session.photos.length} Pose)
               </h2>
 
               <button
                 type="button"
                 onClick={handleDownloadAllPhotos}
                 disabled={downloadingStatus['all_photos']}
+                className="btn-vintage-tag"
+                title="Unduh Semua Foto"
                 style={{
-                  background: downloadedStatus['all_photos']
-                    ? '#22c55e'
-                    : downloadingStatus['all_photos']
-                      ? '#374151'
-                      : '#1e293b',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '999px',
-                  fontWeight: 800,
-                  fontSize: '0.82rem',
-                  padding: '7px 16px',
+                  padding: '6px 20px 6px 12px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '6px',
-                  cursor: downloadingStatus['all_photos'] ? 'wait' : 'pointer',
-                  boxShadow: '0 2px 8px rgba(30, 41, 59, 0.25)',
-                  transition: 'transform 0.1s ease, background-color 0.15s ease',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
                 }}
-                onMouseDown={(e) => (e.currentTarget.style.transform = 'translateY(1px)')}
-                onMouseUp={(e) => (e.currentTarget.style.transform = 'none')}
               >
                 {downloadingStatus['all_photos'] ? (
-                  <>
-                    <Loader2 size={14} className="animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
+                  <Loader2 size={16} className="animate-spin" />
                 ) : downloadedStatus['all_photos'] ? (
-                  <>
-                    <Check size={14} />
-                    <span>Semua Tersimpan!</span>
-                  </>
+                  <Check size={16} />
                 ) : (
-                  <>
-                    <Download size={14} />
-                    <span>Download Semua</span>
-                  </>
+                  <Download size={16} />
                 )}
               </button>
             </div>
 
-            {/* Photos Grid */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: '12px',
-              }}
-            >
-              {session.photos.map((photo, idx) => (
+            {/* Grid of photos */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '10px' }}>
+              {session.photos.map((pUrl, idx) => (
                 <div
                   key={idx}
                   style={{
-                    background: '#1e293b',
-                    border: '1.5px solid #e2e8f0',
-                    borderRadius: '16px',
+                    position: 'relative',
+                    aspectRatio: '4 / 3',
+                    borderRadius: '4px',
                     overflow: 'hidden',
-                    display: 'flex',
-                    flexDirection: 'column',
+                    background: '#c5d1dc',
+                    border: '2px solid #3d2616',
                   }}
                 >
-                  {/* Photo Preview Thumbnail */}
-                  <div
-                    onClick={() =>
-                      setZoomedItem({
-                        url: photo,
-                        title: `Foto Pose ${idx + 1}`,
-                        filename: `PearlyBooth-Photo-${idx + 1}-${Date.now()}.jpg`,
-                      })
-                    }
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={pUrl}
+                    alt={`Pose ${idx + 1}`}
                     style={{
                       width: '100%',
-                      aspectRatio: '4 / 3',
-                      overflow: 'hidden',
+                      height: '100%',
+                      objectFit: 'cover',
                       cursor: 'zoom-in',
-                      background: '#0f172a',
                     }}
-                  >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={photo}
-                      alt={`Pose ${idx + 1}`}
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        objectFit: 'cover',
-                        display: 'block',
-                      }}
-                    />
-                  </div>
+                    onClick={() =>
+                      setZoomedItem({
+                        url: pUrl,
+                        title: `Pose ${idx + 1}`,
+                        filename: `PearlyBooth-Pose-${idx + 1}-${Date.now()}.jpg`,
+                      })
+                    }
+                  />
 
-                  {/* Dark Bottom Bar with Download Icon Button */}
                   <button
-                    type="button"
                     onClick={() =>
                       handleDownloadFile(
-                        photo,
-                        `PearlyBooth-Photo-${idx + 1}-${Date.now()}.jpg`,
+                        pUrl,
+                        `PearlyBooth-Pose-${idx + 1}-${Date.now()}.jpg`,
                         `photo_${idx}`
                       )
                     }
-                    disabled={downloadingStatus[`photo_${idx}`]}
+                    title="Unduh Pose"
                     style={{
-                      width: '100%',
-                      padding: '10px 0',
-                      background: downloadedStatus[`photo_${idx}`]
-                        ? '#22c55e'
-                        : downloadingStatus[`photo_${idx}`]
-                          ? '#374151'
-                          : '#1e293b',
+                      position: 'absolute',
+                      bottom: '6px',
+                      right: '6px',
+                      background: 'rgba(26, 15, 7, 0.85)',
                       color: '#ffffff',
-                      border: 'none',
-                      borderTop: '1px solid rgba(255, 255, 255, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      borderRadius: '4px',
+                      padding: '4px 8px',
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
                       display: 'flex',
                       alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: downloadingStatus[`photo_${idx}`] ? 'wait' : 'pointer',
-                      transition: 'background-color 0.15s ease',
+                      gap: '4px',
+                      cursor: 'pointer',
                     }}
-                    title={`Download Foto Pose ${idx + 1}`}
                   >
-                    {downloadingStatus[`photo_${idx}`] ? (
-                      <Loader2 size={16} className="animate-spin" />
-                    ) : downloadedStatus[`photo_${idx}`] ? (
-                      <Check size={16} />
-                    ) : (
-                      <Download size={16} />
-                    )}
+                    <Download size={11} />
+                    <span>#{idx + 1}</span>
                   </button>
                 </div>
               ))}
@@ -704,131 +556,65 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
         )}
       </div>
 
-      {/* Universal Lightbox Zoom Modal */}
+      {/* Fullscreen Lightbox Modal */}
       <AnimatePresence>
         {zoomedItem && (
-          <div
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => setZoomedItem(null)}
             style={{
               position: 'fixed',
               inset: 0,
-              zIndex: 999999,
-              background: 'rgba(15, 23, 42, 0.94)',
-              backdropFilter: 'blur(10px)',
+              zIndex: 99999,
+              background: 'rgba(0, 0, 0, 0.92)',
+              backdropFilter: 'blur(8px)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '16px',
+              padding: '20px',
+              boxSizing: 'border-box',
             }}
-            onClick={() => setZoomedItem(null)}
           >
-            {/* Close Button */}
             <button
-              type="button"
               onClick={() => setZoomedItem(null)}
               style={{
                 position: 'absolute',
-                top: '18px',
+                top: '20px',
                 right: '20px',
-                background: 'rgba(255, 255, 255, 0.2)',
-                border: '1.5px solid rgba(255, 255, 255, 0.4)',
+                background: '#ffffff',
+                border: 'none',
                 borderRadius: '50%',
-                width: '42px',
-                height: '42px',
+                width: '40px',
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#ffffff',
                 cursor: 'pointer',
-                zIndex: 10,
+                color: '#1a0f07',
+                zIndex: 100000,
               }}
             >
               <X size={22} />
             </button>
 
-            {/* Enlarged Image */}
-            <motion.div
-              initial={{ scale: 0.92, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.92, opacity: 0 }}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={zoomedItem.url}
+              alt={zoomedItem.title}
               style={{
-                maxWidth: '94vw',
-                maxHeight: '76vh',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                maxWidth: '90vw',
+                maxHeight: '86vh',
+                objectFit: 'contain',
+                borderRadius: '8px',
+                border: '3px solid rgba(255, 255, 255, 0.25)',
               }}
               onClick={(e) => e.stopPropagation()}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={zoomedItem.url}
-                alt={zoomedItem.title}
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '76vh',
-                  objectFit: 'contain',
-                  borderRadius: '12px',
-                  boxShadow: '0 20px 60px rgba(0, 0, 0, 0.8)',
-                }}
-              />
-            </motion.div>
-
-            {/* Action Bar in Lightbox Modal */}
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                marginTop: '16px',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: '8px',
-                zIndex: 10,
-              }}
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  handleDownloadFile(zoomedItem.url, zoomedItem.filename, 'zoom_item')
-                }
-                style={{
-                  background: downloadedStatus['zoom_item'] ? '#22c55e' : '#4b5563',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '999px',
-                  padding: '10px 24px',
-                  fontWeight: 800,
-                  fontSize: '0.92rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  cursor: 'pointer',
-                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.4)',
-                }}
-              >
-                {downloadingStatus['zoom_item'] ? (
-                  <>
-                    <Loader2 size={16} className="animate-spin" />
-                    <span>Menyimpan...</span>
-                  </>
-                ) : downloadedStatus['zoom_item'] ? (
-                  <>
-                    <Check size={16} />
-                    <span>Tersimpan di Perangkat!</span>
-                  </>
-                ) : (
-                  <>
-                    <Download size={16} />
-                    <span>Download {zoomedItem.title}</span>
-                  </>
-                )}
-              </button>
-
-              <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>
-                💡 Tekan & tahan gambar di atas untuk simpan langsung ke galeri HP
-              </span>
-            </div>
-          </div>
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </div>
