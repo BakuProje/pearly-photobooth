@@ -117,7 +117,7 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          background: 'rgba(15, 23, 42, 0.82)',
+          background: 'rgba(26, 15, 7, 0.85)',
           backdropFilter: 'blur(8px)',
           display: 'flex',
           alignItems: 'center',
@@ -131,63 +131,67 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
           exit={{ opacity: 0, scale: 0.92, y: 15 }}
           transition={{ duration: 0.22, ease: 'easeOut' }}
           style={{
-            background: '#ffffff',
-            borderRadius: '24px',
-            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.35)',
-            border: '1px solid #e2e8f0',
+            background: 'linear-gradient(135deg, #fdfbf7 0%, #f4ebd9 100%)',
+            borderRadius: '20px',
+            boxShadow: '0 25px 60px rgba(0, 0, 0, 0.5), inset 0 0 20px rgba(61, 38, 22, 0.08)',
+            border: '3px solid #3d2616',
             width: '100%',
-            maxWidth: '440px',
+            maxWidth: '450px',
             overflow: 'hidden',
             display: 'flex',
             flexDirection: 'column',
           }}
         >
-          {/* Modal Header */}
+          {/* Vintage Modal Header */}
           <div
             style={{
-              background: permissionStatus === 'granted' ? '#166534' : '#1e293b',
+              background: permissionStatus === 'granted' ? '#1b4332' : '#2d180a',
               padding: '18px 22px',
-              borderBottom: '1px solid #e2e8f0',
+              borderBottom: '2px solid #543720',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'space-between',
               transition: 'background 0.3s ease',
-              color: '#ffffff',
+              color: '#fdf7ee',
             }}
           >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
               <div
                 style={{
-                  background: 'rgba(255, 255, 255, 0.15)',
-                  border: '1px solid rgba(255, 255, 255, 0.25)',
+                  background: 'rgba(255, 215, 154, 0.15)',
+                  border: '1.5px solid rgba(255, 215, 154, 0.4)',
                   borderRadius: '12px',
-                  width: '40px',
-                  height: '40px',
+                  width: '44px',
+                  height: '44px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#ffffff',
+                  color: '#ffd79a',
                 }}
               >
                 {permissionStatus === 'granted' ? (
-                  <CheckCircle2 size={22} color="#ffffff" strokeWidth={2.5} />
+                  <CheckCircle2 size={24} color="#86efac" strokeWidth={2.5} />
                 ) : (
-                  <Camera size={22} color="#ffffff" strokeWidth={2.5} />
+                  <Camera size={24} color="#ffd79a" strokeWidth={2.2} />
                 )}
               </div>
               <div>
                 <h3
+                  className="font-vintage-title"
                   style={{
                     margin: 0,
-                    fontSize: '1.05rem',
-                    fontWeight: 900,
-                    color: '#ffffff',
-                    letterSpacing: '0.3px',
+                    fontSize: '1.45rem',
+                    color: '#ffd79a',
+                    letterSpacing: '0.8px',
+                    lineHeight: 1.1,
                   }}
                 >
                   {permissionStatus === 'granted' ? 'Kamera Aktif!' : 'Aktifkan Kamera'}
                 </h3>
-                <span style={{ fontSize: '0.76rem', color: '#94a3b8', fontWeight: 600 }}>
+                <span
+                  className="font-vintage-serif"
+                  style={{ fontSize: '0.84rem', color: '#ebd7bc', fontWeight: 600 }}
+                >
                   Pearly PhotoBooth 📸
                 </span>
               </div>
@@ -200,9 +204,9 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
               <div
                 style={{
                   padding: '18px',
-                  background: 'rgba(34, 197, 94, 0.1)',
-                  border: '1px solid #86efac',
-                  borderRadius: '16px',
+                  background: 'rgba(46, 125, 50, 0.12)',
+                  border: '1.5px solid #2e7d32',
+                  borderRadius: '14px',
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
@@ -215,19 +219,22 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                     width: '48px',
                     height: '48px',
                     borderRadius: '50%',
-                    background: '#22c55e',
+                    background: '#2e7d32',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     color: '#ffffff',
                   }}
                 >
-                  <CheckCircle2 size={26} strokeWidth={3} />
+                  <CheckCircle2 size={28} strokeWidth={3} />
                 </div>
-                <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 900, color: '#166534' }}>
+                <h4
+                  className="font-vintage-serif"
+                  style={{ margin: 0, fontSize: '1.15rem', fontWeight: 800, color: '#1b4332' }}
+                >
                   Izin Kamera Berhasil Diberikan! 🎉
                 </h4>
-                <p style={{ margin: 0, fontSize: '0.84rem', fontWeight: 600, color: '#15803d' }}>
+                <p style={{ margin: 0, fontSize: '0.88rem', fontWeight: 600, color: '#2d180a', lineHeight: 1.4 }}>
                   Kamu sekarang bisa langsung foto estetik di Pearly PhotoBooth tanpa hambatan.
                 </p>
               </div>
@@ -236,13 +243,13 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                 <p
                   style={{
                     margin: 0,
-                    fontSize: '0.9rem',
-                    color: '#334155',
+                    fontSize: '0.92rem',
+                    color: '#3d2616',
                     fontWeight: 600,
                     lineHeight: '1.5',
                   }}
                 >
-                  Pearly PhotoBooth memerlukan <b>izin kamera</b> agar kamu bisa mengambil foto langsung di booth tanpa hambatan.
+                  Pearly PhotoBooth memerlukan <b>izin kamera</b> agar kamu bisa mengambil foto langsung di booth dengan tampilan live.
                 </p>
 
                 <div
@@ -250,25 +257,25 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                     display: 'flex',
                     flexDirection: 'column',
                     gap: '10px',
-                    background: '#f8fafc',
+                    background: 'rgba(237, 222, 199, 0.65)',
                     padding: '14px 16px',
-                    borderRadius: '16px',
-                    border: '1px solid #e2e8f0',
+                    borderRadius: '14px',
+                    border: '1.5px solid #c4a480',
                   }}
                 >
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', lineHeight: 1.4 }}>
-                    • Ambil pose & countdown otomatis live
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#3d2616', lineHeight: 1.4 }}>
+                    ✦ Ambil pose & countdown otomatis live
                   </div>
-                  <div style={{ fontSize: '0.85rem', fontWeight: 700, color: '#334155', lineHeight: 1.4 }}>
-                    • 100% Aman & Privat (Kamera hanya di browser kamu)
+                  <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#3d2616', lineHeight: 1.4 }}>
+                    ✦ 100% Aman & Privat (Kamera hanya di browser kamu)
                   </div>
                 </div>
 
                 {errorMessage && (
                   <div
                     style={{
-                      background: '#fef2f2',
-                      border: '1px solid #fecaca',
+                      background: '#fff1f2',
+                      border: '1.5px solid #fda4af',
                       borderRadius: '12px',
                       padding: '10px 14px',
                       display: 'flex',
@@ -276,8 +283,8 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                       alignItems: 'flex-start',
                     }}
                   >
-                    <AlertCircle size={18} color="#ef4444" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <div style={{ fontSize: '0.8rem', color: '#991b1b', fontWeight: 700, lineHeight: '1.4' }}>
+                    <AlertCircle size={18} color="#e11d48" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <div style={{ fontSize: '0.82rem', color: '#9f1239', fontWeight: 700, lineHeight: '1.4' }}>
                       {errorMessage}
                     </div>
                   </div>
@@ -292,33 +299,33 @@ export const CameraPermissionModal: React.FC<CameraPermissionModalProps> = ({
                   type="button"
                   onClick={handleRequestCamera}
                   disabled={isRequesting}
-                  className="btn-pill-dark"
                   style={{
                     width: '100%',
                     padding: '14px 20px',
-                    background: '#1e293b',
-                    color: '#ffffff',
+                    background: '#2d180a',
+                    color: '#ffd79a',
                     borderRadius: '999px',
                     fontWeight: 800,
-                    fontSize: '0.96rem',
+                    fontSize: '1rem',
+                    letterSpacing: '0.5px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: '8px',
+                    gap: '10px',
                     cursor: isRequesting ? 'wait' : 'pointer',
-                    boxShadow: '0 6px 18px rgba(30, 41, 59, 0.25)',
-                    border: 'none',
+                    boxShadow: '0 6px 18px rgba(45, 24, 10, 0.45)',
+                    border: '2px solid #ffd79a',
                     transition: 'all 0.15s ease',
                   }}
                 >
                   {isRequesting ? (
                     <>
-                      <RefreshCw size={18} className="animate-spin" />
+                      <RefreshCw size={19} className="animate-spin" />
                       <span>Meminta Izin Browser...</span>
                     </>
                   ) : (
                     <>
-                      <Camera size={19} strokeWidth={2.5} />
+                      <Camera size={20} strokeWidth={2.5} />
                       <span>{permissionStatus === 'denied' ? 'Coba Izinkan Kamera Lagi' : 'Izinkan Kamera Sekarang'}</span>
                     </>
                   )}

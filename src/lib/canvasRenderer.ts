@@ -821,4 +821,242 @@ export async function generate4RDownloadBlob(
   });
 }
 
+// =========================================================================
+// 2R Photo Print Engine (2.5 x 3.5 inches / 63.5 x 88.9 mm @ 300 DPI = 750 x 1050 px)
+// =========================================================================
+export interface Print2ROptions {
+  layoutMode: 'wallet-single' | 'twin-2in1' | 'grid-4in1' | 'full-bleed';
+  bgColor?: string; // '#ffffff', '#000000', or '#fdf7ee'
+  showCutGuides?: boolean;
+  orientation?: 'portrait' | 'landscape';
+}
+
+/**
+ * Renders a high-resolution 2R photo sheet (2.5x3.5 inches @ 300 DPI = 750 x 1050 px,
+ * or 2R Wallet layouts on 4R paper 1200 x 1800 px).
+ */
+export async function render2RPrintCanvas(
+  photos: string[],
+  config: PhotoBoothConfig,
+  options: Print2ROptions = { layoutMode: 'wallet-single', bgColor: '#ffffff', showCutGuides: true, orientation: 'portrait' }
+): Promise<HTMLCanvasElement> {
+  const { layoutMode = 'wallet-single', bgColor = '#ffffff', showCutGuides = true } = options;
+
+  // 2R Native @ 300 DPI: 2.5 inches x 3.5 inches = 750 x 1050 px
+  // When printed on standard 4R paper: 1200 x 1800 px
+  const isMultiOn4R = layoutMode === 'twin-2in1' || layoutMode === 'grid-4in1';
+  const isLandscape = options.orientation === 'landscape';
+
+  const paperW = isMultiOn4R ? (isLandscape ? 1800 : 1200) : (isLandscape ? 1050 : 750);
+  const paperH = isMultiOn4R ? (isLandscape ? 1200 : 1800) : (isLandscape ? 750 : 1050);
+
+  const canvas = document.createElement('canvas');
+  canvas.width = paperW;
+  canvas.height = paperH;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) throw new Error('Failed to get 2D canvas context for 2R print');
+
+  // Fill background
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, paperW, paperH);
+
+  // Render the core photostrip in high quality (1050px)
+  const stripCanvas = await renderPhotoStripCanvas(photos, config, 1050);
+  const stripW = stripCanvas.width;
+  const stripH = stripCanvas.height;
+  const stripAspect = stripW / stripH;
+
+  if (layoutMode === 'twin-2in1') {
+    // 2x 2R Photos side-by-side on 4R paper (1200 x 1800 px)
+    const halfW = paperW / 2;
+    const halfH = paperH;
+    const margin = 24;
+
+    const availW = halfW - margin * 2;
+    const availH = halfH - margin * 2;
+    const availAspect = availW / availH;
+
+    let finalW = availW;
+    let finalH = availH;
+
+    if (stripAspect > availAspect) {
+      finalW = availW;
+      finalH = availW / stripAspect;
+    } else {
+      finalH = availH;
+      finalW = availH * stripAspect;
+    }
+
+    // Left 2R
+    const leftX = (halfW - finalW) / 2;
+    const leftY = (halfH - finalH) / 2;
+    ctx.drawImage(stripCanvas, leftX, leftY, finalW, finalH);
+
+    // Right 2R
+    const rightX = halfW + (halfW - finalW) / 2;
+    const rightY = (halfH - finalH) / 2;
+    ctx.drawImage(stripCanvas, rightX, rightY, finalW, finalH);
+
+    // Draw Cut Guide Line
+    if (showCutGuides) {
+      const isDark = bgColor === '#000000' || bgColor === '#111827';
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+      ctx.beginPath();
+      ctx.moveTo(halfW, 0);
+      ctx.lineTo(halfW, paperH);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+      ctx.fillStyle = isDark ? '#ffffff' : '#475569';
+      ctx.font = 'bold 15px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      ctx.fillText('✂ POTONG DISINI (2R WALLET CUT)', halfW, 10);
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('✂ POTONG DISINI (2R WALLET CUT)', halfW, paperH - 10);
+      ctx.restore();
+    }
+  } else if (layoutMode === 'grid-4in1') {
+    // 4x 2R Photos (2x2 Grid) on 4R paper (1200 x 1800 px)
+    const cellW = paperW / 2;
+    const cellH = paperH / 2;
+    const margin = 16;
+
+    const availW = cellW - margin * 2;
+    const availH = cellH - margin * 2;
+    const availAspect = availW / availH;
+
+    let finalW = availW;
+    let finalH = availH;
+
+    if (stripAspect > availAspect) {
+      finalW = availW;
+      finalH = availW / stripAspect;
+    } else {
+      finalH = availH;
+      finalW = availH * stripAspect;
+    }
+
+    // 4 cells (0,0), (1,0), (0,1), (1,1)
+    for (let row = 0; row < 2; row++) {
+      for (let col = 0; col < 2; col++) {
+        const cx = col * cellW + (cellW - finalW) / 2;
+        const cy = row * cellH + (cellH - finalH) / 2;
+        ctx.drawImage(stripCanvas, cx, cy, finalW, finalH);
+      }
+    }
+
+    if (showCutGuides) {
+      const isDark = bgColor === '#000000' || bgColor === '#111827';
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.45)' : 'rgba(0, 0, 0, 0.35)';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([8, 8]);
+
+      // Vertical center line
+      ctx.beginPath();
+      ctx.moveTo(cellW, 0);
+      ctx.lineTo(cellW, paperH);
+      ctx.stroke();
+
+      // Horizontal center line
+      ctx.beginPath();
+      ctx.moveTo(0, cellH);
+      ctx.lineTo(paperW, cellH);
+      ctx.stroke();
+
+      ctx.restore();
+    }
+  } else if (layoutMode === 'full-bleed') {
+    // Full bleed on 2R (750 x 1050 px)
+    const paperAspect = paperW / paperH;
+    let drawW = paperW;
+    let drawH = paperH;
+    let drawX = 0;
+    let drawY = 0;
+
+    if (stripAspect > paperAspect) {
+      drawW = paperH * stripAspect;
+      drawX = (paperW - drawW) / 2;
+    } else {
+      drawH = paperW / stripAspect;
+      drawY = (paperH - drawH) / 2;
+    }
+    ctx.drawImage(stripCanvas, drawX, drawY, drawW, drawH);
+  } else {
+    // 'wallet-single' (Centered with standard border)
+    const margin = 20;
+    const availW = paperW - margin * 2;
+    const availH = paperH - margin * 2;
+    const availAspect = availW / availH;
+
+    let finalW = availW;
+    let finalH = availH;
+
+    if (stripAspect > availAspect) {
+      finalW = availW;
+      finalH = availW / stripAspect;
+    } else {
+      finalH = availH;
+      finalW = availH * stripAspect;
+    }
+
+    const drawX = (paperW - finalW) / 2;
+    const drawY = (paperH - finalH) / 2;
+
+    ctx.drawImage(stripCanvas, drawX, drawY, finalW, finalH);
+
+    if (showCutGuides) {
+      const isDark = bgColor === '#000000' || bgColor === '#111827';
+      ctx.save();
+      ctx.strokeStyle = isDark ? 'rgba(255, 255, 255, 0.35)' : 'rgba(0, 0, 0, 0.25)';
+      ctx.lineWidth = 1.5;
+      const guideLen = 16;
+      // Top-left
+      ctx.beginPath();
+      ctx.moveTo(drawX - 4, drawY); ctx.lineTo(drawX - 4 - guideLen, drawY);
+      ctx.moveTo(drawX, drawY - 4); ctx.lineTo(drawX, drawY - 4 - guideLen);
+      // Top-right
+      ctx.beginPath();
+      ctx.moveTo(drawX + finalW + 4, drawY); ctx.lineTo(drawX + finalW + 4 + guideLen, drawY);
+      ctx.moveTo(drawX + finalW, drawY - 4); ctx.lineTo(drawX + finalW, drawY - 4 - guideLen);
+      // Bottom-left
+      ctx.beginPath();
+      ctx.moveTo(drawX - 4, drawY + finalH); ctx.lineTo(drawX - 4 - guideLen, drawY + finalH);
+      ctx.moveTo(drawX, drawY + finalH + 4); ctx.lineTo(drawX, drawY + finalH + 4 + guideLen);
+      // Bottom-right
+      ctx.beginPath();
+      ctx.moveTo(drawX + finalW + 4, drawY + finalH); ctx.lineTo(drawX + finalW + 4 + guideLen, drawY + finalH);
+      ctx.moveTo(drawX + finalW, drawY + finalH + 4); ctx.lineTo(drawX + finalW, drawY + finalH + 4 + guideLen);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  return canvas;
+}
+
+export async function generate2RDownloadBlob(
+  photos: string[],
+  config: PhotoBoothConfig,
+  options: Print2ROptions = { layoutMode: 'wallet-single', bgColor: '#ffffff', showCutGuides: true },
+  format: 'image/png' | 'image/jpeg' = 'image/png'
+): Promise<Blob> {
+  const canvas = await render2RPrintCanvas(photos, config, options);
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('2R canvas blob generation failed'));
+      },
+      format,
+      0.95
+    );
+  });
+}
+
+
 

@@ -58,7 +58,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   };
 
   const selectedTemplate =
-    templatesList.find((t) => t.id === selectedTemplateId) || templatesList[0] || null;
+    templatesList.find((t) => t.id === selectedTemplateId) || null;
 
   return (
     <div
@@ -380,12 +380,20 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         {/* Vintage Banner "Select" Button */}
         <button
           type="button"
-          onClick={() => onStartSession('camera')}
+          onClick={() => {
+            if (!selectedTemplate) {
+              alert('Silakan pilih salah satu frame terlebih dahulu!');
+              return;
+            }
+            onStartSession('camera');
+          }}
           className="btn-vintage-tag"
           style={{
             minWidth: '150px',
             fontSize: '1.65rem',
             padding: '9px 46px 9px 30px',
+            opacity: selectedTemplate ? 1 : 0.6,
+            cursor: selectedTemplate ? 'pointer' : 'not-allowed',
           }}
         >
           Select

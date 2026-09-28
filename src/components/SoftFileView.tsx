@@ -12,6 +12,8 @@ import {
   Check,
   Loader2,
   Sparkles,
+  ArrowLeft,
+  RotateCcw,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -20,7 +22,7 @@ interface SoftFileViewProps {
   onStartNewSession?: () => void;
 }
 
-export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
+export const SoftFileView: React.FC<SoftFileViewProps> = ({ session, onStartNewSession }) => {
   const [zoomedItem, setZoomedItem] = useState<{
     url: string;
     title: string;
@@ -127,7 +129,51 @@ export const SoftFileView: React.FC<SoftFileViewProps> = ({ session }) => {
         boxSizing: 'border-box',
       }}
     >
-      {/* Top Header */}
+      {/* Top Header Row with Kembali Button */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '520px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          marginBottom: '14px',
+        }}
+      >
+        <button
+          type="button"
+          onClick={() => {
+            if (onStartNewSession) {
+              onStartNewSession();
+            } else if (typeof window !== 'undefined') {
+              window.location.href = window.location.pathname;
+            }
+          }}
+          style={{
+            background: 'rgba(235, 218, 195, 0.95)',
+            border: '2px solid #3d2616',
+            borderRadius: '999px',
+            padding: '7px 16px',
+            color: '#1a0f07',
+            fontSize: '0.9rem',
+            fontWeight: 800,
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            boxShadow: '0 3px 10px rgba(45, 25, 12, 0.2)',
+            fontFamily: 'serif',
+            transition: 'all 0.15s ease',
+          }}
+        >
+          <ArrowLeft size={16} />
+          <span>Kembali</span>
+        </button>
+
+        <div style={{ width: '40px' }} />
+      </div>
+
+      {/* Top Title Banner */}
       <div
         style={{
           width: '100%',

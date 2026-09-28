@@ -249,7 +249,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
       )}
 
-      {/* Countdown Display Centered */}
+      {/* Countdown Display Centered with Photo Counter */}
       <AnimatePresence>
         {countdownValue !== null && (
           <div
@@ -262,6 +262,7 @@ export const CameraView: React.FC<CameraViewProps> = ({
               justifyContent: 'center',
               zIndex: 35,
               pointerEvents: 'none',
+              gap: '6px',
             }}
           >
             <motion.div
@@ -275,8 +276,28 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
+                gap: '4px',
               }}
             >
+              {/* Pill Penanda Foto keberapa tepat di atas detik countdown */}
+              <div
+                style={{
+                  background: 'rgba(26, 15, 7, 0.85)',
+                  backdropFilter: 'blur(8px)',
+                  color: '#ffd79a',
+                  padding: '6px 20px',
+                  borderRadius: '999px',
+                  border: '1.5px solid rgba(255, 215, 154, 0.5)',
+                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.55)',
+                  fontSize: 'clamp(1.05rem, 3.2vw, 1.45rem)',
+                  fontWeight: 800,
+                  letterSpacing: '0.6px',
+                  fontFamily: 'serif',
+                }}
+              >
+                📸 Foto {currentShotIndex + 1} dari {totalRequired}
+              </div>
+
               <div
                 className="font-gothic"
                 style={{

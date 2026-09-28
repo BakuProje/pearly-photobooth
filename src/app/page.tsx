@@ -26,7 +26,7 @@ import {
 import { getTemplateById } from '@/lib/templateManager';
 
 const INITIAL_CONFIG: PhotoBoothConfig = {
-  selectedTemplateId: 'template-1',
+  selectedTemplateId: '',
   filter: 'normal',
   headerText: 'PEARLY PHOTOBOOTH',
   footerText: 'MEMORIES • 2026',
@@ -185,10 +185,10 @@ export default function Home() {
 
   const handleRetakeNewSession = () => {
     setPhotos([]);
-    setConfig((prev) => ({
+    setConfig({
       ...INITIAL_CONFIG,
-      selectedTemplateId: prev.selectedTemplateId || 'template-1',
-    }));
+      selectedTemplateId: '',
+    });
     setRetakeSlotIndex(null);
     setIsScanView(false);
     setIsViewingSavedSession(false);

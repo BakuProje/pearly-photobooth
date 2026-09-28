@@ -19,6 +19,8 @@ import { createAnimatedGif } from '@/lib/gifGenerator';
 import { generateQrCodeDataUrl } from '@/lib/qrCode';
 import { downloadMediaFile } from '@/lib/downloadHelper';
 import { Print4RModal } from './Print4RModal';
+import { Print2RModal } from './Print2RModal';
+import { PrintChooserModal } from './PrintChooserModal';
 import {
   Printer,
   Download,
@@ -72,6 +74,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
   const [qrCodeUrl, setQrCodeUrl] = useState<string>('');
   const [publicScanUrl, setPublicScanUrl] = useState<string>('');
   const [isPrint4RModalOpen, setIsPrint4RModalOpen] = useState<boolean>(false);
+  const [isPrint2RModalOpen, setIsPrint2RModalOpen] = useState<boolean>(false);
+  const [isPrintChooserOpen, setIsPrintChooserOpen] = useState<boolean>(false);
   const [isRendering, setIsRendering] = useState<boolean>(false);
   const [isGifGenerating, setIsGifGenerating] = useState<boolean>(false);
   const [activeFrameIndex, setActiveFrameIndex] = useState<number>(0);
@@ -857,7 +861,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
             >
               {FILTERS.map((flt) => {
                 const isSelected = currentConfig.filter === flt.id;
-                const samplePrototype = basePhotostripUrl || photostripUrl || currentPhotos[0] || currentTemplate.imageSrc;
+                const sampleSinglePhoto = currentPhotos[0] || currentPhotos[1] || currentPhotos[2] || photostripUrl || currentTemplate.imageSrc;
 
                 return (
                   <motion.div
@@ -883,7 +887,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                       transition: 'all 0.2s ease',
                     }}
                   >
-                    {/* Live Filter Preview Image */}
+                    {/* Live Filter Preview Image (Single Photo with Cover) */}
                     <div
                       style={{
                         flex: 1,
@@ -894,21 +898,19 @@ export const ResultView: React.FC<ResultViewProps> = ({
                         alignItems: 'center',
                         justifyContent: 'center',
                         overflow: 'hidden',
-                        padding: '4px',
                       }}
                     >
-                      {samplePrototype && (
+                      {sampleSinglePhoto && (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img
-                          src={samplePrototype}
+                          src={sampleSinglePhoto}
                           alt={flt.name}
                           style={{
-                            maxWidth: '100%',
-                            maxHeight: '100%',
-                            objectFit: 'contain',
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover',
                             filter: flt.cssFilter,
                             pointerEvents: 'none',
-                            borderRadius: '2px',
                           }}
                         />
                       )}
@@ -1276,8 +1278,20 @@ export const ResultView: React.FC<ResultViewProps> = ({
         position: 'relative',
       }}
     >
-      {/* Top Header: "Scan you barcode !" as in Gambar 3 */}
-      <div style={{ textAlign: 'center', margin: '4px 0 6px 0', flexShrink: 0 }}>
+      {/* Top Header Row with "Sesi Baru" Button */}
+      <div
+        style={{
+          width: '100%',
+          maxWidth: '1240px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexShrink: 0,
+          margin: '4px 0 6px 0',
+        }}
+      >
+        <div style={{ width: '130px' }} />
+
         <h1
           className="font-gothic"
           style={{
@@ -1288,10 +1302,37 @@ export const ResultView: React.FC<ResultViewProps> = ({
             lineHeight: 1.1,
             margin: 0,
             textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
+            textAlign: 'center',
           }}
         >
           Scan you barcode !
         </h1>
+
+        {/* Sesi Baru Button */}
+        <button
+          type="button"
+          onClick={onRetakeNewSession}
+          style={{
+            background: 'rgba(235, 218, 195, 0.95)',
+            border: '2px solid #3d2616',
+            borderRadius: '999px',
+            padding: '7px 20px',
+            fontSize: '0.98rem',
+            fontWeight: 800,
+            color: '#1a0f07',
+            cursor: 'pointer',
+            boxShadow: '0 4px 14px rgba(45, 25, 12, 0.22)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '6px',
+            fontFamily: 'serif',
+            transition: 'all 0.15s ease',
+          }}
+          title="Mulai sesi foto baru"
+        >
+          <RotateCcw size={15} />
+          <span>Sesi Baru</span>
+        </button>
       </div>
 
       {/* Center QR Code Container (Logo Pearly Booth di Tengah) */}
@@ -1378,37 +1419,19 @@ export const ResultView: React.FC<ResultViewProps> = ({
           Thank You!
         </div>
 
-        {/* Bottom Actions Row: Print & Print 4R Buttons (Right) */}
+        {/* Bottom Actions Row: Single Clean Print Button (Right) */}
         <div
           style={{
             width: '100%',
             display: 'flex',
             justifyContent: 'flex-end',
             alignItems: 'center',
-            gap: '14px',
           }}
         >
-          {/* Gothic "Print 4R" Tag Button */}
+          {/* Gothic "Print" Tag Button - Opens Print Chooser Modal */}
           <button
             type="button"
-            onClick={() => setIsPrint4RModalOpen(true)}
-            className="btn-vintage-tag"
-            style={{
-              minWidth: '150px',
-              fontSize: '1.65rem',
-              padding: '10px 42px 10px 28px',
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            Print 4R
-          </button>
-
-          {/* Gothic "Print" Tag Button (Text only, no arrow) */}
-          <button
-            type="button"
-            onClick={handlePrint}
+            onClick={() => setIsPrintChooserOpen(true)}
             className="btn-vintage-tag"
             style={{
               minWidth: '150px',
@@ -1424,7 +1447,24 @@ export const ResultView: React.FC<ResultViewProps> = ({
         </div>
       </div>
 
-      {/* Print 4R Modal if needed */}
+      {/* Print Chooser Modal (Popup Pilihan Cetak: Biasa, 4R, 2R) */}
+      <PrintChooserModal
+        isOpen={isPrintChooserOpen}
+        onClose={() => setIsPrintChooserOpen(false)}
+        onSelectPrintStandard={handlePrint}
+        onSelectPrint4R={() => setIsPrint4RModalOpen(true)}
+        onSelectPrint2R={() => setIsPrint2RModalOpen(true)}
+      />
+
+      {/* Print 2R Modal */}
+      <Print2RModal
+        isOpen={isPrint2RModalOpen}
+        onClose={() => setIsPrint2RModalOpen(false)}
+        photos={currentPhotos}
+        config={currentConfig}
+      />
+
+      {/* Print 4R Modal */}
       <Print4RModal
         isOpen={isPrint4RModalOpen}
         onClose={() => setIsPrint4RModalOpen(false)}
