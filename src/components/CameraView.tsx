@@ -279,23 +279,21 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 gap: '4px',
               }}
             >
-              {/* Pill Penanda Foto keberapa tepat di atas detik countdown */}
+              {/* Penanda Foto keberapa tepat di atas detik countdown (Putih, Tanpa Emoji) */}
               <div
+                className="font-vintage-serif"
                 style={{
-                  background: 'rgba(26, 15, 7, 0.85)',
-                  backdropFilter: 'blur(8px)',
-                  color: '#ffd79a',
-                  padding: '6px 20px',
-                  borderRadius: '999px',
-                  border: '1.5px solid rgba(255, 215, 154, 0.5)',
-                  boxShadow: '0 6px 20px rgba(0, 0, 0, 0.55)',
-                  fontSize: 'clamp(1.05rem, 3.2vw, 1.45rem)',
+                  color: '#ffffff',
+                  fontSize: 'clamp(1.35rem, 4vw, 2.2rem)',
                   fontWeight: 800,
-                  letterSpacing: '0.6px',
-                  fontFamily: 'serif',
+                  letterSpacing: '1.2px',
+                  textAlign: 'center',
+                  textShadow:
+                    '0 3px 18px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.8)',
+                  marginBottom: '2px',
                 }}
               >
-                📸 Foto {currentShotIndex + 1} dari {totalRequired}
+                Foto {currentShotIndex + 1} dari {totalRequired}
               </div>
 
               <div
