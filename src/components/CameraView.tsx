@@ -249,7 +249,42 @@ export const CameraView: React.FC<CameraViewProps> = ({
         </div>
       )}
 
-      {/* Countdown Display Centered with Photo Counter */}
+      {/* Gambar 3: Top-Right Photo Counter Badge (e.g. "2 / 6") */}
+      <div
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          zIndex: 40,
+          background: '#785b12',
+          backgroundImage: 'linear-gradient(135deg, #876916 0%, #694e0d 100%)',
+          color: '#fef08a',
+          padding: '8px 22px',
+          borderRadius: '14px',
+          border: '2px solid rgba(254, 240, 138, 0.4)',
+          boxShadow: '0 4px 18px rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          userSelect: 'none',
+        }}
+      >
+        <span
+          className="font-vintage-serif"
+          style={{
+            fontSize: 'clamp(1.35rem, 3.8vw, 1.95rem)',
+            fontWeight: 800,
+            letterSpacing: '2px',
+            color: '#fef08a',
+            lineHeight: 1,
+            textShadow: '0 1px 4px rgba(0, 0, 0, 0.8)',
+          }}
+        >
+          {currentShotIndex + 1} / {totalRequired}
+        </span>
+      </div>
+
+      {/* Countdown Display Centered */}
       <AnimatePresence>
         {countdownValue !== null && (
           <div
@@ -276,26 +311,8 @@ export const CameraView: React.FC<CameraViewProps> = ({
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: '4px',
               }}
             >
-              {/* Penanda Foto keberapa tepat di atas detik countdown (Putih, Tanpa Emoji) */}
-              <div
-                className="font-vintage-serif"
-                style={{
-                  color: '#ffffff',
-                  fontSize: 'clamp(1.35rem, 4vw, 2.2rem)',
-                  fontWeight: 800,
-                  letterSpacing: '1.2px',
-                  textAlign: 'center',
-                  textShadow:
-                    '0 3px 18px rgba(0, 0, 0, 0.95), 0 0 30px rgba(0, 0, 0, 0.8)',
-                  marginBottom: '2px',
-                }}
-              >
-                Foto {currentShotIndex + 1} dari {totalRequired}
-              </div>
-
               <div
                 className="font-gothic"
                 style={{

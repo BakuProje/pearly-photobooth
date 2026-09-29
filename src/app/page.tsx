@@ -192,7 +192,7 @@ export default function Home() {
     setRetakeSlotIndex(null);
     setIsScanView(false);
     setIsViewingSavedSession(false);
-    setCurrentStep('select-template');
+    setCurrentStep('welcome');
   };
 
   const handleSaveToGallery = React.useCallback((item: GalleryItem) => {

@@ -698,36 +698,43 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 borderRadius: '4px',
                 border: '3px solid #3d2616',
                 background: '#d5dee6',
-                padding: '3px',
+                padding: '0px',
                 maxHeight: '100%',
                 display: 'inline-flex',
                 flexDirection: 'column',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 justifyContent: 'center',
                 boxShadow: '0 6px 20px rgba(45, 25, 12, 0.25)',
                 boxSizing: 'border-box',
+                overflow: 'hidden',
               }}
             >
-              {/* White Tab "Preview" on Top Left as in Gambar 1 */}
+              {/* White Bar "Preview" on Top as in Gambar 1 */}
               <div
-                className="font-vintage-serif"
                 style={{
-                  position: 'absolute',
-                  top: '-15px',
-                  left: '-2px',
+                  width: '100%',
                   background: '#ffffff',
-                  border: '2px solid #3d2616',
-                  borderBottom: 'none',
-                  borderRadius: '4px 4px 0 0',
-                  padding: '1px 16px',
-                  fontSize: '0.92rem',
-                  fontWeight: 800,
-                  color: '#1a0f07',
-                  letterSpacing: '0.5px',
-                  zIndex: 10,
+                  borderBottom: '2.5px solid #3d2616',
+                  padding: '4px 14px',
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
                 }}
               >
-                Preview
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontStyle: 'italic',
+                    fontSize: '1.35rem',
+                    fontWeight: 700,
+                    color: '#1a0f07',
+                    letterSpacing: '0.5px',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Preview
+                </span>
               </div>
 
               {/* Photostrip Image (Full hasil Frame foto) */}
@@ -739,6 +746,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   }
                 }}
                 style={{
+                  padding: '4px',
                   maxHeight: '100%',
                   display: 'flex',
                   alignItems: 'center',
@@ -753,7 +761,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     src={photostripUrl}
                     alt="Full hasil Frame foto"
                     style={{
-                      maxHeight: 'calc(100vh - 175px)',
+                      maxHeight: 'calc(100vh - 200px)',
                       maxWidth: 'min(360px, 30vw)',
                       width: 'auto',
                       height: 'auto',
@@ -783,8 +791,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     title="Perbesar Photostrip"
                     style={{
                       position: 'absolute',
-                      top: '6px',
-                      right: '6px',
+                      top: '10px',
+                      right: '10px',
                       background: 'rgba(26, 15, 7, 0.8)',
                       backdropFilter: 'blur(4px)',
                       color: '#ffffff',
@@ -820,17 +828,17 @@ export const ResultView: React.FC<ResultViewProps> = ({
               padding: '4px 8px',
             }}
           >
-            {/* Title "Filter" as in Canva Slide 10 */}
+            {/* Title "Filter" as in Gambar 1 */}
             <h2
-              className="font-vintage-serif"
               style={{
-                fontSize: 'clamp(2rem, 4.5vw, 2.8rem)',
+                fontFamily: "'Playfair Display', Georgia, serif",
+                fontStyle: 'italic',
+                fontSize: 'clamp(2.2rem, 4.8vw, 3rem)',
                 fontWeight: 700,
                 color: '#1a0f07',
                 margin: '0 0 16px 0',
                 textAlign: 'center',
-                letterSpacing: '1px',
-                fontStyle: 'italic',
+                letterSpacing: '0.5px',
                 textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
               }}
             >
@@ -1079,36 +1087,43 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 borderRadius: '4px',
                 border: '3px solid #3d2616',
                 background: '#d5dee6',
-                padding: '3px',
+                padding: '0px',
                 maxHeight: '100%',
                 display: 'inline-flex',
                 flexDirection: 'column',
-                alignItems: 'center',
+                alignItems: 'stretch',
                 justifyContent: 'center',
                 boxShadow: '0 6px 20px rgba(45, 25, 12, 0.25)',
                 boxSizing: 'border-box',
+                overflow: 'hidden',
               }}
             >
-              {/* White Tab "Preview" */}
+              {/* White Bar "Preview" on Top as in Gambar 1 */}
               <div
-                className="font-vintage-serif"
                 style={{
-                  position: 'absolute',
-                  top: '-15px',
-                  left: '-2px',
+                  width: '100%',
                   background: '#ffffff',
-                  border: '2px solid #3d2616',
-                  borderBottom: 'none',
-                  borderRadius: '4px 4px 0 0',
-                  padding: '1px 16px',
-                  fontSize: '0.92rem',
-                  fontWeight: 800,
-                  color: '#1a0f07',
-                  letterSpacing: '0.5px',
-                  zIndex: 10,
+                  borderBottom: '2.5px solid #3d2616',
+                  padding: '4px 14px',
+                  boxSizing: 'border-box',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
                 }}
               >
-                Preview
+                <span
+                  style={{
+                    fontFamily: "'Playfair Display', Georgia, serif",
+                    fontStyle: 'italic',
+                    fontSize: '1.35rem',
+                    fontWeight: 700,
+                    color: '#1a0f07',
+                    letterSpacing: '0.5px',
+                    lineHeight: 1.1,
+                  }}
+                >
+                  Preview
+                </span>
               </div>
 
               {/* Photostrip Image (Full hasil Frame photo) */}
@@ -1120,6 +1135,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   }
                 }}
                 style={{
+                  padding: '4px',
                   maxHeight: '100%',
                   display: 'flex',
                   alignItems: 'center',
@@ -1134,7 +1150,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     src={photostripUrl}
                     alt="Full hasil Frame photo"
                     style={{
-                      maxHeight: 'calc(100vh - 175px)',
+                      maxHeight: 'calc(100vh - 200px)',
                       maxWidth: 'min(360px, 30vw)',
                       width: 'auto',
                       height: 'auto',
