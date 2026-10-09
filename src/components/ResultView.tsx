@@ -59,10 +59,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
   onOpenGallery,
   galleryCount = 0,
 }) => {
-  // 4 Steps: 'grid-review' -> 'editor-filter' (Gambar 1) -> 'final-gif' (Gambar 2) -> 'scan-barcode' (Gambar 3)
+  // 3 Steps: 'editor-filter' (Gambar 1) -> 'final-gif' (Gambar 2) -> 'scan-barcode' (Gambar 3)
   const [resultStep, setResultStep] = useState<
-    'grid-review' | 'editor-filter' | 'final-gif' | 'scan-barcode'
-  >(isScanView ? 'scan-barcode' : 'grid-review');
+    'editor-filter' | 'final-gif' | 'scan-barcode'
+  >(isScanView ? 'scan-barcode' : 'editor-filter');
 
   const [currentPhotos, setCurrentPhotos] = useState<string[]>(initialPhotos);
   const [currentConfig, setCurrentConfig] = useState<PhotoBoothConfig>(initialConfig);
@@ -84,6 +84,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
   const renderIdRef = useRef(0);
   const filterScrollRef = useRef<HTMLDivElement | null>(null);
+  const isDraggingFilterRef = useRef(false);
+  const dragStartXRef = useRef(0);
+  const dragScrollLeftRef = useRef(0);
+  const [isFilterDragging, setIsFilterDragging] = useState(false);
   const hasAutoSavedRef = useRef(false);
   const onSaveToGalleryRef = useRef(onSaveToGallery);
   onSaveToGalleryRef.current = onSaveToGallery;
@@ -92,13 +96,25 @@ export const ResultView: React.FC<ResultViewProps> = ({
   );
   const sessionCreatedAtRef = useRef<number>(Date.now());
 
-  const scrollFilters = (direction: 'left' | 'right') => {
-    if (filterScrollRef.current) {
-      filterScrollRef.current.scrollBy({
-        left: direction === 'left' ? -280 : 280,
-        behavior: 'smooth',
-      });
-    }
+  const handleFilterMouseDown = (e: React.MouseEvent) => {
+    if (!filterScrollRef.current) return;
+    isDraggingFilterRef.current = true;
+    setIsFilterDragging(true);
+    dragStartXRef.current = e.pageX - filterScrollRef.current.offsetLeft;
+    dragScrollLeftRef.current = filterScrollRef.current.scrollLeft;
+  };
+
+  const handleFilterMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingFilterRef.current || !filterScrollRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - filterScrollRef.current.offsetLeft;
+    const walk = (x - dragStartXRef.current) * 1.5;
+    filterScrollRef.current.scrollLeft = dragScrollLeftRef.current - walk;
+  };
+
+  const handleFilterMouseUp = () => {
+    isDraggingFilterRef.current = false;
+    setIsFilterDragging(false);
   };
 
   const currentTemplate: PhotoboothTemplate = getTemplateById(currentConfig.selectedTemplateId);
@@ -240,7 +256,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
 
         const scanUrl = `${baseOrigin}${window.location.pathname}?session=${sessionIdRef.current}`;
         setPublicScanUrl(scanUrl);
-        // withLogo = false (clean barcode without logo)
         generateQrCodeDataUrl(scanUrl, false).then((qr) => {
           setQrCodeUrl(qr);
         });
@@ -431,204 +446,46 @@ export const ResultView: React.FC<ResultViewProps> = ({
   );
 
   // =========================================================================
-  // VIEW 1: Gambar 5 - Grid Overview & Single Pose Retake
-  // =========================================================================
-  if (resultStep === 'grid-review') {
-    return (
-      <div
-        className="vintage-parchment-bg"
-        style={{
-          width: '100%',
-          height: '100vh',
-          maxHeight: '100vh',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 20px 14px 20px',
-          boxSizing: 'border-box',
-          overflow: 'hidden',
-        }}
-      >
-        {/* Header: "Photo Result" */}
-        <div style={{ textAlign: 'center', margin: '2px 0 6px 0', flexShrink: 0 }}>
-          <h1
-            className="font-gothic"
-            style={{
-              fontSize: 'clamp(2.2rem, 5.5vw, 3.4rem)',
-              fontWeight: 700,
-              color: '#1a0f07',
-              letterSpacing: '1px',
-              lineHeight: 1.1,
-              margin: 0,
-              textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
-            }}
-          >
-            Photo Result
-          </h1>
-        </div>
-
-        {/* Main Photo Grid (Gambar 5: 2x2 Full Photo Grid) */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '1080px',
-            flex: 1,
-            minHeight: 0,
-            display: 'grid',
-            gridTemplateColumns:
-              currentPhotos.length === 6 ? 'repeat(3, 1fr)' : 'repeat(2, 1fr)',
-            gap: '14px',
-            alignContent: 'center',
-            marginBottom: '6px',
-            overflow: 'hidden',
-          }}
-        >
-          {currentPhotos.map((photo, idx) => (
-            <motion.div
-              key={idx}
-              whileHover={{ scale: 1.015 }}
-              whileTap={{ scale: 0.985 }}
-              onClick={() => {
-                if (onRetakeSinglePhoto) {
-                  onRetakeSinglePhoto(idx);
-                }
-              }}
-              style={{
-                background: '#c5d1dc',
-                borderRadius: '4px',
-                aspectRatio: '16 / 10',
-                overflow: 'hidden',
-                position: 'relative',
-                cursor: 'pointer',
-                border: '3px solid #3d2616',
-                boxShadow: '0 4px 16px rgba(45, 25, 12, 0.25)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                maxHeight: '100%',
-              }}
-            >
-              {photo ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={photo}
-                  alt={`Hasil Foto ${idx + 1}`}
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                  }}
-                />
-              ) : (
-                <span
-                  className="font-gothic"
-                  style={{
-                    color: '#8c2415',
-                    fontSize: '1.4rem',
-                    fontWeight: 700,
-                  }}
-                >
-                  Foto {idx + 1}
-                </span>
-              )}
-
-              {/* Zoom Button in Top-Right */}
-              {photo && (
-                <button
-                  type="button"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setPreviewModalUrl(photo);
-                    setPreviewModalTitle(`Hasil Foto ${idx + 1}`);
-                  }}
-                  title="Perbesar Foto"
-                  style={{
-                    position: 'absolute',
-                    top: '8px',
-                    right: '8px',
-                    background: 'rgba(26, 15, 7, 0.8)',
-                    backdropFilter: 'blur(4px)',
-                    color: '#ffffff',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    borderRadius: '50%',
-                    width: '30px',
-                    height: '30px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    zIndex: 10,
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                  }}
-                >
-                  <Maximize2 size={14} />
-                </button>
-              )}
-
-              {/* Retake Badge Overlay */}
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: '8px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  background: 'rgba(26, 15, 7, 0.82)',
-                  color: '#fdf7ee',
-                  padding: '4px 12px',
-                  borderRadius: '999px',
-                  fontSize: '0.74rem',
-                  fontWeight: 700,
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '5px',
-                  backdropFilter: 'blur(4px)',
-                  whiteSpace: 'nowrap',
-                  boxShadow: '0 2px 6px rgba(0,0,0,0.3)',
-                }}
-              >
-                <RotateCcw size={11} />
-                <span>Foto Ulang #{idx + 1}</span>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Bottom Bar: Vintage "Select" Tag Button */}
-        <div
-          style={{
-            width: '100%',
-            maxWidth: '1080px',
-            display: 'flex',
-            justifyContent: 'flex-end',
-            alignItems: 'center',
-            flexShrink: 0,
-            paddingTop: '4px',
-          }}
-        >
-          <button
-            type="button"
-            onClick={() => setResultStep('editor-filter')}
-            className="btn-vintage-tag"
-            style={{
-              minWidth: '150px',
-              fontSize: '1.65rem',
-              padding: '9px 46px 9px 30px',
-            }}
-          >
-            Select
-          </button>
-        </div>
-
-        {renderLightboxModal()}
-      </div>
-    );
-  }
-
-  // =========================================================================
-  // VIEW 2: Gambar 1 - Photo Result (Preview & Filter Selection)
+  // VIEW 1: Gambar 1 - Photo Result (Preview Left + Individual Photos Grid Top Right + Filter Row Bottom Right)
   // =========================================================================
   if (resultStep === 'editor-filter') {
+    const getPhotoGridStyle = (count: number): React.CSSProperties => {
+      if (count <= 2) {
+        return {
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateRows: '1fr',
+        };
+      }
+      if (count <= 4) {
+        return {
+          gridTemplateColumns: 'repeat(2, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+        };
+      }
+      if (count <= 6) {
+        return {
+          gridTemplateColumns: 'repeat(3, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+        };
+      }
+      if (count <= 8) {
+        return {
+          gridTemplateColumns: 'repeat(4, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+        };
+      }
+      if (count <= 10) {
+        return {
+          gridTemplateColumns: 'repeat(5, 1fr)',
+          gridTemplateRows: 'repeat(2, 1fr)',
+        };
+      }
+      return {
+        gridTemplateColumns: 'repeat(4, 1fr)',
+        gridTemplateRows: 'repeat(3, 1fr)',
+      };
+    };
+
     return (
       <div
         className="vintage-parchment-bg"
@@ -640,21 +497,21 @@ export const ResultView: React.FC<ResultViewProps> = ({
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'space-between',
-          padding: '8px 20px 14px 20px',
+          padding: '6px 18px 10px 18px',
           boxSizing: 'border-box',
           overflow: 'hidden',
         }}
       >
         {/* Header: "Photo Result" */}
-        <div style={{ textAlign: 'center', margin: '2px 0 6px 0', flexShrink: 0 }}>
+        <div style={{ textAlign: 'center', margin: '0 0 4px 0', flexShrink: 0 }}>
           <h1
             className="font-gothic"
             style={{
-              fontSize: 'clamp(2.2rem, 5.5vw, 3.4rem)',
+              fontSize: 'clamp(2rem, 4.8vw, 3rem)',
               fontWeight: 700,
               color: '#1a0f07',
               letterSpacing: '1px',
-              lineHeight: 1.1,
+              lineHeight: 1.05,
               margin: 0,
               textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
             }}
@@ -663,7 +520,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
           </h1>
         </div>
 
-        {/* Main Content Split (Gambar 1: Left = Preview with Tab, Right = Filter Box) */}
+        {/* Main Content Split: Left (Photostrip Preview) & Right (Top Photos Grid + Bottom Filters) */}
         <div
           style={{
             width: '100%',
@@ -671,15 +528,15 @@ export const ResultView: React.FC<ResultViewProps> = ({
             flex: 1,
             minHeight: 0,
             display: 'grid',
-            gridTemplateColumns: 'minmax(240px, 340px) minmax(320px, 1fr)',
-            gap: '20px',
-            alignItems: 'center',
-            marginBottom: '4px',
+            gridTemplateColumns: 'clamp(200px, 24vw, 290px) minmax(320px, 1fr)',
+            gap: '14px',
+            alignItems: 'stretch',
+            marginBottom: '2px',
             overflow: 'hidden',
           }}
           className="result-split-container"
         >
-          {/* ================= LEFT PANEL: PREVIEW PHOTOSTRIP (Snug fit, no empty gaps) ================= */}
+          {/* ================= LEFT PANEL: PREVIEW PHOTOSTRIP ================= */}
           <div
             style={{
               height: '100%',
@@ -715,7 +572,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   width: '100%',
                   background: '#ffffff',
                   borderBottom: '2.5px solid #3d2616',
-                  padding: '4px 14px',
+                  padding: '3px 12px',
                   boxSizing: 'border-box',
                   display: 'flex',
                   alignItems: 'center',
@@ -726,7 +583,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   style={{
                     fontFamily: "'Playfair Display', Georgia, serif",
                     fontStyle: 'italic',
-                    fontSize: '1.35rem',
+                    fontSize: '1.25rem',
                     fontWeight: 700,
                     color: '#1a0f07',
                     letterSpacing: '0.5px',
@@ -737,7 +594,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 </span>
               </div>
 
-              {/* Photostrip Image (Full hasil Frame foto) */}
+              {/* Photostrip Image */}
               <div
                 onClick={() => {
                   if (photostripUrl) {
@@ -761,8 +618,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     src={photostripUrl}
                     alt="Full hasil Frame foto"
                     style={{
-                      maxHeight: 'calc(100vh - 200px)',
-                      maxWidth: 'min(360px, 30vw)',
+                      maxHeight: 'calc(100vh - 180px)',
+                      maxWidth: 'min(340px, 28vw)',
                       width: 'auto',
                       height: 'auto',
                       objectFit: 'contain',
@@ -791,15 +648,15 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     title="Perbesar Photostrip"
                     style={{
                       position: 'absolute',
-                      top: '10px',
-                      right: '10px',
+                      top: '8px',
+                      right: '8px',
                       background: 'rgba(26, 15, 7, 0.8)',
                       backdropFilter: 'blur(4px)',
                       color: '#ffffff',
                       border: '1px solid rgba(255, 255, 255, 0.3)',
                       borderRadius: '50%',
-                      width: '26px',
-                      height: '26px',
+                      width: '24px',
+                      height: '24px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -814,167 +671,332 @@ export const ResultView: React.FC<ResultViewProps> = ({
             </div>
           </div>
 
-          {/* ================= RIGHT PANEL: FILTER SELECTION (Horizontal Swipeable Row) ================= */}
+          {/* ================= RIGHT PANEL: INDIVIDUAL PHOTOS GRID (TOP) + FILTER ROW (BOTTOM) ================= */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
               height: '100%',
               minHeight: 0,
               boxSizing: 'border-box',
               overflow: 'hidden',
-              padding: '4px 8px',
+              gap: '10px',
+              padding: '0',
             }}
           >
-            {/* Title "Filter" as in Gambar 1 */}
-            <h2
-              style={{
-                fontFamily: "'Playfair Display', Georgia, serif",
-                fontStyle: 'italic',
-                fontSize: 'clamp(2.2rem, 4.8vw, 3rem)',
-                fontWeight: 700,
-                color: '#1a0f07',
-                margin: '0 0 16px 0',
-                textAlign: 'center',
-                letterSpacing: '0.5px',
-                textShadow: '0 1px 2px rgba(255, 255, 255, 0.6)',
-              }}
-            >
-              Filter
-            </h2>
-
-            {/* Horizontal Scrollable Filter Cards Row (Swipeable without buttons) */}
+            {/* Top Section: Individual Captured Photos Grid */}
             <div
-              ref={filterScrollRef}
-              onWheel={(e) => {
-                if (filterScrollRef.current) {
-                  filterScrollRef.current.scrollLeft += e.deltaY;
-                }
-              }}
               style={{
-                display: 'flex',
-                gap: '16px',
-                overflowX: 'auto',
-                overflowY: 'hidden',
-                padding: '12px 14px 18px 14px',
-                scrollBehavior: 'smooth',
-                scrollbarWidth: 'none',
-                width: '100%',
-                maxWidth: '740px',
-                alignItems: 'center',
-                boxSizing: 'border-box',
+                flex: 1,
+                minHeight: 0,
+                display: 'grid',
+                gap: '8px',
+                alignItems: 'stretch',
+                overflow: 'hidden',
+                ...getPhotoGridStyle(currentPhotos.length),
               }}
             >
-              {FILTERS.map((flt) => {
-                const isSelected = currentConfig.filter === flt.id;
-                const sampleSinglePhoto = currentPhotos[0] || currentPhotos[1] || currentPhotos[2] || photostripUrl || currentTemplate.imageSrc;
-
-                return (
-                  <motion.div
-                    key={flt.id}
-                    whileHover={{ scale: 1.04, y: -4 }}
-                    whileTap={{ scale: 0.96 }}
-                    onClick={() => handleSelectFilter(flt.id)}
-                    style={{
-                      flex: '0 0 auto',
-                      width: 'clamp(160px, 18vw, 200px)',
-                      aspectRatio: '1 / 1.25',
-                      borderRadius: '6px',
-                      background: isSelected ? '#ebd7bc' : '#3d2616',
-                      border: isSelected ? '3.5px solid #1a0f07' : '2px solid #3d2616',
-                      overflow: 'hidden',
-                      position: 'relative',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      boxShadow: isSelected
-                        ? '0 8px 24px rgba(26, 15, 7, 0.5), 0 0 10px rgba(61, 38, 22, 0.3)'
-                        : '0 4px 14px rgba(0, 0, 0, 0.25)',
-                      transition: 'all 0.2s ease',
-                    }}
-                  >
-                    {/* Live Filter Preview Image (Single Photo with Cover) */}
-                    <div
+              {currentPhotos.map((photo, idx) => (
+                <div
+                  key={idx}
+                  onClick={() => {
+                    if (onRetakeSinglePhoto) {
+                      onRetakeSinglePhoto(idx);
+                    }
+                  }}
+                  style={{
+                    background: '#241a14',
+                    borderRadius: '6px',
+                    border: '2px solid #3d2616',
+                    overflow: 'hidden',
+                    position: 'relative',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 3px 8px rgba(45, 25, 12, 0.25)',
+                    minHeight: 0,
+                    height: '100%',
+                    width: '100%',
+                  }}
+                >
+                  {photo ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={photo}
+                      alt={`Foto ${idx + 1}`}
                       style={{
-                        flex: 1,
-                        minHeight: 0,
-                        background: '#1a0f07',
-                        position: 'relative',
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                        filter: FILTERS.find((f) => f.id === currentConfig.filter)?.cssFilter || 'none',
+                      }}
+                    />
+                  ) : (
+                    <span
+                      className="font-vintage-serif"
+                      style={{ color: '#d5dee6', fontSize: '0.85rem', fontWeight: 700 }}
+                    >
+                      Pose {idx + 1}
+                    </span>
+                  )}
+
+                  {/* Zoom icon button */}
+                  {photo && (
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewModalUrl(photo);
+                        setPreviewModalTitle(`Hasil Foto ${idx + 1}`);
+                      }}
+                      title="Perbesar Foto"
+                      style={{
+                        position: 'absolute',
+                        top: '5px',
+                        right: '5px',
+                        background: 'rgba(26, 15, 7, 0.85)',
+                        color: '#ffffff',
+                        border: '1px solid rgba(255, 255, 255, 0.35)',
+                        borderRadius: '50%',
+                        width: '22px',
+                        height: '22px',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        overflow: 'hidden',
+                        cursor: 'pointer',
+                        zIndex: 10,
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.4)',
                       }}
                     >
-                      {sampleSinglePhoto && (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={sampleSinglePhoto}
-                          alt={flt.name}
-                          style={{
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover',
-                            filter: flt.cssFilter,
-                            pointerEvents: 'none',
-                          }}
-                        />
-                      )}
+                      <Maximize2 size={11} />
+                    </button>
+                  )}
 
-                      {isSelected && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            top: '6px',
-                            right: '6px',
-                            background: '#1a0f07',
-                            color: '#fdf7ee',
-                            borderRadius: '50%',
-                            width: '22px',
-                            height: '22px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            boxShadow: '0 2px 6px rgba(0,0,0,0.5)',
-                            border: '1.5px solid #ffd79a',
-                          }}
-                        >
-                          <Check size={14} strokeWidth={3} />
-                        </div>
-                      )}
-                    </div>
+                  {/* Retake badge overlay on bottom */}
+                  <div
+                    style={{
+                      position: 'absolute',
+                      bottom: '5px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      background: 'rgba(26, 15, 7, 0.9)',
+                      color: '#fdf7ee',
+                      padding: '3px 9px',
+                      borderRadius: '999px',
+                      fontSize: '0.68rem',
+                      fontWeight: 700,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      backdropFilter: 'blur(4px)',
+                      whiteSpace: 'nowrap',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                      border: '1px solid rgba(255, 255, 255, 0.2)',
+                    }}
+                  >
+                    <RotateCcw size={9} />
+                    <span>Ulang #{idx + 1}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-                    {/* Filter Name Label Banner */}
-                    <div
+            {/* Bottom Section: Clean Filter Row without Background or Arrow Buttons */}
+            <div
+              style={{
+                flexShrink: 0,
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '6px',
+                padding: '4px 0 2px 0',
+                background: 'transparent',
+                border: 'none',
+                boxShadow: 'none',
+                overflow: 'hidden',
+                boxSizing: 'border-box',
+                width: '100%',
+              }}
+            >
+              {/* Filter Section Header / Indicator */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  padding: '0 4px 2px 4px',
+                }}
+              >
+                <span
+                  className="font-vintage-serif"
+                  style={{
+                    fontSize: '0.98rem',
+                    fontWeight: 700,
+                    color: '#1a0f07',
+                    letterSpacing: '0.4px',
+                  }}
+                >
+                  Pilih Nuansa Filter Foto
+                </span>
+                <span
+                  className="font-vintage-serif"
+                  style={{
+                    fontSize: '0.78rem',
+                    color: '#3d2616',
+                    fontWeight: 700,
+                    background: 'rgba(235, 218, 195, 0.95)',
+                    padding: '2px 10px',
+                    borderRadius: '4px',
+                    border: '1.5px solid #3d2616',
+                    boxShadow: '0 1px 4px rgba(45, 25, 12, 0.15)',
+                  }}
+                >
+                  Aktif: {FILTERS.find((f) => f.id === currentConfig.filter)?.name || 'Natural'}
+                </span>
+              </div>
+
+              {/* Filter Thumbnails Carousel (Full Width, Manual Swipe / Drag) */}
+              <div
+                ref={filterScrollRef}
+                onMouseDown={handleFilterMouseDown}
+                onMouseMove={handleFilterMouseMove}
+                onMouseUp={handleFilterMouseUp}
+                onMouseLeave={handleFilterMouseUp}
+                onWheel={(e) => {
+                  if (filterScrollRef.current) {
+                    filterScrollRef.current.scrollLeft += e.deltaY;
+                  }
+                }}
+                style={{
+                  display: 'flex',
+                  gap: '10px',
+                  overflowX: 'auto',
+                  overflowY: 'hidden',
+                  padding: '4px 2px 6px 2px',
+                  scrollBehavior: 'smooth',
+                  scrollbarWidth: 'none',
+                  width: '100%',
+                  alignItems: 'center',
+                  boxSizing: 'border-box',
+                  cursor: isFilterDragging ? 'grabbing' : 'grab',
+                  userSelect: 'none',
+                  WebkitOverflowScrolling: 'touch',
+                }}
+              >
+                {FILTERS.map((flt) => {
+                  const isSelected = currentConfig.filter === flt.id;
+                  const sampleSinglePhoto =
+                    currentPhotos[0] || currentPhotos[1] || photostripUrl || '';
+
+                  return (
+                    <motion.div
+                      key={flt.id}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleSelectFilter(flt.id)}
                       style={{
-                        padding: '8px 10px',
-                        background: isSelected ? '#3d2616' : '#2b180d',
-                        color: isSelected ? '#ffd79a' : '#fdf7ee',
-                        textAlign: 'center',
-                        borderTop: '1.5px solid rgba(255, 255, 255, 0.1)',
-                        flexShrink: 0,
+                        flex: '0 0 auto',
+                        width: '92px',
+                        height: '86px',
+                        borderRadius: '6px',
+                        background: '#120b05',
+                        border: isSelected ? '2.5px solid #ffd79a' : '1.5px solid #3d2616',
+                        overflow: 'hidden',
+                        position: 'relative',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        boxShadow: isSelected
+                          ? '0 4px 14px rgba(26, 15, 7, 0.7), 0 0 10px rgba(255, 215, 154, 0.65)'
+                          : '0 2px 6px rgba(0, 0, 0, 0.3)',
+                        transition: 'all 0.18s ease',
                       }}
                     >
-                      <span
-                        className="font-vintage-serif"
+                      {/* Thumbnail Image */}
+                      <div
                         style={{
-                          fontSize: '0.95rem',
-                          fontWeight: isSelected ? 800 : 700,
-                          letterSpacing: '0.4px',
-                          whiteSpace: 'nowrap',
+                          flex: 1,
+                          minHeight: 0,
+                          background: '#120b05',
+                          position: 'relative',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
                           overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          display: 'block',
                         }}
                       >
-                        {flt.name}
-                      </span>
-                    </div>
-                  </motion.div>
-                );
-              })}
+                        {sampleSinglePhoto ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={sampleSinglePhoto}
+                            alt={flt.name}
+                            draggable={false}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover',
+                              filter: flt.cssFilter,
+                              pointerEvents: 'none',
+                            }}
+                          />
+                        ) : (
+                          <div style={{ width: '100%', height: '100%', background: '#120b05' }} />
+                        )}
+
+                        {isSelected && (
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '3px',
+                              right: '3px',
+                              background: '#ffd79a',
+                              color: '#1a0f07',
+                              borderRadius: '50%',
+                              width: '16px',
+                              height: '16px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              boxShadow: '0 2px 4px rgba(0,0,0,0.6)',
+                              border: '1px solid #1a0f07',
+                            }}
+                          >
+                            <Check size={10} strokeWidth={3} />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Filter Name */}
+                      <div
+                        style={{
+                          padding: '3px 4px',
+                          background: isSelected ? '#3d2616' : '#120b05',
+                          color: isSelected ? '#ffd79a' : '#d5c4b1',
+                          textAlign: 'center',
+                          borderTop: '1px solid rgba(255, 255, 255, 0.12)',
+                          flexShrink: 0,
+                        }}
+                      >
+                        <span
+                          className="font-vintage-serif"
+                          style={{
+                            fontSize: '0.68rem',
+                            fontWeight: isSelected ? 800 : 600,
+                            letterSpacing: '0.2px',
+                            whiteSpace: 'nowrap',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            display: 'block',
+                            lineHeight: 1.1,
+                          }}
+                        >
+                          {flt.name}
+                        </span>
+                      </div>
+                    </motion.div>
+                  );
+                })}
+              </div>
             </div>
           </div>
         </div>
@@ -999,12 +1021,12 @@ export const ResultView: React.FC<ResultViewProps> = ({
             }}
             className="btn-vintage-tag"
             style={{
-              minWidth: '150px',
-              fontSize: '1.65rem',
-              padding: '9px 46px 9px 30px',
+              minWidth: '140px',
+              fontSize: '1.45rem',
+              padding: '7px 42px 7px 26px',
             }}
           >
-            Select
+            select
           </button>
         </div>
 
@@ -1014,7 +1036,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   }
 
   // =========================================================================
-  // VIEW 3: Gambar 2 - Photo Result (Preview & Animated GIF Display)
+  // VIEW 2: Gambar 2 - Photo Result (Preview & Animated GIF Display)
   // =========================================================================
   if (resultStep === 'final-gif') {
     return (
@@ -1051,7 +1073,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
           </h1>
         </div>
 
-        {/* Main Content Split (Gambar 2: Left = Preview with Tab, Right = GIF Box) */}
+        {/* Main Content Split (Gambar 2: Left = Preview with Tab, Right = Large GIF Box) */}
         <div
           style={{
             width: '100%',
@@ -1060,7 +1082,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
             minHeight: 0,
             display: 'grid',
             gridTemplateColumns: 'minmax(240px, 340px) minmax(320px, 1fr)',
-            gap: '16px',
+            gap: '24px',
             alignItems: 'center',
             marginBottom: '4px',
             overflow: 'hidden',
@@ -1077,7 +1099,6 @@ export const ResultView: React.FC<ResultViewProps> = ({
               justifyContent: 'center',
               overflow: 'hidden',
               position: 'relative',
-              padding: '6px 0',
               boxSizing: 'border-box',
             }}
           >
@@ -1098,7 +1119,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 overflow: 'hidden',
               }}
             >
-              {/* White Bar "Preview" on Top as in Gambar 1 */}
+              {/* White Bar "Preview" on Top as in Gambar 1 & 2 */}
               <div
                 style={{
                   width: '100%',
@@ -1166,17 +1187,18 @@ export const ResultView: React.FC<ResultViewProps> = ({
             </div>
           </div>
 
-          {/* ================= RIGHT PANEL: GIF DISPLAY ================= */}
+          {/* ================= RIGHT PANEL: GIF DISPLAY (Gambar 2: Large Centered Dark Box) ================= */}
           <div
             style={{
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'center',
               alignItems: 'center',
-              padding: '6px',
               height: '100%',
-              overflow: 'hidden',
+              minHeight: 0,
               boxSizing: 'border-box',
+              overflow: 'hidden',
+              padding: '6px 12px',
             }}
           >
             <div
@@ -1184,14 +1206,18 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 position: 'relative',
                 borderRadius: '6px',
                 border: '3px solid #3d2616',
-                padding: '3px',
-                maxHeight: '100%',
-                display: 'inline-flex',
-                flexDirection: 'column',
+                background: '#4a4a4a',
+                padding: '0px',
+                maxHeight: 'calc(100vh - 200px)',
+                width: '100%',
+                maxWidth: '620px',
+                aspectRatio: '16 / 10',
+                display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 boxShadow: '0 8px 24px rgba(45, 25, 12, 0.35)',
                 boxSizing: 'border-box',
+                overflow: 'hidden',
               }}
             >
               {gifUrl ? (
@@ -1200,10 +1226,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   src={gifUrl}
                   alt="GIF Animation"
                   style={{
-                    maxHeight: 'calc(100vh - 175px)',
-                    maxWidth: 'min(520px, 45vw)',
-                    width: 'auto',
-                    height: 'auto',
+                    width: '100%',
+                    height: '100%',
                     objectFit: 'contain',
                     display: 'block',
                   }}
@@ -1214,10 +1238,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                   src={processedPhotos[activeFrameIndex]}
                   alt="GIF Frame Preview"
                   style={{
-                    maxHeight: 'calc(100vh - 175px)',
-                    maxWidth: 'min(520px, 45vw)',
-                    width: 'auto',
-                    height: 'auto',
+                    width: '100%',
+                    height: '100%',
                     objectFit: 'contain',
                     display: 'block',
                   }}
@@ -1230,10 +1252,10 @@ export const ResultView: React.FC<ResultViewProps> = ({
                     alignItems: 'center',
                     gap: '8px',
                     padding: '30px',
-                    color: '#3d2616',
+                    color: '#d5dee6',
                   }}
                 >
-                  <Loader2 size={32} className="animate-spin text-amber-900" />
+                  <Loader2 size={32} className="animate-spin text-amber-200" />
                   <span style={{ fontSize: '0.88rem', fontWeight: 700 }}>
                     Menyiapkan Animasi GIF...
                   </span>
@@ -1265,7 +1287,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
               padding: '9px 46px 9px 30px',
             }}
           >
-            Select
+            select
           </button>
         </div>
 
@@ -1275,7 +1297,7 @@ export const ResultView: React.FC<ResultViewProps> = ({
   }
 
   // =========================================================================
-  // VIEW 4: Gambar 3 - Scan Your Barcode & Print (Thank You!)
+  // VIEW 3: Gambar 3 - Scan Your Barcode & Print (Thank You!)
   // =========================================================================
   return (
     <div
@@ -1288,30 +1310,59 @@ export const ResultView: React.FC<ResultViewProps> = ({
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'space-between',
-        padding: '16px 20px 20px 20px',
+        padding: '24px 20px 20px 20px',
         boxSizing: 'border-box',
         overflow: 'hidden',
         position: 'relative',
       }}
     >
-      {/* Top Header Row with "Sesi Baru" Button */}
+      {/* Sesi Baru Button Fixed in Top Right Corner */}
+      <button
+        type="button"
+        onClick={onRetakeNewSession}
+        style={{
+          position: 'absolute',
+          top: '22px',
+          right: '24px',
+          background: 'rgba(235, 218, 195, 0.95)',
+          border: '2px solid #3d2616',
+          borderRadius: '999px',
+          padding: '7px 20px',
+          fontSize: '0.96rem',
+          fontWeight: 800,
+          color: '#1a0f07',
+          cursor: 'pointer',
+          boxShadow: '0 4px 14px rgba(45, 25, 12, 0.22)',
+          display: 'inline-flex',
+          alignItems: 'center',
+          gap: '6px',
+          fontFamily: 'serif',
+          transition: 'all 0.15s ease',
+          zIndex: 10,
+        }}
+        title="Mulai sesi foto baru"
+      >
+        <RotateCcw size={15} />
+        <span>Sesi Baru</span>
+      </button>
+
+      {/* Header: scan you barcode ! (Lowered with generous top spacing as requested) */}
       <div
         style={{
           width: '100%',
           maxWidth: '1240px',
           display: 'flex',
-          justifyContent: 'space-between',
+          justifyContent: 'center',
           alignItems: 'center',
           flexShrink: 0,
-          margin: '4px 0 6px 0',
+          marginTop: 'clamp(36px, 7.5vh, 60px)',
+          marginBottom: '6px',
         }}
       >
-        <div style={{ width: '130px' }} />
-
         <h1
           className="font-gothic"
           style={{
-            fontSize: 'clamp(2.4rem, 6.5vw, 3.8rem)',
+            fontSize: 'clamp(2.4rem, 6.2vw, 3.8rem)',
             fontWeight: 700,
             color: '#1a0f07',
             letterSpacing: '1.5px',
@@ -1321,37 +1372,11 @@ export const ResultView: React.FC<ResultViewProps> = ({
             textAlign: 'center',
           }}
         >
-          Scan you barcode !
+          scan you barcode !
         </h1>
-
-        {/* Sesi Baru Button */}
-        <button
-          type="button"
-          onClick={onRetakeNewSession}
-          style={{
-            background: 'rgba(235, 218, 195, 0.95)',
-            border: '2px solid #3d2616',
-            borderRadius: '999px',
-            padding: '7px 20px',
-            fontSize: '0.98rem',
-            fontWeight: 800,
-            color: '#1a0f07',
-            cursor: 'pointer',
-            boxShadow: '0 4px 14px rgba(45, 25, 12, 0.22)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '6px',
-            fontFamily: 'serif',
-            transition: 'all 0.15s ease',
-          }}
-          title="Mulai sesi foto baru"
-        >
-          <RotateCcw size={15} />
-          <span>Sesi Baru</span>
-        </button>
       </div>
 
-      {/* Center QR Code Container (Logo Pearly Booth di Tengah) */}
+      {/* Center QR Code Container */}
       <div
         style={{
           display: 'flex',
@@ -1365,9 +1390,9 @@ export const ResultView: React.FC<ResultViewProps> = ({
         <div
           style={{
             background: '#ffffff',
-            padding: '12px',
+            padding: '14px',
             borderRadius: '4px',
-            border: '3px solid #3d2616',
+            border: '3.5px solid #3d2616',
             boxShadow: '0 8px 30px rgba(45, 25, 12, 0.35)',
           }}
         >
@@ -1384,8 +1409,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
                 src={qrCodeUrl}
                 alt="Scan Barcode Soft File"
                 style={{
-                  width: 'min(270px, 62vw, 38vh)',
-                  height: 'min(270px, 62vw, 38vh)',
+                  width: 'min(280px, 64vw, 38vh)',
+                  height: 'min(280px, 64vw, 38vh)',
                   objectFit: 'contain',
                   display: 'block',
                 }}
@@ -1394,8 +1419,8 @@ export const ResultView: React.FC<ResultViewProps> = ({
           ) : (
             <div
               style={{
-                width: 'min(270px, 62vw, 38vh)',
-                height: 'min(270px, 62vw, 38vh)',
+                width: 'min(280px, 64vw, 38vh)',
+                height: 'min(280px, 64vw, 38vh)',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',

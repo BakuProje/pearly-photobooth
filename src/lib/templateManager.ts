@@ -216,8 +216,24 @@ export function compressImage(
   });
 }
 
+const DEFAULT_FALLBACK_TEMPLATE: PhotoboothTemplate = {
+  id: 'template-default',
+  name: 'Template 1',
+  category: 'Classic',
+  imageSrc: '',
+  requiredPhotos: 4,
+  aspectRatio: '1080 / 1620',
+  description: 'Frame Photobooth',
+  slots: [
+    { x: 5, y: 5, width: 42, height: 42, label: 'Pose 1' },
+    { x: 53, y: 5, width: 42, height: 42, label: 'Pose 2' },
+    { x: 5, y: 53, width: 42, height: 42, label: 'Pose 3' },
+    { x: 53, y: 53, width: 42, height: 42, label: 'Pose 4' },
+  ],
+};
+
 /**
- * Returns all available templates: Built-in (1-32) + Custom uploaded
+ * Returns all available templates: Built-in + Custom uploaded
  */
 export function getAllTemplates(): PhotoboothTemplate[] {
   const custom = loadCustomTemplates().filter((c) => !TEMPLATES.some((t) => t.id === c.id));
@@ -231,7 +247,8 @@ export function getTemplateById(id: string): PhotoboothTemplate {
   const all = getAllTemplates();
   const found = all.find((t) => t.id === id);
   if (found) return found;
-  return TEMPLATES[0];
+  if (all.length > 0) return all[0];
+  return DEFAULT_FALLBACK_TEMPLATE;
 }
 
 /**

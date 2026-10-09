@@ -22,7 +22,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   onSelectTemplate,
   onStartSession,
   galleryCount = 0,
-  onOpenGallery = () => {},
+  onOpenGallery = () => { },
 }) => {
   const [templatesList, setTemplatesList] = useState<PhotoboothTemplate[]>(TEMPLATES);
   const [templateToDelete, setTemplateToDelete] = useState<PhotoboothTemplate | null>(null);
@@ -52,7 +52,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     await deleteCustomTemplate(templateToDelete.id);
     refreshTemplates();
     if (selectedTemplateId === templateToDelete.id) {
-      onSelectTemplate('template-1');
+      onSelectTemplate('');
     }
     setTemplateToDelete(null);
   };
@@ -174,16 +174,47 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           ) : (
             <div
               style={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 textAlign: 'center',
-                padding: '24px',
-                color: '#4a331f',
-                fontFamily: 'serif',
-                fontStyle: 'italic',
-                fontSize: '1.25rem',
-                fontWeight: 600,
+                padding: '24px 18px',
+                boxSizing: 'border-box',
+                border: '2px dashed rgba(61, 38, 22, 0.4)',
+                borderRadius: '6px',
+                background: 'rgba(245, 238, 225, 0.5)',
+                gap: '12px',
               }}
             >
-              *No Frame Selected Yet
+
+              <div>
+                <p
+                  className="font-vintage-serif"
+                  style={{
+                    fontSize: '1.2rem',
+                    fontWeight: 700,
+                    color: '#2a170a',
+                    margin: '0 0 6px 0',
+                    letterSpacing: '0.3px',
+                  }}
+                >
+                  Pilih Frame Terlebih Dahulu
+                </p>
+                <p
+                  className="font-vintage-serif"
+                  style={{
+                    fontSize: '0.85rem',
+                    color: '#6b4423',
+                    margin: 0,
+                    lineHeight: 1.4,
+                  }}
+                >
+                  Klik salah satu template di sebelah kanan untuk melihat preview dan memulai sesi foto.
+                </p>
+              </div>
             </div>
           )}
         </div>
@@ -218,127 +249,188 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           </div>
 
           {/* 3-Column Scrollable Grid (Neat & Clean Cards) */}
-          <div
-            style={{
-              flex: 1,
-              minHeight: 0,
-              overflowY: 'auto',
-              padding: '12px 14px',
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '12px',
-              alignContent: 'start',
-            }}
-          >
-            {templatesList.map((tmpl) => {
-              const isSelected = selectedTemplate?.id === tmpl.id;
-              return (
-                <div
-                  key={tmpl.id}
-                  onClick={() => onSelectTemplate(tmpl.id)}
+          {templatesList.length === 0 ? (
+            <div
+              style={{
+                flex: 1,
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '24px',
+                textAlign: 'center',
+                gap: '14px',
+              }}
+            >
+              <div>
+                <p
+                  className="font-vintage-serif"
                   style={{
-                    position: 'relative',
-                    aspectRatio: '1 / 1.45',
-                    background: 'transparent',
-                    border: isSelected ? '3px solid #1a0f07' : '2px solid transparent',
-                    borderRadius: '6px',
-                    padding: '2px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.18s ease-out',
-                    transform: isSelected ? 'scale(1.02)' : 'scale(1)',
-                    boxShadow: isSelected
-                      ? '0 6px 16px rgba(26, 15, 7, 0.4)'
-                      : 'none',
+                    fontSize: '1.15rem',
+                    color: '#2a170a',
+                    margin: '0 0 4px 0',
+                    fontWeight: 700,
                   }}
                 >
-                  {/* Delete button if custom template */}
-                  {tmpl.isCustom && (
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setTemplateToDelete(tmpl);
-                      }}
-                      style={{
-                        position: 'absolute',
-                        top: '4px',
-                        right: '4px',
-                        width: '24px',
-                        height: '24px',
-                        borderRadius: '50%',
-                        background: '#fee2e2',
-                        border: '1.5px solid #ef4444',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer',
-                        zIndex: 10,
-                        color: '#dc2626',
-                      }}
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  )}
-
-                  {/* Selected check indicator */}
-                  {isSelected && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        top: '6px',
-                        left: '6px',
-                        width: '22px',
-                        height: '22px',
-                        borderRadius: '50%',
-                        background: '#1a0f07',
-                        color: '#ffffff',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        zIndex: 10,
-                        boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
-                        border: '1.5px solid #ffd79a',
-                      }}
-                    >
-                      <Check size={13} strokeWidth={3} />
-                    </div>
-                  )}
-
-                  {/* Frame Thumbnail (Transparent seamless on parchment) */}
+                  Belum Ada Template Frame
+                </p>
+                <p
+                  className="font-vintage-serif"
+                  style={{
+                    fontSize: '0.88rem',
+                    color: '#5c3a21',
+                    margin: 0,
+                  }}
+                >
+                  Silakan upload frame PNG / JPG baru Anda untuk memulai.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsUploadModalOpen(true)}
+                style={{
+                  background: '#3d2616',
+                  color: '#fdf7ee',
+                  border: 'none',
+                  borderRadius: '6px',
+                  padding: '9px 20px',
+                  fontSize: '0.95rem',
+                  fontFamily: 'serif',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  boxShadow: '0 4px 14px rgba(45, 25, 12, 0.35)',
+                }}
+              >
+                <Upload size={16} />
+                <span>Upload Frame Template Baru</span>
+              </button>
+            </div>
+          ) : (
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflowY: 'auto',
+                padding: '12px 14px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(3, 1fr)',
+                gap: '12px',
+                alignContent: 'start',
+              }}
+            >
+              {templatesList.map((tmpl) => {
+                const isSelected = selectedTemplate?.id === tmpl.id;
+                return (
                   <div
+                    key={tmpl.id}
+                    onClick={() => onSelectTemplate(tmpl.id)}
                     style={{
-                      width: '100%',
-                      height: '100%',
+                      position: 'relative',
+                      aspectRatio: '1 / 1.45',
+                      background: 'transparent',
+                      border: isSelected ? '3px solid #1a0f07' : '2px solid transparent',
+                      borderRadius: '6px',
+                      padding: '2px',
+                      cursor: 'pointer',
                       display: 'flex',
+                      flexDirection: 'column',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      overflow: 'hidden',
+                      transition: 'all 0.18s ease-out',
+                      transform: isSelected ? 'scale(1.02)' : 'scale(1)',
+                      boxShadow: isSelected
+                        ? '0 6px 16px rgba(26, 15, 7, 0.4)'
+                        : 'none',
                     }}
                   >
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img
-                      src={tmpl.imageSrc}
-                      alt={tmpl.name}
-                      loading="lazy"
+                    {/* Delete button if custom template */}
+                    {tmpl.isCustom && (
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setTemplateToDelete(tmpl);
+                        }}
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          width: '24px',
+                          height: '24px',
+                          borderRadius: '50%',
+                          background: '#fee2e2',
+                          border: '1.5px solid #ef4444',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          zIndex: 10,
+                          color: '#dc2626',
+                        }}
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
+
+                    {/* Selected check indicator */}
+                    {isSelected && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '6px',
+                          left: '6px',
+                          width: '22px',
+                          height: '22px',
+                          borderRadius: '50%',
+                          background: '#1a0f07',
+                          color: '#ffffff',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          zIndex: 10,
+                          boxShadow: '0 2px 6px rgba(0, 0, 0, 0.4)',
+                          border: '1.5px solid #ffd79a',
+                        }}
+                      >
+                        <Check size={13} strokeWidth={3} />
+                      </div>
+                    )}
+
+                    {/* Frame Thumbnail (Transparent seamless on parchment) */}
+                    <div
                       style={{
-                        maxWidth: '100%',
-                        maxHeight: '100%',
-                        objectFit: 'contain',
-                        pointerEvents: 'none',
-                        filter: isSelected
-                          ? 'drop-shadow(0 4px 12px rgba(26, 15, 7, 0.35))'
-                          : 'drop-shadow(0 2px 6px rgba(45, 25, 12, 0.2))',
+                        width: '100%',
+                        height: '100%',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        overflow: 'hidden',
                       }}
-                    />
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={tmpl.imageSrc}
+                        alt={tmpl.name}
+                        loading="lazy"
+                        style={{
+                          maxWidth: '100%',
+                          maxHeight: '100%',
+                          objectFit: 'contain',
+                          pointerEvents: 'none',
+                          filter: isSelected
+                            ? 'drop-shadow(0 4px 12px rgba(26, 15, 7, 0.35))'
+                            : 'drop-shadow(0 2px 6px rgba(45, 25, 12, 0.2))',
+                        }}
+                      />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 
